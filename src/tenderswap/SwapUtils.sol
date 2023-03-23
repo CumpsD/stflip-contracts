@@ -2,11 +2,12 @@
 
 // SPDX-License-Identifier: MIT
 
-import "../../@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../libs/MathUtils.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./MathUtils.sol";
 import "./LiquidityPoolToken.sol";
 
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
+
 
 library SwapUtils {
     using MathUtils for uint256;

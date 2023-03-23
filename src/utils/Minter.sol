@@ -1,8 +1,6 @@
-abstract contract stFlip {
-  function mint(address to, uint256 amount) external virtual returns (bool);
-  address public minter;
-}
-
+pragma solidity ^0.8.4;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../token/stFlip.sol";
 
 contract Minter {
     // using SafeMath for uint256;

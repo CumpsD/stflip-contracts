@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2021 Tenderize <info@tenderize.me>
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.4;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import { Multicall } from "../helpers/Multicall.sol";
-import { SelfPermit } from "../helpers/SelfPermit.sol";
+import { Multicall } from "./Multicall.sol";
+import { SelfPermit } from "./SelfPermit.sol";
 
 import "./LiquidityPoolToken.sol";
 import "./SwapUtils.sol";

@@ -1,12 +1,12 @@
-pragma solidity 0.8.4;
+pragma solidity ^0.8.4;
 
 // import "./IERC20.sol";
-import "../contracts/tenderswap/TenderSwap.sol";
-
+import "../tenderswap/TenderSwap.sol";
+import "./Minter.sol";
+import "forge-std/console.sol";
 
 
 contract StakeAggregator {
-    using SafeMath for uint256;
 
 
     IERC20 public agg_stflip;
