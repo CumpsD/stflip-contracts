@@ -10,41 +10,38 @@ contract StakeAggregatorTest is MainMigration {
 
     function setUp() public {
         MainMigration migration = new MainMigration();
-        // counter = new StakeAggregator();
-        // counter.setNumber(0);
     }
 
-    function testCalculate() public {
-        stakeAggregator.calculatePurchasable(1003*10**(decimals - 3), 10**(decimals-2), 100);
-        // counter.increment();
-        // assertEq(counter.number(), 1);
-    }
-
-    function testSetNumber(uint256 x) public {
-        // counter.setNumber(x);
-        // assertEq(counter.number(), x);
-    }
-
-    function testFuzz_Aggregate(uint256 amount) public {
-        vm.assume(amount < flip.balanceOf(owner));
-        vm.assume(amount > 0);
+    function testFuzz_Aggregate(uint256 amount_, uint256 lpAmount1_, uint256 lpAmount2_) public {
+        uint256 flipBalance = flip.balanceOf(owner);
+        uint256 stflipBalance = stflip.balanceOf(owner);
+        // vm.assume(lpAmount1 < stflipBalance);
+        uint256 lpAmount1 = bound(lpAmount1_, 1000, stflipBalance);
+        uint256 lpAmount2 = bound(lpAmount2_, 1000, flipBalance-100);
+        uint256 amount = bound(amount_, 2, flipBalance - lpAmount2);
+        console.log(amount_,lpAmount1_,lpAmount2_);
+        console.log(amount,lpAmount1,lpAmount2);
 
         vm.startPrank(owner);
+        tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp+100);
         uint256 purchasable = stakeAggregator.calculatePurchasable(1003*10**(decimals - 3), 10**(decimals-2), 100);
         uint256 _dx;
         uint256 _minDy;
-        // uint256 amount = 2000*decimalsMultiplier;
+
         if (purchasable == 0) {
             _dx = 0;
+            _minDy = 0;
         } 
         else if (purchasable > amount) {
             _dx = amount;
+            _minDy = tenderSwap.calculateSwap(IERC20(address(flip)), _dx);
+
         } 
         else {
             _dx = purchasable;
+            _minDy = tenderSwap.calculateSwap(IERC20(address(flip)), _dx);
         }
         
-        _minDy = tenderSwap.calculateSwap(IERC20(address(flip)), _dx);
         stakeAggregator.aggregate(amount, _dx, _minDy, block.timestamp + 100);
     }
 }
