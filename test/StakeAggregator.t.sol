@@ -12,10 +12,21 @@ contract StakeAggregatorTest is MainMigration {
         MainMigration migration = new MainMigration();
     }
 
+    function testFuzz_Calculate(uint256 lpAmount1_, uint256 lpAmount2_, uint256 targetPrice_, uint256 targetError_) public {
+        uint256 flipBalance = flip.balanceOf(owner);
+        uint256 stflipBalance = stflip.balanceOf(owner);
+        
+        uint256 lpAmount1 = bound(lpAmount1_, 1000, stflipBalance);
+        uint256 lpAmount2 = bound(lpAmount1_, 1000, flipBalance);
+        uint256 targetPrice = bound(targetPrice_, 980*10**(decimals-3), 1020*10**(decimals-3));
+        uint256 targetError = bound(targetError_, 10**12, 10**16);
+        stakeAggregator.calculatePurchasable(targetPrice, targetError, 1000);
+    }
+
     function testFuzz_Aggregate(uint256 amount_, uint256 lpAmount1_, uint256 lpAmount2_) public {
         uint256 flipBalance = flip.balanceOf(owner);
         uint256 stflipBalance = stflip.balanceOf(owner);
-        // vm.assume(lpAmount1 < stflipBalance);
+       
         uint256 lpAmount1 = bound(lpAmount1_, 1000, stflipBalance);
         uint256 lpAmount2 = bound(lpAmount2_, 1000, flipBalance-100);
         uint256 amount = bound(amount_, 2, flipBalance - lpAmount2);
