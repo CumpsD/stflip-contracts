@@ -59,9 +59,9 @@ contract Burner {
         emit NewGov(oldGov, gov);
     }
 
-    function burn(uint256 amount) external returns (uint256) {
+    function burn(address to, uint256 amount) external returns (uint256) {
         stflip.transferFrom(msg.sender, address(this), amount);
-        burns.push(burn_(msg.sender, amount, false));
+        burns.push(burn_(to, amount, false));
         sums.push(amount.add(sums[sums.length-1]));
         stflip.burn(amount, address(this));
 
@@ -70,12 +70,12 @@ contract Burner {
         return burns.length-1;
     }
     
-    function redeem(uint256 burn_id) external {
-        require(burns[burn_id].user == msg.sender, "!user");
+    function redeem(address to, uint256 burn_id) external {
+        require(burns[burn_id].user == to, "!user");
         require(burns[burn_id].completed == false, "completed");
         require(subtract(sums[burn_id], reedemed) <= balance, "insufficient balance");
 
-        flip.transfer(msg.sender, burns[burn_id].amount);
+        flip.transfer(to, burns[burn_id].amount);
         burns[burn_id].completed = true;
         reedemed = reedemed.add(burns[burn_id].amount);
         balance = balance.sub(burns[burn_id].amount);
@@ -100,16 +100,9 @@ contract Burner {
       view
       returns (uint256)
     {
-        uint256 t = 0;
-        for (uint256 i=0; i<burns.length; i++) {
-            if (!burns[i].completed) {
-                t += burns[i].amount;
-            }
-        }
-
-        return t;
+        return sums[burns.length - 1] - reedemed;
     }
-
+    
     function getBurnIds(address account)
       internal 
       view
