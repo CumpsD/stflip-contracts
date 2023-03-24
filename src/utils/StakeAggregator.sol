@@ -3,32 +3,76 @@ pragma solidity ^0.8.4;
 // import "./IERC20.sol";
 import "../tenderswap/TenderSwap.sol";
 import "./Minter.sol";
+import "./Burner.sol";
 import "forge-std/console.sol";
 
 
 contract StakeAggregator {
 
 
-    IERC20 public agg_stflip;
-    IERC20 public agg_flip;
-    Minter public agg_minter;
-    TenderSwap public agg_liquidityPool;
+    IERC20 public stflip;
+    IERC20 public flip;
+    Minter public minter;
+    Burner public burner;
+    TenderSwap public tenderSwap;
 
-    constructor(address minter_, address liquidityPool_, address stflip_, address flip_) {
+    constructor(address minter_, address burner_, address liquidityPool_, address stflip_, address flip_) {
         // associating relevant contracts
-        agg_minter = Minter(minter_);
-        agg_liquidityPool = TenderSwap(liquidityPool_);
-        agg_flip = IERC20(flip_);
-        agg_stflip = IERC20(stflip_);
+        minter = Minter(minter_);
+        burner = Burner(burner_);
+        tenderSwap = TenderSwap(liquidityPool_);
+        flip = IERC20(flip_);
+        stflip = IERC20(stflip_);
 
         // giving infinite approvals to the curve pool and the minter
-        agg_flip.approve(address(agg_liquidityPool), 2**256-1);
-        agg_flip.approve(address(agg_minter), 2**256-1);
+        flip.approve(address(tenderSwap), 2**256-1);
+        flip.approve(address(minter), 2**256-1);
+        stflip.approve(address(burner), 2**256-1);
+        stflip.approve(address(tenderSwap), 2**256-1);
+
     }
 
     event Aggregation (uint256 total, uint256 swapped, uint256 minted);
+    event BurnAggregation (uint256 amountInstantBurn, uint256 amountBurn, uint256 received);
+
+    function burnAggregate(uint256 amountInstantBurn, uint256 amountBurn, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 deadline)
+        external
+        returns (uint256)
+    {
+        uint256 total = amountInstantBurn + amountBurn + amountSwap;
+        uint256 received = 0;
 
 
+        console.log("transferring from user to contract", total);
+        stflip.transferFrom(msg.sender, address(this), total);
+        uint256 a=  stflip.balanceOf(address(this));
+        console.log("balances",a );
+
+        if (amountInstantBurn > 0) {
+            console.log("performing instant burn for ", amountInstantBurn);
+            uint256 instantBurnId = burner.burn(msg.sender, amountInstantBurn);
+            burner.redeem(msg.sender, instantBurnId); 
+        }
+
+        if (amountBurn > 0) {
+            console.log("performing normal burn for ", amountBurn);
+            uint256 burnId = burner.burn(msg.sender, amountBurn);
+        }
+
+        if (amountSwap > 0) {
+            console.log("performing swap for ", amountSwap);
+            received = tenderSwap.swap(stflip, amountSwap, minimumAmountSwapOut, deadline);
+            console.log("transferring back to user ", received);
+
+            a=  flip.balanceOf(address(this));
+            console.log("balances",a );
+            flip.transfer(msg.sender, received);
+        }
+
+        emit BurnAggregation(amountInstantBurn, amountBurn, received);
+
+        return amountInstantBurn + received;
+    }
     // 1) transfer all FLIP from user to this contract
     // 2) swap _dx amount of FLIP in the pool for minimum _minDy
     // 2) mint the excess amount of FLIP into stFLIP (amount - _dx)
@@ -38,7 +82,7 @@ contract StakeAggregator {
         returns (uint256)
     {
         console.log("transferring to contract ", uint2str(amount));
-        agg_flip.transferFrom(msg.sender, address(this), amount);
+        flip.transferFrom(msg.sender, address(this), amount);
         // revert("here 374");
         uint256 received;
         uint256 mintAmount = amount-_dx;
@@ -46,7 +90,8 @@ contract StakeAggregator {
         if (_dx > 0){
              console.log("swapping ", uint2str(_dx));
 
-            received = agg_liquidityPool.swap(agg_flip, _dx, _minDy, _deadline);
+            received = tenderSwap.swap(flip, _dx, _minDy, _deadline);
+            console.log("received", uint2str(received));
         } else {
             received = 0;
         }
@@ -54,15 +99,17 @@ contract StakeAggregator {
         if (mintAmount > 0) {
              console.log("minting ", uint2str(mintAmount));
 
-            agg_minter.mint(address(this), mintAmount);
+            minter.mint(address(this), mintAmount);
+
+            console.log("successfully minted");
         }
 
         console.log("transferring back to user ", uint2str(mintAmount + received - 1));
         console.log("Mintamount", uint2str(mintAmount));
         console.log("Received", uint2str(received));
-        console.log("actual balance", agg_stflip.balanceOf(address(this)));
+        console.log("actual balance", stflip.balanceOf(address(this)));
 
-        agg_stflip.transfer( msg.sender, mintAmount + received - 1);
+        stflip.transfer( msg.sender, mintAmount + received - 1);
 
         emit Aggregation (mintAmount + received, received, mintAmount);
 
@@ -81,8 +128,8 @@ contract StakeAggregator {
     function _marginalCost(uint256 amount) internal view returns (uint256) {
         uint256 dx1 = amount;
         uint256 dx2 = amount + 10**18;
-        uint256 amt1 = agg_liquidityPool.calculateSwap(agg_flip, dx1);
-        uint256 amt2 = agg_liquidityPool.calculateSwap(agg_flip, dx2);
+        uint256 amt1 = tenderSwap.calculateSwap(flip, dx1);
+        uint256 amt2 = tenderSwap.calculateSwap(flip, dx2);
 
         return (amt2 - amt1)* 10**18 / (dx2 - dx1);
     }
@@ -98,7 +145,7 @@ contract StakeAggregator {
         uint256 first = 0;
         uint256 mid = 0;
         // this would be the absolute maximum of FLIP spendable, so we can start there
-        uint256 last = agg_stflip.balanceOf(address(agg_liquidityPool));
+        uint256 last = stflip.balanceOf(address(tenderSwap));
         // initiating the variable
         uint256 price = 10**17;
 

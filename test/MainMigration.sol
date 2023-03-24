@@ -45,10 +45,11 @@ contract MainMigration is Test {
         liquidityPoolToken = new LiquidityPoolToken();
         tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
 
-        stakeAggregator = new StakeAggregator(address(minter), address(tenderSwap), address(stflip), address(flip));
+        stakeAggregator = new StakeAggregator(address(minter),address(burner), address(tenderSwap), address(stflip), address(flip));
 
         vm.startPrank(owner);
         stflip.approve(address(tenderSwap), 2**100-1);
+        stflip.approve(address(stakeAggregator), 2**100-1);
         flip.approve(address(tenderSwap), 2**100-1);
         flip.approve(address(stakeAggregator), 2**100-1);
         flip.approve(address(minter), 2**100-1);

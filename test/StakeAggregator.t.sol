@@ -55,4 +55,48 @@ contract StakeAggregatorTest is MainMigration {
         
         stakeAggregator.aggregate(amount, _dx, _minDy, block.timestamp + 100);
     }
+
+    function testFuzz_BurnAggregate(bool instantUnstake, uint256 lpAmount1_, uint256 lpAmount2_, uint256 amountClaimable_, uint256 amountUnstake_) public {
+        uint256 flipBalance = flip.balanceOf(owner);
+        uint256 stflipBalance = stflip.balanceOf(owner);
+       
+        uint256 lpAmount1 = bound(lpAmount1_, 100000, stflipBalance / 2);
+        uint256 lpAmount2 = bound(lpAmount2_, 100000, flipBalance / 2);
+        uint256 amountClaimable = bound(amountClaimable_, 50000, flipBalance - lpAmount2);
+        uint256 amountUnstake = bound(amountUnstake_, 1000000, stflipBalance - lpAmount1 );
+        console.log(lpAmount1, lpAmount2);
+        
+        vm.startPrank(owner);
+        tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp+100);
+        burner.deposit(amountClaimable);
+
+        uint256 amountSwapOut = 0;
+        uint256 amountInstantBurn;
+        uint256 amountBurn;
+        uint256 amountSwap;
+        
+
+        if (amountUnstake < amountClaimable) {
+            amountInstantBurn = amountUnstake;
+            amountBurn = 0;
+            amountSwap = 0;
+        }
+        else {
+            amountInstantBurn = amountClaimable;
+
+            if (instantUnstake == true) {
+                amountSwap = amountUnstake - amountInstantBurn;
+                amountSwapOut = tenderSwap.calculateSwap(IERC20(address(stflip)), amountSwap);
+                amountBurn = 0;
+            } 
+            else {
+                amountSwap = 0;
+                amountBurn = amountUnstake - amountInstantBurn;
+            }
+        }
+        console.log(amountInstantBurn, amountBurn, amountSwap);
+        stakeAggregator.burnAggregate(amountInstantBurn, amountBurn, amountSwap, amountSwapOut, block.timestamp);
+
+        vm.stopPrank();
+    }
 }
