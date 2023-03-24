@@ -7,7 +7,7 @@ import "./Burner.sol";
 import "forge-std/console.sol";
 
 
-contract StakeAggregator {
+contract Aggregator {
 
 
     IERC20 public stflip;
@@ -34,20 +34,27 @@ contract StakeAggregator {
 
     event Aggregation (uint256 total, uint256 swapped, uint256 minted);
     event BurnAggregation (uint256 amountInstantBurn, uint256 amountBurn, uint256 received);
-
-    function burnAggregate(uint256 amountInstantBurn, uint256 amountBurn, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 deadline)
+    
+    // 1) transfer the stflip from user to this contract
+    // 2) burn amountInstantBurn and claim it immediately to msg.sender
+    // 3) perform burn for amountBurn to msg.sender
+    // 4) perform swap for amountSwap
+    // 5) transfer funds back to user 
+    //      TODO: use LP that has a 'to' field 
+    // 6) emit BurnAggregation
+    // 7) return amount of FLIP that user received
+    function unstakeAggregate(uint256 amountInstantBurn, uint256 amountBurn, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 deadline)
         external
         returns (uint256)
     {
         uint256 total = amountInstantBurn + amountBurn + amountSwap;
         uint256 received = 0;
 
-
         console.log("transferring from user to contract", total);
         stflip.transferFrom(msg.sender, address(this), total);
-        uint256 a=  stflip.balanceOf(address(this));
-        console.log("balances",a );
-
+        console.log("FLIP balance of contract ", flip.balanceOf(address(this)));
+        console.log("stFLIP balance of contract ", stflip.balanceOf(address(this)));
+        
         if (amountInstantBurn > 0) {
             console.log("performing instant burn for ", amountInstantBurn);
             uint256 instantBurnId = burner.burn(msg.sender, amountInstantBurn);
@@ -62,10 +69,9 @@ contract StakeAggregator {
         if (amountSwap > 0) {
             console.log("performing swap for ", amountSwap);
             received = tenderSwap.swap(stflip, amountSwap, minimumAmountSwapOut, deadline);
-            console.log("transferring back to user ", received);
-
-            a=  flip.balanceOf(address(this));
-            console.log("balances",a );
+            console.log("transferring FLIP back to user ", received);
+            console.log("FLIP balance of contract ", flip.balanceOf(address(this)));
+            console.log("stFLIP balance of contract ", stflip.balanceOf(address(this)));
             flip.transfer(msg.sender, received);
         }
 
@@ -74,23 +80,23 @@ contract StakeAggregator {
         return amountInstantBurn + received;
     }
     // 1) transfer all FLIP from user to this contract
-    // 2) swap _dx amount of FLIP in the pool for minimum _minDy
-    // 2) mint the excess amount of FLIP into stFLIP (amount - _dx)
+    // 2) swap amountSwap amount of FLIP in the pool for minimum _minDy
+    // 2) mint the excess amount of FLIP into stFLIP (amountTotal - amountSwap)
     // 3) transfer the amount of stFLIP bought + the amount of stFLIP minted back to the user
-    function aggregate(uint256 amount, uint256 _dx, uint256 _minDy, uint256 _deadline)
+    function stakeAggregate(uint256 amountTotal, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 _deadline)
         external
         returns (uint256)
     {
-        console.log("transferring to contract ", uint2str(amount));
-        flip.transferFrom(msg.sender, address(this), amount);
-        // revert("here 374");
+        console.log("transferring to contract ", uint2str(amountTotal));
+        flip.transferFrom(msg.sender, address(this), amountTotal);
+       
         uint256 received;
-        uint256 mintAmount = amount-_dx;
+        uint256 mintAmount = amountTotal - amountSwap;
 
-        if (_dx > 0){
-             console.log("swapping ", uint2str(_dx));
+        if (amountSwap > 0){
+             console.log("swapping ", uint2str(amountSwap));
 
-            received = tenderSwap.swap(flip, _dx, _minDy, _deadline);
+            received = tenderSwap.swap(flip, amountSwap, minimumAmountSwapOut, _deadline);
             console.log("received", uint2str(received));
         } else {
             received = 0;

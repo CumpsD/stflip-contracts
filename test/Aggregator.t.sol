@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../src/utils/StakeAggregator.sol";
+import "../src/utils/Aggregator.sol";
 import "./MainMigration.sol";
 
-contract StakeAggregatorTest is MainMigration {
-    StakeAggregator public counter;
+contract AggregatorTest is MainMigration {
+    Aggregator public counter;
 
     function setUp() public {
         MainMigration migration = new MainMigration();
@@ -20,7 +20,7 @@ contract StakeAggregatorTest is MainMigration {
         uint256 lpAmount2 = bound(lpAmount1_, 1000, flipBalance);
         uint256 targetPrice = bound(targetPrice_, 980*10**(decimals-3), 1020*10**(decimals-3));
         uint256 targetError = bound(targetError_, 10**12, 10**16);
-        stakeAggregator.calculatePurchasable(targetPrice, targetError, 1000);
+        aggregator.calculatePurchasable(targetPrice, targetError, 1000);
     }
 
     function testFuzz_Aggregate(uint256 amount_, uint256 lpAmount1_, uint256 lpAmount2_) public {
@@ -35,7 +35,7 @@ contract StakeAggregatorTest is MainMigration {
 
         vm.startPrank(owner);
         tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp+100);
-        uint256 purchasable = stakeAggregator.calculatePurchasable(1003*10**(decimals - 3), 10**(decimals-2), 100);
+        uint256 purchasable = aggregator.calculatePurchasable(1003*10**(decimals - 3), 10**(decimals-2), 100);
         uint256 _dx;
         uint256 _minDy;
 
@@ -53,10 +53,10 @@ contract StakeAggregatorTest is MainMigration {
             _minDy = tenderSwap.calculateSwap(IERC20(address(flip)), _dx);
         }
         
-        stakeAggregator.aggregate(amount, _dx, _minDy, block.timestamp + 100);
+        aggregator.stakeAggregate(amount, _dx, _minDy, block.timestamp + 100);
     }
 
-    function testFuzz_BurnAggregate(bool instantUnstake, uint256 lpAmount1_, uint256 lpAmount2_, uint256 amountClaimable_, uint256 amountUnstake_) public {
+    function testFuzz_UnstakeAggregate(bool instantUnstake, uint256 lpAmount1_, uint256 lpAmount2_, uint256 amountClaimable_, uint256 amountUnstake_) public {
         uint256 flipBalance = flip.balanceOf(owner);
         uint256 stflipBalance = stflip.balanceOf(owner);
        
@@ -95,7 +95,7 @@ contract StakeAggregatorTest is MainMigration {
             }
         }
         console.log(amountInstantBurn, amountBurn, amountSwap);
-        stakeAggregator.burnAggregate(amountInstantBurn, amountBurn, amountSwap, amountSwapOut, block.timestamp);
+        aggregator.unstakeAggregate(amountInstantBurn, amountBurn, amountSwap, amountSwapOut, block.timestamp);
 
         vm.stopPrank();
     }

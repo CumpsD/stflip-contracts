@@ -7,7 +7,7 @@ import "../src/tenderswap/TenderSwap.sol";
 import "../src/tenderswap/LiquidityPoolToken.sol";
 import "../src/token/stFlip.sol";
 import "../src/token/stFlip.sol";
-import "../src/utils/StakeAggregator.sol";
+import "../src/utils/Aggregator.sol";
 import "../src/utils/Minter.sol";
 import "../src/utils/Burner.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -16,7 +16,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 contract MainMigration is Test {
-    StakeAggregator public stakeAggregator;
+    Aggregator public aggregator;
     TenderSwap public tenderSwap;
     LiquidityPoolToken public liquidityPoolToken;
     // TODO change flip to be a normal erc20 token
@@ -45,13 +45,13 @@ contract MainMigration is Test {
         liquidityPoolToken = new LiquidityPoolToken();
         tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
 
-        stakeAggregator = new StakeAggregator(address(minter),address(burner), address(tenderSwap), address(stflip), address(flip));
+        aggregator = new Aggregator(address(minter),address(burner), address(tenderSwap), address(stflip), address(flip));
 
         vm.startPrank(owner);
         stflip.approve(address(tenderSwap), 2**100-1);
-        stflip.approve(address(stakeAggregator), 2**100-1);
+        stflip.approve(address(aggregator), 2**100-1);
         flip.approve(address(tenderSwap), 2**100-1);
-        flip.approve(address(stakeAggregator), 2**100-1);
+        flip.approve(address(aggregator), 2**100-1);
         flip.approve(address(minter), 2**100-1);
         flip.approve(address(burner), 2**100-1);
         tenderSwap.addLiquidity([1000*decimalsMultiplier, 800*decimalsMultiplier], 0, block.timestamp + 100);
