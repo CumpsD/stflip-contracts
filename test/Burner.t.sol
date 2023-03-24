@@ -38,8 +38,8 @@ contract BurnerTest is MainMigration {
 
         // first user doing an instant burn for all the flip
         vm.startPrank(user1);
-        uint256 id1 = burner.burn(1000*decimalsMultiplier);
-        burner.redeem(id1);
+        uint256 id1 = burner.burn(user1, 1000*decimalsMultiplier);
+        burner.redeem(user1,id1);
         vm.stopPrank();
 
         // depositing some more flip. 
@@ -48,12 +48,12 @@ contract BurnerTest is MainMigration {
         
         // doing a burn for the amount that was just deposited
         vm.prank(user1);
-        uint256 id2 = burner.burn(100*decimalsMultiplier);
+        uint256 id2 = burner.burn(user1,100*decimalsMultiplier);
 
         // also doing a burn for the amount that was just deposited, except claiming it right after
         vm.startPrank(user2);
-        uint256 id3 = burner.burn(100*decimalsMultiplier);
-        burner.redeem(id3);
+        uint256 id3 = burner.burn(user2,100*decimalsMultiplier);
+        burner.redeem(user2,id3);
         vm.stopPrank();
 
         console.log("uh oh");
@@ -64,22 +64,23 @@ contract BurnerTest is MainMigration {
         burner.deposit(1000*decimalsMultiplier);
 
         vm.prank(user1);
-        uint256 id1 = burner.burn(100*decimalsMultiplier);
+        uint256 id1 = burner.burn(user1,100*decimalsMultiplier);
 
         vm.prank(user2);
-        uint256 id2 = burner.burn(500*decimalsMultiplier);
+        uint256 id2 = burner.burn(user2,500*decimalsMultiplier);
 
         vm.prank(user3);
-        uint256 id3 = burner.burn(400*decimalsMultiplier);
+        uint256 id3 = burner.burn(user3,400*decimalsMultiplier);
         
         vm.prank(user3);
-        burner.redeem(id3);
+        burner.redeem(user3,id3);
 
         vm.prank(user1);
-        burner.redeem(id1);
+        burner.redeem(user1,id1);
 
         vm.prank(user2);
-        burner.redeem(id2);
+        burner.redeem(user2,id2);
+
     }
     
 }
