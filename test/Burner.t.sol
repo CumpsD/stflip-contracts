@@ -59,5 +59,27 @@ contract BurnerTest is MainMigration {
         console.log("uh oh");
     }
 
+    function test_Burn() public {
+        vm.prank(owner);
+        burner.deposit(1000*decimalsMultiplier);
+
+        vm.prank(user1);
+        uint256 id1 = burner.burn(100*decimalsMultiplier);
+
+        vm.prank(user2);
+        uint256 id2 = burner.burn(500*decimalsMultiplier);
+
+        vm.prank(user3);
+        uint256 id3 = burner.burn(400*decimalsMultiplier);
+        
+        vm.prank(user3);
+        burner.redeem(id3);
+
+        vm.prank(user1);
+        burner.redeem(id1);
+
+        vm.prank(user2);
+        burner.redeem(id2);
+    }
     
 }
