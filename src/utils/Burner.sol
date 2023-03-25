@@ -178,6 +178,26 @@ contract Burner {
         return a - b;
       }
     }
+
+    function importData(Burner burnerToImport) 
+        external
+        onlyGov
+        returns (bool)
+    {
+        
+        console.log("importing data");
+
+        burn_[] memory allBurns = burnerToImport.getAllBurns();
+
+        for (uint i = 1; i < allBurns.length; i++) {
+            sums.push( burnerToImport.sums(i));
+            burns.push(allBurns[i]);
+        }
+
+        reedemed = burnerToImport.reedemed();
+
+        return true;
+    }
 }
 
 

@@ -83,4 +83,45 @@ contract BurnerTest is MainMigration {
 
     }
     
+    function test_ImportData() public {
+        uint256 goerliFork = vm.createFork(vm.envString("GOERLI_RPC_URL"));
+        vm.selectFork(goerliFork);
+        vm.rollFork(8_700_200);
+        MainMigration goerliMigration = new MainMigration();
+
+        vm.startPrank(goerliMigration.burner().gov());
+        Burner burnerToImport = Burner(0xD1cc80373acb7d172E1A2c4507B0A2693abBDEf1);
+        Burner burner_ = goerliMigration.burner();
+        burner_.importData(burnerToImport);
+        vm.stopPrank();
+
+        vm.startPrank(goerliMigration.owner());
+        console.log("flip balance ", goerliMigration.flip().balanceOf(goerliMigration.owner()));
+        goerliMigration.flip().approve(address(burner_),2**100-1);
+        goerliMigration.stflip().approve(address(burner_),2**100-1);
+        uint256 depositAmount = burner_.totalPendingBurns();
+        burner_.deposit(depositAmount);
+        vm.stopPrank();
+
+        uint256 burnLength = burner_.getAllBurns().length;
+        address user;
+        uint256 amount;
+        bool completed;
+        uint256 total = 0;
+        for (uint i = 1; i < burnLength; i++) {
+
+            (user, amount, completed) = burner_.burns(i);
+
+            if (!completed) {  
+                console.log("burn amount, balance var, contract balance", amount, burner_.balance(), goerliMigration.flip().balanceOf(address(burner_)));
+                vm.prank(user);
+                burner_.redeem(user,i);
+                total += amount;
+            }
+        }
+        
+        require(goerliMigration.flip().balanceOf(address(burner_)) == 0, "actual balance not zero");
+        require(burner_.balance() == 0, "balance var not zero");
+        require(depositAmount == total, "deposited != withdrawn");
+    }
 }
