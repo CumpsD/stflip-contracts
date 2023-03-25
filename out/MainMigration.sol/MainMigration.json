@@ -1938,7 +1938,7 @@
   },
   "ast": {
     "absolutePath": "test/MainMigration.sol",
-    "id": 42995,
+    "id": 43012,
     "exportedSymbols": {
       "Address": [
         33173
@@ -2016,7 +2016,7 @@
         34077
       ],
       "MainMigration": [
-        42994
+        43011
       ],
       "MathUpgradeable": [
         31756
@@ -2116,7 +2116,7 @@
     "src": "40:2486:60",
     "nodes": [
       {
-        "id": 42670,
+        "id": 42687,
         "nodeType": "PragmaDirective",
         "src": "40:23:60",
         "nodes": [],
@@ -2128,155 +2128,155 @@
         ]
       },
       {
-        "id": 42671,
+        "id": 42688,
         "nodeType": "ImportDirective",
         "src": "67:28:60",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/Test.sol",
         "file": "forge-std/Test.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 10783,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42672,
+        "id": 42689,
         "nodeType": "ImportDirective",
         "src": "97:31:60",
         "nodes": [],
         "absolutePath": "lib/forge-std/src/console.sol",
         "file": "forge-std/console.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 20167,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42673,
+        "id": 42690,
         "nodeType": "ImportDirective",
         "src": "130:42:60",
         "nodes": [],
         "absolutePath": "src/tenderswap/TenderSwap.sol",
         "file": "../src/tenderswap/TenderSwap.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 38194,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42674,
+        "id": 42691,
         "nodeType": "ImportDirective",
         "src": "174:50:60",
         "nodes": [],
         "absolutePath": "src/tenderswap/LiquidityPoolToken.sol",
         "file": "../src/tenderswap/LiquidityPoolToken.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 34078,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42675,
+        "id": 42692,
         "nodeType": "ImportDirective",
         "src": "226:33:60",
         "nodes": [],
         "absolutePath": "src/token/stFlip.sol",
         "file": "../src/token/stFlip.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 39697,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42676,
+        "id": 42693,
         "nodeType": "ImportDirective",
         "src": "261:33:60",
         "nodes": [],
         "absolutePath": "src/token/stFlip.sol",
         "file": "../src/token/stFlip.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 39697,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42677,
+        "id": 42694,
         "nodeType": "ImportDirective",
         "src": "296:37:60",
         "nodes": [],
         "absolutePath": "src/utils/Aggregator.sol",
         "file": "../src/utils/Aggregator.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 40681,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42678,
+        "id": 42695,
         "nodeType": "ImportDirective",
         "src": "335:33:60",
         "nodes": [],
         "absolutePath": "src/utils/Minter.sol",
         "file": "../src/utils/Minter.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 41584,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42679,
+        "id": 42696,
         "nodeType": "ImportDirective",
         "src": "370:33:60",
         "nodes": [],
         "absolutePath": "src/utils/Burner.sol",
         "file": "../src/utils/Burner.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 41395,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42680,
+        "id": 42697,
         "nodeType": "ImportDirective",
         "src": "405:55:60",
         "nodes": [],
         "absolutePath": "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 32424,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42681,
+        "id": 42698,
         "nodeType": "ImportDirective",
         "src": "462:56:60",
         "nodes": [],
         "absolutePath": "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
         "file": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 42995,
+        "scope": 43012,
         "sourceUnit": 32502,
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "id": 42994,
+        "id": 43011,
         "nodeType": "ContractDefinition",
         "src": "526:1998:60",
         "nodes": [
           {
-            "id": 42686,
+            "id": 42703,
             "nodeType": "VariableDeclaration",
             "src": "564:28:60",
             "nodes": [],
@@ -2285,7 +2285,7 @@
             "mutability": "mutable",
             "name": "aggregator",
             "nameLocation": "582:10:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2293,10 +2293,10 @@
               "typeString": "contract Aggregator"
             },
             "typeName": {
-              "id": 42685,
+              "id": 42702,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 42684,
+                "id": 42701,
                 "name": "Aggregator",
                 "nodeType": "IdentifierPath",
                 "referencedDeclaration": 40680,
@@ -2312,7 +2312,7 @@
             "visibility": "public"
           },
           {
-            "id": 42689,
+            "id": 42706,
             "nodeType": "VariableDeclaration",
             "src": "599:28:60",
             "nodes": [],
@@ -2321,7 +2321,7 @@
             "mutability": "mutable",
             "name": "tenderSwap",
             "nameLocation": "617:10:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2329,10 +2329,10 @@
               "typeString": "contract TenderSwap"
             },
             "typeName": {
-              "id": 42688,
+              "id": 42705,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 42687,
+                "id": 42704,
                 "name": "TenderSwap",
                 "nodeType": "IdentifierPath",
                 "referencedDeclaration": 38193,
@@ -2348,7 +2348,7 @@
             "visibility": "public"
           },
           {
-            "id": 42692,
+            "id": 42709,
             "nodeType": "VariableDeclaration",
             "src": "634:44:60",
             "nodes": [],
@@ -2357,7 +2357,7 @@
             "mutability": "mutable",
             "name": "liquidityPoolToken",
             "nameLocation": "660:18:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2365,10 +2365,10 @@
               "typeString": "contract LiquidityPoolToken"
             },
             "typeName": {
-              "id": 42691,
+              "id": 42708,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 42690,
+                "id": 42707,
                 "name": "LiquidityPoolToken",
                 "nodeType": "IdentifierPath",
                 "referencedDeclaration": 34077,
@@ -2384,7 +2384,7 @@
             "visibility": "public"
           },
           {
-            "id": 42695,
+            "id": 42712,
             "nodeType": "VariableDeclaration",
             "src": "737:18:60",
             "nodes": [],
@@ -2393,7 +2393,7 @@
             "mutability": "mutable",
             "name": "flip",
             "nameLocation": "751:4:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2401,10 +2401,10 @@
               "typeString": "contract stFlip"
             },
             "typeName": {
-              "id": 42694,
+              "id": 42711,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 42693,
+                "id": 42710,
                 "name": "stFlip",
                 "nodeType": "IdentifierPath",
                 "referencedDeclaration": 39696,
@@ -2420,7 +2420,7 @@
             "visibility": "public"
           },
           {
-            "id": 42698,
+            "id": 42715,
             "nodeType": "VariableDeclaration",
             "src": "762:20:60",
             "nodes": [],
@@ -2429,7 +2429,7 @@
             "mutability": "mutable",
             "name": "stflip",
             "nameLocation": "776:6:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2437,10 +2437,10 @@
               "typeString": "contract stFlip"
             },
             "typeName": {
-              "id": 42697,
+              "id": 42714,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 42696,
+                "id": 42713,
                 "name": "stFlip",
                 "nodeType": "IdentifierPath",
                 "referencedDeclaration": 39696,
@@ -2456,7 +2456,7 @@
             "visibility": "public"
           },
           {
-            "id": 42701,
+            "id": 42718,
             "nodeType": "VariableDeclaration",
             "src": "789:20:60",
             "nodes": [],
@@ -2465,7 +2465,7 @@
             "mutability": "mutable",
             "name": "minter",
             "nameLocation": "803:6:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2473,10 +2473,10 @@
               "typeString": "contract Minter"
             },
             "typeName": {
-              "id": 42700,
+              "id": 42717,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 42699,
+                "id": 42716,
                 "name": "Minter",
                 "nodeType": "IdentifierPath",
                 "referencedDeclaration": 41583,
@@ -2492,7 +2492,7 @@
             "visibility": "public"
           },
           {
-            "id": 42704,
+            "id": 42721,
             "nodeType": "VariableDeclaration",
             "src": "816:20:60",
             "nodes": [],
@@ -2501,7 +2501,7 @@
             "mutability": "mutable",
             "name": "burner",
             "nameLocation": "830:6:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2509,10 +2509,10 @@
               "typeString": "contract Burner"
             },
             "typeName": {
-              "id": 42703,
+              "id": 42720,
               "nodeType": "UserDefinedTypeName",
               "pathNode": {
-                "id": 42702,
+                "id": 42719,
                 "name": "Burner",
                 "nodeType": "IdentifierPath",
                 "referencedDeclaration": 41394,
@@ -2528,7 +2528,7 @@
             "visibility": "public"
           },
           {
-            "id": 42707,
+            "id": 42724,
             "nodeType": "VariableDeclaration",
             "src": "843:65:60",
             "nodes": [],
@@ -2537,7 +2537,7 @@
             "mutability": "mutable",
             "name": "owner",
             "nameLocation": "858:5:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2545,7 +2545,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 42705,
+              "id": 42722,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "843:7:60",
@@ -2557,7 +2557,7 @@
             },
             "value": {
               "hexValue": "307862346337396461423866323539433741656536453562324161373239383231383634323237653834",
-              "id": 42706,
+              "id": 42723,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2574,7 +2574,7 @@
             "visibility": "public"
           },
           {
-            "id": 42710,
+            "id": 42727,
             "nodeType": "VariableDeclaration",
             "src": "915:66:60",
             "nodes": [],
@@ -2583,7 +2583,7 @@
             "mutability": "mutable",
             "name": "output",
             "nameLocation": "930:6:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2591,7 +2591,7 @@
               "typeString": "address"
             },
             "typeName": {
-              "id": 42708,
+              "id": 42725,
               "name": "address",
               "nodeType": "ElementaryTypeName",
               "src": "915:7:60",
@@ -2603,7 +2603,7 @@
             },
             "value": {
               "hexValue": "307831303030303030303030303030303030303030303030303030303030303030303030303030303030",
-              "id": 42709,
+              "id": 42726,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2620,7 +2620,7 @@
             "visibility": "public"
           },
           {
-            "id": 42713,
+            "id": 42730,
             "nodeType": "VariableDeclaration",
             "src": "988:26:60",
             "nodes": [],
@@ -2629,7 +2629,7 @@
             "mutability": "mutable",
             "name": "decimals",
             "nameLocation": "1001:8:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2637,7 +2637,7 @@
               "typeString": "uint8"
             },
             "typeName": {
-              "id": 42711,
+              "id": 42728,
               "name": "uint8",
               "nodeType": "ElementaryTypeName",
               "src": "988:5:60",
@@ -2648,7 +2648,7 @@
             },
             "value": {
               "hexValue": "3138",
-              "id": 42712,
+              "id": 42729,
               "isConstant": false,
               "isLValue": false,
               "isPure": true,
@@ -2665,7 +2665,7 @@
             "visibility": "public"
           },
           {
-            "id": 42718,
+            "id": 42735,
             "nodeType": "VariableDeclaration",
             "src": "1021:48:60",
             "nodes": [],
@@ -2674,7 +2674,7 @@
             "mutability": "mutable",
             "name": "decimalsMultiplier",
             "nameLocation": "1036:18:60",
-            "scope": 42994,
+            "scope": 43011,
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -2682,7 +2682,7 @@
               "typeString": "uint256"
             },
             "typeName": {
-              "id": 42714,
+              "id": 42731,
               "name": "uint256",
               "nodeType": "ElementaryTypeName",
               "src": "1021:7:60",
@@ -2696,14 +2696,14 @@
                 "typeIdentifier": "t_uint256",
                 "typeString": "uint256"
               },
-              "id": 42717,
+              "id": 42734,
               "isConstant": false,
               "isLValue": false,
               "isPure": false,
               "lValueRequested": false,
               "leftExpression": {
                 "hexValue": "3130",
-                "id": 42715,
+                "id": 42732,
                 "isConstant": false,
                 "isLValue": false,
                 "isPure": true,
@@ -2720,11 +2720,11 @@
               "nodeType": "BinaryOperation",
               "operator": "**",
               "rightExpression": {
-                "id": 42716,
+                "id": 42733,
                 "name": "decimals",
                 "nodeType": "Identifier",
                 "overloadedDeclarations": [],
-                "referencedDeclaration": 42713,
+                "referencedDeclaration": 42730,
                 "src": "1061:8:60",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint8",
@@ -2740,29 +2740,29 @@
             "visibility": "public"
           },
           {
-            "id": 42993,
+            "id": 43010,
             "nodeType": "FunctionDefinition",
             "src": "1078:1441:60",
             "nodes": [],
             "body": {
-              "id": 42992,
+              "id": 43009,
               "nodeType": "Block",
               "src": "1093:1426:60",
               "nodes": [],
               "statements": [
                 {
                   "expression": {
-                    "id": 42726,
+                    "id": 42743,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 42721,
+                      "id": 42738,
                       "name": "stflip",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 42698,
+                      "referencedDeclaration": 42715,
                       "src": "1104:6:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -2775,7 +2775,7 @@
                       "arguments": [],
                       "expression": {
                         "argumentTypes": [],
-                        "id": 42724,
+                        "id": 42741,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -2787,10 +2787,10 @@
                           "typeString": "function () returns (contract stFlip)"
                         },
                         "typeName": {
-                          "id": 42723,
+                          "id": 42740,
                           "nodeType": "UserDefinedTypeName",
                           "pathNode": {
-                            "id": 42722,
+                            "id": 42739,
                             "name": "stFlip",
                             "nodeType": "IdentifierPath",
                             "referencedDeclaration": 39696,
@@ -2804,7 +2804,7 @@
                           }
                         }
                       },
-                      "id": 42725,
+                      "id": 42742,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -2825,7 +2825,7 @@
                       "typeString": "contract stFlip"
                     }
                   },
-                  "id": 42727,
+                  "id": 42744,
                   "nodeType": "ExpressionStatement",
                   "src": "1104:21:60"
                 },
@@ -2834,7 +2834,7 @@
                     "arguments": [
                       {
                         "hexValue": "5374616b6564466c6970",
-                        "id": 42731,
+                        "id": 42748,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -2850,7 +2850,7 @@
                       },
                       {
                         "hexValue": "7374464c4950",
-                        "id": 42732,
+                        "id": 42749,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -2865,11 +2865,11 @@
                         "value": "stFLIP"
                       },
                       {
-                        "id": 42733,
+                        "id": 42750,
                         "name": "decimals",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42713,
+                        "referencedDeclaration": 42730,
                         "src": "1178:8:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint8",
@@ -2877,11 +2877,11 @@
                         }
                       },
                       {
-                        "id": 42734,
+                        "id": 42751,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42707,
+                        "referencedDeclaration": 42724,
                         "src": "1188:5:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -2893,14 +2893,14 @@
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         },
-                        "id": 42739,
+                        "id": 42756,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
                         "leftExpression": {
                           "hexValue": "31303030303030",
-                          "id": 42735,
+                          "id": 42752,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -2921,14 +2921,14 @@
                             "typeIdentifier": "t_uint256",
                             "typeString": "uint256"
                           },
-                          "id": 42738,
+                          "id": 42755,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "3130",
-                            "id": 42736,
+                            "id": 42753,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -2945,11 +2945,11 @@
                           "nodeType": "BinaryOperation",
                           "operator": "**",
                           "rightExpression": {
-                            "id": 42737,
+                            "id": 42754,
                             "name": "decimals",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42713,
+                            "referencedDeclaration": 42730,
                             "src": "1207:8:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint8",
@@ -2993,18 +2993,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42728,
+                        "id": 42745,
                         "name": "stflip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42698,
+                        "referencedDeclaration": 42715,
                         "src": "1136:6:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42730,
+                      "id": 42747,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3018,7 +3018,7 @@
                         "typeString": "function (string memory,string memory,uint8,address,uint256) external"
                       }
                     },
-                    "id": 42740,
+                    "id": 42757,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3033,23 +3033,23 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 42741,
+                  "id": 42758,
                   "nodeType": "ExpressionStatement",
                   "src": "1136:80:60"
                 },
                 {
                   "expression": {
-                    "id": 42747,
+                    "id": 42764,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 42742,
+                      "id": 42759,
                       "name": "flip",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 42695,
+                      "referencedDeclaration": 42712,
                       "src": "1229:4:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -3062,7 +3062,7 @@
                       "arguments": [],
                       "expression": {
                         "argumentTypes": [],
-                        "id": 42745,
+                        "id": 42762,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3074,10 +3074,10 @@
                           "typeString": "function () returns (contract stFlip)"
                         },
                         "typeName": {
-                          "id": 42744,
+                          "id": 42761,
                           "nodeType": "UserDefinedTypeName",
                           "pathNode": {
-                            "id": 42743,
+                            "id": 42760,
                             "name": "stFlip",
                             "nodeType": "IdentifierPath",
                             "referencedDeclaration": 39696,
@@ -3091,7 +3091,7 @@
                           }
                         }
                       },
-                      "id": 42746,
+                      "id": 42763,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3112,7 +3112,7 @@
                       "typeString": "contract stFlip"
                     }
                   },
-                  "id": 42748,
+                  "id": 42765,
                   "nodeType": "ExpressionStatement",
                   "src": "1229:19:60"
                 },
@@ -3121,7 +3121,7 @@
                     "arguments": [
                       {
                         "hexValue": "436861696e666c6970",
-                        "id": 42752,
+                        "id": 42769,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3137,7 +3137,7 @@
                       },
                       {
                         "hexValue": "464c4950",
-                        "id": 42753,
+                        "id": 42770,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -3152,11 +3152,11 @@
                         "value": "FLIP"
                       },
                       {
-                        "id": 42754,
+                        "id": 42771,
                         "name": "decimals",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42713,
+                        "referencedDeclaration": 42730,
                         "src": "1296:8:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_uint8",
@@ -3164,11 +3164,11 @@
                         }
                       },
                       {
-                        "id": 42755,
+                        "id": 42772,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42707,
+                        "referencedDeclaration": 42724,
                         "src": "1306:5:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -3180,14 +3180,14 @@
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         },
-                        "id": 42760,
+                        "id": 42777,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
                         "leftExpression": {
                           "hexValue": "31303030303030",
-                          "id": 42756,
+                          "id": 42773,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -3208,14 +3208,14 @@
                             "typeIdentifier": "t_uint256",
                             "typeString": "uint256"
                           },
-                          "id": 42759,
+                          "id": 42776,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "3130",
-                            "id": 42757,
+                            "id": 42774,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -3232,11 +3232,11 @@
                           "nodeType": "BinaryOperation",
                           "operator": "**",
                           "rightExpression": {
-                            "id": 42758,
+                            "id": 42775,
                             "name": "decimals",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42713,
+                            "referencedDeclaration": 42730,
                             "src": "1325:8:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint8",
@@ -3280,18 +3280,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42749,
+                        "id": 42766,
                         "name": "flip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42695,
+                        "referencedDeclaration": 42712,
                         "src": "1259:4:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42751,
+                      "id": 42768,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3305,7 +3305,7 @@
                         "typeString": "function (string memory,string memory,uint8,address,uint256) external"
                       }
                     },
-                    "id": 42761,
+                    "id": 42778,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3320,23 +3320,23 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 42762,
+                  "id": 42779,
                   "nodeType": "ExpressionStatement",
                   "src": "1259:75:60"
                 },
                 {
                   "expression": {
-                    "id": 42778,
+                    "id": 42795,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 42763,
+                      "id": 42780,
                       "name": "minter",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 42701,
+                      "referencedDeclaration": 42718,
                       "src": "1347:6:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_contract$_Minter_$41583",
@@ -3350,11 +3350,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42769,
+                              "id": 42786,
                               "name": "stflip",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42698,
+                              "referencedDeclaration": 42715,
                               "src": "1375:6:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -3369,7 +3369,7 @@
                                 "typeString": "contract stFlip"
                               }
                             ],
-                            "id": 42768,
+                            "id": 42785,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -3381,14 +3381,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42767,
+                              "id": 42784,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1367:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42770,
+                          "id": 42787,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -3404,11 +3404,11 @@
                           }
                         },
                         {
-                          "id": 42771,
+                          "id": 42788,
                           "name": "output",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 42710,
+                          "referencedDeclaration": 42727,
                           "src": "1384:6:60",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -3416,11 +3416,11 @@
                           }
                         },
                         {
-                          "id": 42772,
+                          "id": 42789,
                           "name": "owner",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 42707,
+                          "referencedDeclaration": 42724,
                           "src": "1392:5:60",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -3430,11 +3430,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42775,
+                              "id": 42792,
                               "name": "flip",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42695,
+                              "referencedDeclaration": 42712,
                               "src": "1407:4:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -3449,7 +3449,7 @@
                                 "typeString": "contract stFlip"
                               }
                             ],
-                            "id": 42774,
+                            "id": 42791,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -3461,14 +3461,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42773,
+                              "id": 42790,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1399:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42776,
+                          "id": 42793,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -3503,7 +3503,7 @@
                             "typeString": "address"
                           }
                         ],
-                        "id": 42766,
+                        "id": 42783,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3515,10 +3515,10 @@
                           "typeString": "function (address,address,address,address) returns (contract Minter)"
                         },
                         "typeName": {
-                          "id": 42765,
+                          "id": 42782,
                           "nodeType": "UserDefinedTypeName",
                           "pathNode": {
-                            "id": 42764,
+                            "id": 42781,
                             "name": "Minter",
                             "nodeType": "IdentifierPath",
                             "referencedDeclaration": 41583,
@@ -3532,7 +3532,7 @@
                           }
                         }
                       },
-                      "id": 42777,
+                      "id": 42794,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3553,23 +3553,23 @@
                       "typeString": "contract Minter"
                     }
                   },
-                  "id": 42779,
+                  "id": 42796,
                   "nodeType": "ExpressionStatement",
                   "src": "1347:66:60"
                 },
                 {
                   "expression": {
-                    "id": 42794,
+                    "id": 42811,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 42780,
+                      "id": 42797,
                       "name": "burner",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 42704,
+                      "referencedDeclaration": 42721,
                       "src": "1424:6:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_contract$_Burner_$41394",
@@ -3583,11 +3583,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42786,
+                              "id": 42803,
                               "name": "stflip",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42698,
+                              "referencedDeclaration": 42715,
                               "src": "1452:6:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -3602,7 +3602,7 @@
                                 "typeString": "contract stFlip"
                               }
                             ],
-                            "id": 42785,
+                            "id": 42802,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -3614,14 +3614,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42784,
+                              "id": 42801,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1444:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42787,
+                          "id": 42804,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -3637,11 +3637,11 @@
                           }
                         },
                         {
-                          "id": 42788,
+                          "id": 42805,
                           "name": "owner",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 42707,
+                          "referencedDeclaration": 42724,
                           "src": "1461:5:60",
                           "typeDescriptions": {
                             "typeIdentifier": "t_address",
@@ -3651,11 +3651,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42791,
+                              "id": 42808,
                               "name": "flip",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42695,
+                              "referencedDeclaration": 42712,
                               "src": "1476:4:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -3670,7 +3670,7 @@
                                 "typeString": "contract stFlip"
                               }
                             ],
-                            "id": 42790,
+                            "id": 42807,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -3682,14 +3682,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42789,
+                              "id": 42806,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1468:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42792,
+                          "id": 42809,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -3720,7 +3720,7 @@
                             "typeString": "address"
                           }
                         ],
-                        "id": 42783,
+                        "id": 42800,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3732,10 +3732,10 @@
                           "typeString": "function (address,address,address) returns (contract Burner)"
                         },
                         "typeName": {
-                          "id": 42782,
+                          "id": 42799,
                           "nodeType": "UserDefinedTypeName",
                           "pathNode": {
-                            "id": 42781,
+                            "id": 42798,
                             "name": "Burner",
                             "nodeType": "IdentifierPath",
                             "referencedDeclaration": 41394,
@@ -3749,7 +3749,7 @@
                           }
                         }
                       },
-                      "id": 42793,
+                      "id": 42810,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3770,7 +3770,7 @@
                       "typeString": "contract Burner"
                     }
                   },
-                  "id": 42795,
+                  "id": 42812,
                   "nodeType": "ExpressionStatement",
                   "src": "1424:58:60"
                 },
@@ -3780,11 +3780,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42801,
+                            "id": 42818,
                             "name": "minter",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42701,
+                            "referencedDeclaration": 42718,
                             "src": "1520:6:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_Minter_$41583",
@@ -3799,7 +3799,7 @@
                               "typeString": "contract Minter"
                             }
                           ],
-                          "id": 42800,
+                          "id": 42817,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -3811,14 +3811,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42799,
+                            "id": 42816,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "1512:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42802,
+                        "id": 42819,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3842,18 +3842,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42796,
+                        "id": 42813,
                         "name": "stflip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42698,
+                        "referencedDeclaration": 42715,
                         "src": "1494:6:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42798,
+                      "id": 42815,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3867,7 +3867,7 @@
                         "typeString": "function (address) external"
                       }
                     },
-                    "id": 42803,
+                    "id": 42820,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3882,7 +3882,7 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 42804,
+                  "id": 42821,
                   "nodeType": "ExpressionStatement",
                   "src": "1494:34:60"
                 },
@@ -3892,11 +3892,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42810,
+                            "id": 42827,
                             "name": "owner",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42707,
+                            "referencedDeclaration": 42724,
                             "src": "1563:5:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
@@ -3911,7 +3911,7 @@
                               "typeString": "address"
                             }
                           ],
-                          "id": 42809,
+                          "id": 42826,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -3923,14 +3923,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42808,
+                            "id": 42825,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "1555:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42811,
+                        "id": 42828,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3954,18 +3954,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42805,
+                        "id": 42822,
                         "name": "flip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42695,
+                        "referencedDeclaration": 42712,
                         "src": "1539:4:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42807,
+                      "id": 42824,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -3979,7 +3979,7 @@
                         "typeString": "function (address) external"
                       }
                     },
-                    "id": 42812,
+                    "id": 42829,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3994,23 +3994,23 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 42813,
+                  "id": 42830,
                   "nodeType": "ExpressionStatement",
                   "src": "1539:31:60"
                 },
                 {
                   "expression": {
-                    "id": 42819,
+                    "id": 42836,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 42814,
+                      "id": 42831,
                       "name": "tenderSwap",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 42689,
+                      "referencedDeclaration": 42706,
                       "src": "1583:10:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_contract$_TenderSwap_$38193",
@@ -4023,7 +4023,7 @@
                       "arguments": [],
                       "expression": {
                         "argumentTypes": [],
-                        "id": 42817,
+                        "id": 42834,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -4035,10 +4035,10 @@
                           "typeString": "function () returns (contract TenderSwap)"
                         },
                         "typeName": {
-                          "id": 42816,
+                          "id": 42833,
                           "nodeType": "UserDefinedTypeName",
                           "pathNode": {
-                            "id": 42815,
+                            "id": 42832,
                             "name": "TenderSwap",
                             "nodeType": "IdentifierPath",
                             "referencedDeclaration": 38193,
@@ -4052,7 +4052,7 @@
                           }
                         }
                       },
-                      "id": 42818,
+                      "id": 42835,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -4073,23 +4073,23 @@
                       "typeString": "contract TenderSwap"
                     }
                   },
-                  "id": 42820,
+                  "id": 42837,
                   "nodeType": "ExpressionStatement",
                   "src": "1583:29:60"
                 },
                 {
                   "expression": {
-                    "id": 42826,
+                    "id": 42843,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 42821,
+                      "id": 42838,
                       "name": "liquidityPoolToken",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 42692,
+                      "referencedDeclaration": 42709,
                       "src": "1623:18:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_contract$_LiquidityPoolToken_$34077",
@@ -4102,7 +4102,7 @@
                       "arguments": [],
                       "expression": {
                         "argumentTypes": [],
-                        "id": 42824,
+                        "id": 42841,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -4114,10 +4114,10 @@
                           "typeString": "function () returns (contract LiquidityPoolToken)"
                         },
                         "typeName": {
-                          "id": 42823,
+                          "id": 42840,
                           "nodeType": "UserDefinedTypeName",
                           "pathNode": {
-                            "id": 42822,
+                            "id": 42839,
                             "name": "LiquidityPoolToken",
                             "nodeType": "IdentifierPath",
                             "referencedDeclaration": 34077,
@@ -4131,7 +4131,7 @@
                           }
                         }
                       },
-                      "id": 42825,
+                      "id": 42842,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -4152,7 +4152,7 @@
                       "typeString": "contract LiquidityPoolToken"
                     }
                   },
-                  "id": 42827,
+                  "id": 42844,
                   "nodeType": "ExpressionStatement",
                   "src": "1623:45:60"
                 },
@@ -4164,11 +4164,11 @@
                           {
                             "arguments": [
                               {
-                                "id": 42834,
+                                "id": 42851,
                                 "name": "stflip",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 42698,
+                                "referencedDeclaration": 42715,
                                 "src": "1716:6:60",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -4183,7 +4183,7 @@
                                   "typeString": "contract stFlip"
                                 }
                               ],
-                              "id": 42833,
+                              "id": 42850,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -4195,14 +4195,14 @@
                                 "typeString": "type(address)"
                               },
                               "typeName": {
-                                "id": 42832,
+                                "id": 42849,
                                 "name": "address",
                                 "nodeType": "ElementaryTypeName",
                                 "src": "1708:7:60",
                                 "typeDescriptions": {}
                               }
                             },
-                            "id": 42835,
+                            "id": 42852,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -4225,7 +4225,7 @@
                               "typeString": "address"
                             }
                           ],
-                          "id": 42831,
+                          "id": 42848,
                           "name": "IERC20",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
@@ -4236,7 +4236,7 @@
                             "typeString": "type(contract IERC20)"
                           }
                         },
-                        "id": 42836,
+                        "id": 42853,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -4256,11 +4256,11 @@
                           {
                             "arguments": [
                               {
-                                "id": 42840,
+                                "id": 42857,
                                 "name": "flip",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 42695,
+                                "referencedDeclaration": 42712,
                                 "src": "1741:4:60",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -4275,7 +4275,7 @@
                                   "typeString": "contract stFlip"
                                 }
                               ],
-                              "id": 42839,
+                              "id": 42856,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -4287,14 +4287,14 @@
                                 "typeString": "type(address)"
                               },
                               "typeName": {
-                                "id": 42838,
+                                "id": 42855,
                                 "name": "address",
                                 "nodeType": "ElementaryTypeName",
                                 "src": "1733:7:60",
                                 "typeDescriptions": {}
                               }
                             },
-                            "id": 42841,
+                            "id": 42858,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -4317,7 +4317,7 @@
                               "typeString": "address"
                             }
                           ],
-                          "id": 42837,
+                          "id": 42854,
                           "name": "IERC20",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
@@ -4328,7 +4328,7 @@
                             "typeString": "type(contract IERC20)"
                           }
                         },
-                        "id": 42842,
+                        "id": 42859,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -4345,7 +4345,7 @@
                       },
                       {
                         "hexValue": "464c49502d7374464c4950204c5020546f6b656e",
-                        "id": 42843,
+                        "id": 42860,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -4361,7 +4361,7 @@
                       },
                       {
                         "hexValue": "464c49502d7374464c4950",
-                        "id": 42844,
+                        "id": 42861,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -4377,7 +4377,7 @@
                       },
                       {
                         "hexValue": "3130",
-                        "id": 42845,
+                        "id": 42862,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -4396,14 +4396,14 @@
                           "typeIdentifier": "t_rational_10000000_by_1",
                           "typeString": "int_const 10000000"
                         },
-                        "id": 42848,
+                        "id": 42865,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
                         "lValueRequested": false,
                         "leftExpression": {
                           "hexValue": "3130",
-                          "id": 42846,
+                          "id": 42863,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -4421,7 +4421,7 @@
                         "operator": "**",
                         "rightExpression": {
                           "hexValue": "37",
-                          "id": 42847,
+                          "id": 42864,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -4443,7 +4443,7 @@
                       },
                       {
                         "hexValue": "30",
-                        "id": 42849,
+                        "id": 42866,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -4458,11 +4458,11 @@
                         "value": "0"
                       },
                       {
-                        "id": 42850,
+                        "id": 42867,
                         "name": "liquidityPoolToken",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42692,
+                        "referencedDeclaration": 42709,
                         "src": "1802:18:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_LiquidityPoolToken_$34077",
@@ -4506,18 +4506,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42828,
+                        "id": 42845,
                         "name": "tenderSwap",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42689,
+                        "referencedDeclaration": 42706,
                         "src": "1679:10:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_TenderSwap_$38193",
                           "typeString": "contract TenderSwap"
                         }
                       },
-                      "id": 42830,
+                      "id": 42847,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -4531,7 +4531,7 @@
                         "typeString": "function (contract IERC20,contract IERC20,string memory,string memory,uint256,uint256,uint256,contract LiquidityPoolToken) external returns (bool)"
                       }
                     },
-                    "id": 42851,
+                    "id": 42868,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -4546,23 +4546,23 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 42852,
+                  "id": 42869,
                   "nodeType": "ExpressionStatement",
                   "src": "1679:142:60"
                 },
                 {
                   "expression": {
-                    "id": 42878,
+                    "id": 42895,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 42853,
+                      "id": 42870,
                       "name": "aggregator",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 42686,
+                      "referencedDeclaration": 42703,
                       "src": "1834:10:60",
                       "typeDescriptions": {
                         "typeIdentifier": "t_contract$_Aggregator_$40680",
@@ -4576,11 +4576,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42859,
+                              "id": 42876,
                               "name": "minter",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42701,
+                              "referencedDeclaration": 42718,
                               "src": "1870:6:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_Minter_$41583",
@@ -4595,7 +4595,7 @@
                                 "typeString": "contract Minter"
                               }
                             ],
-                            "id": 42858,
+                            "id": 42875,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -4607,14 +4607,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42857,
+                              "id": 42874,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1862:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42860,
+                          "id": 42877,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -4632,11 +4632,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42863,
+                              "id": 42880,
                               "name": "burner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42704,
+                              "referencedDeclaration": 42721,
                               "src": "1886:6:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_Burner_$41394",
@@ -4651,7 +4651,7 @@
                                 "typeString": "contract Burner"
                               }
                             ],
-                            "id": 42862,
+                            "id": 42879,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -4663,14 +4663,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42861,
+                              "id": 42878,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1878:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42864,
+                          "id": 42881,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -4688,11 +4688,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42867,
+                              "id": 42884,
                               "name": "tenderSwap",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42689,
+                              "referencedDeclaration": 42706,
                               "src": "1903:10:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_TenderSwap_$38193",
@@ -4707,7 +4707,7 @@
                                 "typeString": "contract TenderSwap"
                               }
                             ],
-                            "id": 42866,
+                            "id": 42883,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -4719,14 +4719,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42865,
+                              "id": 42882,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1895:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42868,
+                          "id": 42885,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -4744,11 +4744,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42871,
+                              "id": 42888,
                               "name": "stflip",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42698,
+                              "referencedDeclaration": 42715,
                               "src": "1924:6:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -4763,7 +4763,7 @@
                                 "typeString": "contract stFlip"
                               }
                             ],
-                            "id": 42870,
+                            "id": 42887,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -4775,14 +4775,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42869,
+                              "id": 42886,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1916:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42872,
+                          "id": 42889,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -4800,11 +4800,11 @@
                         {
                           "arguments": [
                             {
-                              "id": 42875,
+                              "id": 42892,
                               "name": "flip",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42695,
+                              "referencedDeclaration": 42712,
                               "src": "1941:4:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_contract$_stFlip_$39696",
@@ -4819,7 +4819,7 @@
                                 "typeString": "contract stFlip"
                               }
                             ],
-                            "id": 42874,
+                            "id": 42891,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -4831,14 +4831,14 @@
                               "typeString": "type(address)"
                             },
                             "typeName": {
-                              "id": 42873,
+                              "id": 42890,
                               "name": "address",
                               "nodeType": "ElementaryTypeName",
                               "src": "1933:7:60",
                               "typeDescriptions": {}
                             }
                           },
-                          "id": 42876,
+                          "id": 42893,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -4877,7 +4877,7 @@
                             "typeString": "address"
                           }
                         ],
-                        "id": 42856,
+                        "id": 42873,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -4889,10 +4889,10 @@
                           "typeString": "function (address,address,address,address,address) returns (contract Aggregator)"
                         },
                         "typeName": {
-                          "id": 42855,
+                          "id": 42872,
                           "nodeType": "UserDefinedTypeName",
                           "pathNode": {
-                            "id": 42854,
+                            "id": 42871,
                             "name": "Aggregator",
                             "nodeType": "IdentifierPath",
                             "referencedDeclaration": 40680,
@@ -4906,7 +4906,7 @@
                           }
                         }
                       },
-                      "id": 42877,
+                      "id": 42894,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -4927,7 +4927,7 @@
                       "typeString": "contract Aggregator"
                     }
                   },
-                  "id": 42879,
+                  "id": 42896,
                   "nodeType": "ExpressionStatement",
                   "src": "1834:113:60"
                 },
@@ -4935,11 +4935,11 @@
                   "expression": {
                     "arguments": [
                       {
-                        "id": 42883,
+                        "id": 42900,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42707,
+                        "referencedDeclaration": 42724,
                         "src": "1974:5:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -4955,7 +4955,7 @@
                         }
                       ],
                       "expression": {
-                        "id": 42880,
+                        "id": 42897,
                         "name": "vm",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
@@ -4966,7 +4966,7 @@
                           "typeString": "contract Vm"
                         }
                       },
-                      "id": 42882,
+                      "id": 42899,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -4980,7 +4980,7 @@
                         "typeString": "function (address) external"
                       }
                     },
-                    "id": 42884,
+                    "id": 42901,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -4995,7 +4995,7 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 42885,
+                  "id": 42902,
                   "nodeType": "ExpressionStatement",
                   "src": "1960:20:60"
                 },
@@ -5005,11 +5005,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42891,
+                            "id": 42908,
                             "name": "tenderSwap",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42689,
+                            "referencedDeclaration": 42706,
                             "src": "2014:10:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_TenderSwap_$38193",
@@ -5024,7 +5024,7 @@
                               "typeString": "contract TenderSwap"
                             }
                           ],
-                          "id": 42890,
+                          "id": 42907,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5036,14 +5036,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42889,
+                            "id": 42906,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "2006:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42892,
+                        "id": 42909,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -5063,7 +5063,7 @@
                           "typeIdentifier": "t_rational_1267650600228229401496703205375_by_1",
                           "typeString": "int_const 1267650600228229401496703205375"
                         },
-                        "id": 42897,
+                        "id": 42914,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -5073,14 +5073,14 @@
                             "typeIdentifier": "t_rational_1267650600228229401496703205376_by_1",
                             "typeString": "int_const 1267650600228229401496703205376"
                           },
-                          "id": 42895,
+                          "id": 42912,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "32",
-                            "id": 42893,
+                            "id": 42910,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5098,7 +5098,7 @@
                           "operator": "**",
                           "rightExpression": {
                             "hexValue": "313030",
-                            "id": 42894,
+                            "id": 42911,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5122,7 +5122,7 @@
                         "operator": "-",
                         "rightExpression": {
                           "hexValue": "31",
-                          "id": 42896,
+                          "id": 42913,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5155,18 +5155,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42886,
+                        "id": 42903,
                         "name": "stflip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42698,
+                        "referencedDeclaration": 42715,
                         "src": "1991:6:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42888,
+                      "id": 42905,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -5180,7 +5180,7 @@
                         "typeString": "function (address,uint256) external returns (bool)"
                       }
                     },
-                    "id": 42898,
+                    "id": 42915,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -5195,7 +5195,7 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 42899,
+                  "id": 42916,
                   "nodeType": "ExpressionStatement",
                   "src": "1991:45:60"
                 },
@@ -5205,11 +5205,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42905,
+                            "id": 42922,
                             "name": "aggregator",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42686,
+                            "referencedDeclaration": 42703,
                             "src": "2070:10:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_Aggregator_$40680",
@@ -5224,7 +5224,7 @@
                               "typeString": "contract Aggregator"
                             }
                           ],
-                          "id": 42904,
+                          "id": 42921,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5236,14 +5236,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42903,
+                            "id": 42920,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "2062:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42906,
+                        "id": 42923,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -5263,7 +5263,7 @@
                           "typeIdentifier": "t_rational_1267650600228229401496703205375_by_1",
                           "typeString": "int_const 1267650600228229401496703205375"
                         },
-                        "id": 42911,
+                        "id": 42928,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -5273,14 +5273,14 @@
                             "typeIdentifier": "t_rational_1267650600228229401496703205376_by_1",
                             "typeString": "int_const 1267650600228229401496703205376"
                           },
-                          "id": 42909,
+                          "id": 42926,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "32",
-                            "id": 42907,
+                            "id": 42924,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5298,7 +5298,7 @@
                           "operator": "**",
                           "rightExpression": {
                             "hexValue": "313030",
-                            "id": 42908,
+                            "id": 42925,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5322,7 +5322,7 @@
                         "operator": "-",
                         "rightExpression": {
                           "hexValue": "31",
-                          "id": 42910,
+                          "id": 42927,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5355,18 +5355,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42900,
+                        "id": 42917,
                         "name": "stflip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42698,
+                        "referencedDeclaration": 42715,
                         "src": "2047:6:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42902,
+                      "id": 42919,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -5380,7 +5380,7 @@
                         "typeString": "function (address,uint256) external returns (bool)"
                       }
                     },
-                    "id": 42912,
+                    "id": 42929,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -5395,7 +5395,7 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 42913,
+                  "id": 42930,
                   "nodeType": "ExpressionStatement",
                   "src": "2047:45:60"
                 },
@@ -5405,11 +5405,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42919,
+                            "id": 42936,
                             "name": "tenderSwap",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42689,
+                            "referencedDeclaration": 42706,
                             "src": "2124:10:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_TenderSwap_$38193",
@@ -5424,7 +5424,7 @@
                               "typeString": "contract TenderSwap"
                             }
                           ],
-                          "id": 42918,
+                          "id": 42935,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5436,14 +5436,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42917,
+                            "id": 42934,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "2116:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42920,
+                        "id": 42937,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -5463,7 +5463,7 @@
                           "typeIdentifier": "t_rational_1267650600228229401496703205375_by_1",
                           "typeString": "int_const 1267650600228229401496703205375"
                         },
-                        "id": 42925,
+                        "id": 42942,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -5473,14 +5473,14 @@
                             "typeIdentifier": "t_rational_1267650600228229401496703205376_by_1",
                             "typeString": "int_const 1267650600228229401496703205376"
                           },
-                          "id": 42923,
+                          "id": 42940,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "32",
-                            "id": 42921,
+                            "id": 42938,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5498,7 +5498,7 @@
                           "operator": "**",
                           "rightExpression": {
                             "hexValue": "313030",
-                            "id": 42922,
+                            "id": 42939,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5522,7 +5522,7 @@
                         "operator": "-",
                         "rightExpression": {
                           "hexValue": "31",
-                          "id": 42924,
+                          "id": 42941,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5555,18 +5555,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42914,
+                        "id": 42931,
                         "name": "flip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42695,
+                        "referencedDeclaration": 42712,
                         "src": "2103:4:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42916,
+                      "id": 42933,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -5580,7 +5580,7 @@
                         "typeString": "function (address,uint256) external returns (bool)"
                       }
                     },
-                    "id": 42926,
+                    "id": 42943,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -5595,7 +5595,7 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 42927,
+                  "id": 42944,
                   "nodeType": "ExpressionStatement",
                   "src": "2103:43:60"
                 },
@@ -5605,11 +5605,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42933,
+                            "id": 42950,
                             "name": "aggregator",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42686,
+                            "referencedDeclaration": 42703,
                             "src": "2178:10:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_Aggregator_$40680",
@@ -5624,7 +5624,7 @@
                               "typeString": "contract Aggregator"
                             }
                           ],
-                          "id": 42932,
+                          "id": 42949,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5636,14 +5636,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42931,
+                            "id": 42948,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "2170:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42934,
+                        "id": 42951,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -5663,7 +5663,7 @@
                           "typeIdentifier": "t_rational_1267650600228229401496703205375_by_1",
                           "typeString": "int_const 1267650600228229401496703205375"
                         },
-                        "id": 42939,
+                        "id": 42956,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -5673,14 +5673,14 @@
                             "typeIdentifier": "t_rational_1267650600228229401496703205376_by_1",
                             "typeString": "int_const 1267650600228229401496703205376"
                           },
-                          "id": 42937,
+                          "id": 42954,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "32",
-                            "id": 42935,
+                            "id": 42952,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5698,7 +5698,7 @@
                           "operator": "**",
                           "rightExpression": {
                             "hexValue": "313030",
-                            "id": 42936,
+                            "id": 42953,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5722,7 +5722,7 @@
                         "operator": "-",
                         "rightExpression": {
                           "hexValue": "31",
-                          "id": 42938,
+                          "id": 42955,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5755,18 +5755,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42928,
+                        "id": 42945,
                         "name": "flip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42695,
+                        "referencedDeclaration": 42712,
                         "src": "2157:4:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42930,
+                      "id": 42947,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -5780,7 +5780,7 @@
                         "typeString": "function (address,uint256) external returns (bool)"
                       }
                     },
-                    "id": 42940,
+                    "id": 42957,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -5795,7 +5795,7 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 42941,
+                  "id": 42958,
                   "nodeType": "ExpressionStatement",
                   "src": "2157:43:60"
                 },
@@ -5805,11 +5805,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42947,
+                            "id": 42964,
                             "name": "minter",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42701,
+                            "referencedDeclaration": 42718,
                             "src": "2232:6:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_Minter_$41583",
@@ -5824,7 +5824,7 @@
                               "typeString": "contract Minter"
                             }
                           ],
-                          "id": 42946,
+                          "id": 42963,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5836,14 +5836,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42945,
+                            "id": 42962,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "2224:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42948,
+                        "id": 42965,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -5863,7 +5863,7 @@
                           "typeIdentifier": "t_rational_1267650600228229401496703205375_by_1",
                           "typeString": "int_const 1267650600228229401496703205375"
                         },
-                        "id": 42953,
+                        "id": 42970,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -5873,14 +5873,14 @@
                             "typeIdentifier": "t_rational_1267650600228229401496703205376_by_1",
                             "typeString": "int_const 1267650600228229401496703205376"
                           },
-                          "id": 42951,
+                          "id": 42968,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "32",
-                            "id": 42949,
+                            "id": 42966,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5898,7 +5898,7 @@
                           "operator": "**",
                           "rightExpression": {
                             "hexValue": "313030",
-                            "id": 42950,
+                            "id": 42967,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -5922,7 +5922,7 @@
                         "operator": "-",
                         "rightExpression": {
                           "hexValue": "31",
-                          "id": 42952,
+                          "id": 42969,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -5955,18 +5955,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42942,
+                        "id": 42959,
                         "name": "flip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42695,
+                        "referencedDeclaration": 42712,
                         "src": "2211:4:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42944,
+                      "id": 42961,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -5980,7 +5980,7 @@
                         "typeString": "function (address,uint256) external returns (bool)"
                       }
                     },
-                    "id": 42954,
+                    "id": 42971,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -5995,7 +5995,7 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 42955,
+                  "id": 42972,
                   "nodeType": "ExpressionStatement",
                   "src": "2211:39:60"
                 },
@@ -6005,11 +6005,11 @@
                       {
                         "arguments": [
                           {
-                            "id": 42961,
+                            "id": 42978,
                             "name": "burner",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 42704,
+                            "referencedDeclaration": 42721,
                             "src": "2282:6:60",
                             "typeDescriptions": {
                               "typeIdentifier": "t_contract$_Burner_$41394",
@@ -6024,7 +6024,7 @@
                               "typeString": "contract Burner"
                             }
                           ],
-                          "id": 42960,
+                          "id": 42977,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -6036,14 +6036,14 @@
                             "typeString": "type(address)"
                           },
                           "typeName": {
-                            "id": 42959,
+                            "id": 42976,
                             "name": "address",
                             "nodeType": "ElementaryTypeName",
                             "src": "2274:7:60",
                             "typeDescriptions": {}
                           }
                         },
-                        "id": 42962,
+                        "id": 42979,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -6063,7 +6063,7 @@
                           "typeIdentifier": "t_rational_1267650600228229401496703205375_by_1",
                           "typeString": "int_const 1267650600228229401496703205375"
                         },
-                        "id": 42967,
+                        "id": 42984,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -6073,14 +6073,14 @@
                             "typeIdentifier": "t_rational_1267650600228229401496703205376_by_1",
                             "typeString": "int_const 1267650600228229401496703205376"
                           },
-                          "id": 42965,
+                          "id": 42982,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
                           "lValueRequested": false,
                           "leftExpression": {
                             "hexValue": "32",
-                            "id": 42963,
+                            "id": 42980,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -6098,7 +6098,7 @@
                           "operator": "**",
                           "rightExpression": {
                             "hexValue": "313030",
-                            "id": 42964,
+                            "id": 42981,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": true,
@@ -6122,7 +6122,7 @@
                         "operator": "-",
                         "rightExpression": {
                           "hexValue": "31",
-                          "id": 42966,
+                          "id": 42983,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -6155,18 +6155,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42956,
+                        "id": 42973,
                         "name": "flip",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42695,
+                        "referencedDeclaration": 42712,
                         "src": "2261:4:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_stFlip_$39696",
                           "typeString": "contract stFlip"
                         }
                       },
-                      "id": 42958,
+                      "id": 42975,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -6180,7 +6180,7 @@
                         "typeString": "function (address,uint256) external returns (bool)"
                       }
                     },
-                    "id": 42968,
+                    "id": 42985,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -6195,7 +6195,7 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 42969,
+                  "id": 42986,
                   "nodeType": "ExpressionStatement",
                   "src": "2261:39:60"
                 },
@@ -6209,14 +6209,14 @@
                               "typeIdentifier": "t_uint256",
                               "typeString": "uint256"
                             },
-                            "id": 42975,
+                            "id": 42992,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
                             "lValueRequested": false,
                             "leftExpression": {
                               "hexValue": "31303030",
-                              "id": 42973,
+                              "id": 42990,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -6233,11 +6233,11 @@
                             "nodeType": "BinaryOperation",
                             "operator": "*",
                             "rightExpression": {
-                              "id": 42974,
+                              "id": 42991,
                               "name": "decimalsMultiplier",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42718,
+                              "referencedDeclaration": 42735,
                               "src": "2341:18:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_uint256",
@@ -6255,14 +6255,14 @@
                               "typeIdentifier": "t_uint256",
                               "typeString": "uint256"
                             },
-                            "id": 42978,
+                            "id": 42995,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
                             "lValueRequested": false,
                             "leftExpression": {
                               "hexValue": "383030",
-                              "id": 42976,
+                              "id": 42993,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -6279,11 +6279,11 @@
                             "nodeType": "BinaryOperation",
                             "operator": "*",
                             "rightExpression": {
-                              "id": 42977,
+                              "id": 42994,
                               "name": "decimalsMultiplier",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 42718,
+                              "referencedDeclaration": 42735,
                               "src": "2365:18:60",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_uint256",
@@ -6297,7 +6297,7 @@
                             }
                           }
                         ],
-                        "id": 42979,
+                        "id": 42996,
                         "isConstant": false,
                         "isInlineArray": true,
                         "isLValue": false,
@@ -6312,7 +6312,7 @@
                       },
                       {
                         "hexValue": "30",
-                        "id": 42980,
+                        "id": 42997,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -6331,14 +6331,14 @@
                           "typeIdentifier": "t_uint256",
                           "typeString": "uint256"
                         },
-                        "id": 42984,
+                        "id": 43001,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
                         "lValueRequested": false,
                         "leftExpression": {
                           "expression": {
-                            "id": 42981,
+                            "id": 42998,
                             "name": "block",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
@@ -6349,7 +6349,7 @@
                               "typeString": "block"
                             }
                           },
-                          "id": 42982,
+                          "id": 42999,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
@@ -6366,7 +6366,7 @@
                         "operator": "+",
                         "rightExpression": {
                           "hexValue": "313030",
-                          "id": 42983,
+                          "id": 43000,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": true,
@@ -6403,18 +6403,18 @@
                         }
                       ],
                       "expression": {
-                        "id": 42970,
+                        "id": 42987,
                         "name": "tenderSwap",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 42689,
+                        "referencedDeclaration": 42706,
                         "src": "2311:10:60",
                         "typeDescriptions": {
                           "typeIdentifier": "t_contract$_TenderSwap_$38193",
                           "typeString": "contract TenderSwap"
                         }
                       },
-                      "id": 42972,
+                      "id": 42989,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -6428,7 +6428,7 @@
                         "typeString": "function (uint256[2] memory,uint256,uint256) external returns (uint256)"
                       }
                     },
-                    "id": 42985,
+                    "id": 43002,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -6443,7 +6443,7 @@
                       "typeString": "uint256"
                     }
                   },
-                  "id": 42986,
+                  "id": 43003,
                   "nodeType": "ExpressionStatement",
                   "src": "2311:100:60"
                 },
@@ -6453,7 +6453,7 @@
                     "expression": {
                       "argumentTypes": [],
                       "expression": {
-                        "id": 42987,
+                        "id": 43004,
                         "name": "vm",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
@@ -6464,7 +6464,7 @@
                           "typeString": "contract Vm"
                         }
                       },
-                      "id": 42989,
+                      "id": 43006,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -6478,7 +6478,7 @@
                         "typeString": "function () external"
                       }
                     },
-                    "id": 42990,
+                    "id": 43007,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -6493,7 +6493,7 @@
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 42991,
+                  "id": 43008,
                   "nodeType": "ExpressionStatement",
                   "src": "2422:14:60"
                 }
@@ -6505,18 +6505,18 @@
             "name": "",
             "nameLocation": "-1:-1:-1",
             "parameters": {
-              "id": 42719,
+              "id": 42736,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1089:2:60"
             },
             "returnParameters": {
-              "id": 42720,
+              "id": 42737,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "1093:0:60"
             },
-            "scope": 42994,
+            "scope": 43011,
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "public"
@@ -6526,13 +6526,13 @@
         "baseContracts": [
           {
             "baseName": {
-              "id": 42682,
+              "id": 42699,
               "name": "Test",
               "nodeType": "IdentifierPath",
               "referencedDeclaration": 10782,
               "src": "552:4:60"
             },
-            "id": 42683,
+            "id": 42700,
             "nodeType": "InheritanceSpecifier",
             "src": "552:4:60"
           }
@@ -6548,7 +6548,7 @@
         "contractKind": "contract",
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          42994,
+          43011,
           10782,
           1846,
           1843,
@@ -6562,7 +6562,7 @@
         ],
         "name": "MainMigration",
         "nameLocation": "535:13:60",
-        "scope": 42995,
+        "scope": 43012,
         "usedErrors": []
       }
     ],

@@ -20,6 +20,8 @@ contract AggregatorTest is MainMigration {
         uint256 lpAmount2 = bound(lpAmount1_, 1000, flipBalance);
         uint256 targetPrice = bound(targetPrice_, 980*10**(decimals-3), 1020*10**(decimals-3));
         uint256 targetError = bound(targetError_, 10**12, 10**16);
+        vm.prank(owner);
+        tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp);
         aggregator.calculatePurchasable(targetPrice, targetError, 1000);
     }
 
