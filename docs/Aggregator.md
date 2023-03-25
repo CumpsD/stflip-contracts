@@ -6,8 +6,6 @@ The `Aggregator` contract is used to handle the stake and unstake aggregation fu
 
 ### Contract
 
-`stakeAggregate` (swap and mint automatically) and the `unstakeAggregate` (instant burn, instant claim, )(inside the `Minter.sol` file) is used to calculate the maximum amount purchasable for a favorable price and to purchase/mint atomically.
-
 **`constructor`**
 
 ```solidity
@@ -61,8 +59,8 @@ function stakeAggregate(uint256 amountTotal,
 
 **Notes:**
 
-- Contract will only swap if `_dx > 0`
-- Contract will only mint if there is excess tokens after the swap (i.e `_dx < amount`)
+- Contract will only swap if `amountSwap> 0`
+- Contract will only mint if there is excess tokens after the swap (i.e `amountSwap < amountTotal`)
 
 Here is the documentation for the `unstakeAggregate` function in the provided format.
 
