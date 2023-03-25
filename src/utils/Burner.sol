@@ -184,8 +184,6 @@ contract Burner {
         onlyGov
         returns (bool)
     {
-        
-        console.log("importing data");
 
         burn_[] memory allBurns = burnerToImport.getAllBurns();
 
