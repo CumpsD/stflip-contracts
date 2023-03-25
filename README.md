@@ -5,43 +5,43 @@ This repository contains the forge project used to develop, test and deploy the 
 ## Repository Structure
 
 ```
-├── README.md									|	You are looking at it now :)
-├── foundry.toml								|	Foundry configuration file
-├── lib											|	Solidity libraries				
-│   ├── forge-std 								|	Forge standard library. Cheatcodes, console.log, etc		
-│   ├── openzeppelin-contracts					|	Openzeppelin library. SafeMath, ERC20, etc
-│   └── openzeppelin-contracts-upgradeable		|	Upgradeable OpenZeppelin
-├── node_modules								|
-├── out 										|	Folder with all of the ABIs
+├── README.md								|	You are looking at it now :)
+├── foundry.toml							|	Foundry configuration file
+├── lib									|	Solidity libraries				
+│   ├── forge-std 							|	Forge standard library. Cheatcodes, console.log, etc		
+│   ├── openzeppelin-contracts						|	Openzeppelin library. SafeMath, ERC20, etc
+│   └── openzeppelin-contracts-upgradeable				|	Upgradeable OpenZeppelin
+├── node_modules							|
+├── out 								|	Folder with all of the ABIs
 ├── package-lock.json							|
-├── package.json								|
-├── remappings.txt								|	Import remappings
-├── docs										| 	documentation for each contract. Functions, tests and deploy.
+├── package.json							|
+├── remappings.txt							|	Import remappings
+├── docs								| 	documentation for each contract. Functions, tests and deploy.
 │   ├── Aggregator.md							|
 │   ├── TenderSwap.md 							|
-│   ├── Minter.md								|	
-│   └── Burner.md								|
-├── script										|	Deployment scripts
+│   ├── Minter.md							|	
+│   └── Burner.md							|
+├── script								|	Deployment scripts
 │   ├── Aggregator.s.sol						|	
 │   └── Burner.s.sol							|
-├── src											|	Solidity contract source
-│   ├── tenderswap								|	Liquidity pool items
+├── src									|	Solidity contract source
+│   ├── tenderswap							|	Liquidity pool items
 │   │   ├── ITenderSwap.sol						|	
-│   │   ├── LiquidityPoolToken.sol				|	
+│   │   ├── LiquidityPoolToken.sol					|	
 │   │   ├── MathUtils.sol						|	
 │   │   ├── Multicall.sol						|
 │   │   ├── SelfPermit.sol						|
 │   │   ├── SwapUtils.sol						|	SwapUtils Library
 │   │   └── TenderSwap.sol						|	TenderSwap Pool 
-│   ├── token									|	Token related items
+│   ├── token								|	Token related items
 │   │   ├── Address.sol							|
 │   │   ├── stFlip.sol							|	Main token contract
 │   │   └── tStorage.sol						|	Token storage
-│   └── utils									|	Extraneous items 
+│   └── utils								|	Extraneous items 
 │       ├── Aggregator.sol						|	Aggregator contract
 │       ├── Burner.sol							|	Burner contract
 │       └── Minter.sol							|	Minter contract
-└── test										|	All of the tests
+└── test								|	All of the tests
     ├── Aggregator.t.sol						|	Aggregator test
     ├── Burner.t.sol							|	Burner test
     ├── MainMigration.sol						|	Migration that sets everything up for each test
