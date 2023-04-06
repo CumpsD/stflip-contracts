@@ -88,7 +88,6 @@ contract Burner {
 
     /**
      * @notice redeems a burn, claiming native FLIP back to "to"
-     * @param to, the owner of the burn, the address that will receive the tokens
      * @param burn_id, the ID of the burn to redeem.
      */
     function redeem(uint256 burn_id) external {

@@ -39,7 +39,7 @@ contract BurnerTest is MainMigration {
         // first user doing an instant burn for all the flip
         vm.startPrank(user1);
         uint256 id1 = burner.burn(user1, 1000*decimalsMultiplier);
-        burner.redeem(user1,id1);
+        burner.redeem(id1);
         vm.stopPrank();
 
         // depositing some more flip. 
@@ -53,7 +53,7 @@ contract BurnerTest is MainMigration {
         // also doing a burn for the amount that was just deposited, except claiming it right after
         vm.startPrank(user2);
         uint256 id3 = burner.burn(user2,100*decimalsMultiplier);
-        burner.redeem(user2,id3);
+        burner.redeem(id3);
         vm.stopPrank();
 
         console.log("uh oh");
@@ -73,13 +73,13 @@ contract BurnerTest is MainMigration {
         uint256 id3 = burner.burn(user3,400*decimalsMultiplier);
         
         vm.prank(user3);
-        burner.redeem(user3,id3);
+        burner.redeem(id3);
 
         vm.prank(user1);
-        burner.redeem(user1,id1);
+        burner.redeem(id1);
 
         vm.prank(user2);
-        burner.redeem(user2,id2);
+        burner.redeem(id2);
 
     }
     
@@ -115,7 +115,7 @@ contract BurnerTest is MainMigration {
             if (!completed) {  
                 console.log("burn amount, balance var, contract balance", amount, burner_.balance(), goerliMigration.flip().balanceOf(address(burner_)));
                 vm.prank(user);
-                burner_.redeem(user,i);
+                burner_.redeem(i);
                 total += amount;
             }
         }

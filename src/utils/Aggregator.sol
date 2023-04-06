@@ -58,7 +58,7 @@ contract Aggregator {
         if (amountInstantBurn > 0) {
             console.log("performing instant burn for ", amountInstantBurn);
             uint256 instantBurnId = burner.burn(msg.sender, amountInstantBurn);
-            burner.redeem(msg.sender, instantBurnId); 
+            burner.redeem(instantBurnId); 
         }
 
         if (amountBurn > 0) {
