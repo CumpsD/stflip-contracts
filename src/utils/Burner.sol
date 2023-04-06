@@ -29,29 +29,40 @@ contract Burner {
         sums.push(0);
     }
 
+    /**
+     * @notice Event emitted when pendingGov is changed
+     */
     event NewPendingGov(address oldPendingGov, address newPendingGov);
 
+    /**
+     * @notice Event emitted when gov is changed
+     */
     event NewGov(address oldGov, address newGov);
 
+    /**
+     * @notice Tokens burned event
+     */
     event Burn(uint256 amount, uint256 burn_id);
 
+    // Modifiers
     modifier onlyGov() {
         require(msg.sender == gov);
         _;
     }
 
-    function _setPendingGov(address pendingGov_)
-        external
-        onlyGov
-    {
+    /** @notice sets the pendingGov
+     * @param pendingGov_ The address of the rebaser contract to use for authentication.
+     */
+    function _setPendingGov(address pendingGov_) external onlyGov {
         address oldPendingGov = pendingGov;
         pendingGov = pendingGov_;
         emit NewPendingGov(oldPendingGov, pendingGov_);
     }
 
-    function _acceptGov()
-        external
-    {
+    /** @notice lets msg.sender accept governance
+     *
+     */
+    function _acceptGov() external {
         require(msg.sender == pendingGov, "!pending");
         address oldGov = gov;
         gov = pendingGov;
@@ -59,33 +70,53 @@ contract Burner {
         emit NewGov(oldGov, gov);
     }
 
+    /**
+     * @notice Burns tokens, transfering tokens from msg.sender, burning them, adding an item to the burns list
+     * @param to, the owner of the burn, the address that will receive the burn once completed
+     * @param amount, the amount to burn
+     */
     function burn(address to, uint256 amount) external returns (uint256) {
         stflip.transferFrom(msg.sender, address(this), amount);
         burns.push(burn_(to, amount, false));
-        sums.push(amount.add(sums[sums.length-1]));
+        sums.push(amount.add(sums[sums.length - 1]));
         stflip.burn(amount, address(this));
 
-        emit Burn(amount, burns.length-1);
+        emit Burn(amount, burns.length - 1);
 
-        return burns.length-1;
+        return burns.length - 1;
     }
-    
-    function redeem(address to, uint256 burn_id) external {
-        require(burns[burn_id].user == to, "!user");
-        require(burns[burn_id].completed == false, "completed");
-        require(subtract(sums[burn_id], reedemed) <= balance, "insufficient balance");
 
-        flip.transfer(to, burns[burn_id].amount);
+    /**
+     * @notice redeems a burn, claiming native FLIP back to "to"
+     * @param to, the owner of the burn, the address that will receive the tokens
+     * @param burn_id, the ID of the burn to redeem.
+     */
+    function redeem(uint256 burn_id) external {
+        require(burns[burn_id].completed == false, "completed");
+        require(
+            subtract(sums[burn_id], reedemed) <= balance,
+            "insufficient balance"
+        );
+
+        flip.transfer(burns[burn_id].user, burns[burn_id].amount);
         burns[burn_id].completed = true;
         reedemed = reedemed.add(burns[burn_id].amount);
         balance = balance.sub(burns[burn_id].amount);
     }
 
+    /**
+     * @notice deposits native tokens into the contract
+     * @dev limited to onlyGov
+     */
     function deposit(uint256 amount) external onlyGov {
         flip.transferFrom(msg.sender, address(this), amount);
         balance = balance.add(amount);
     }
 
+    /**
+     * @notice withdraws native tokens into the contract
+     * @dev limited to onlyGov
+     */
     function govWithdraw(uint256 amount) external onlyGov {
         flip.transfer(msg.sender, amount);
         balance = balance.sub(amount);
@@ -95,22 +126,19 @@ contract Burner {
         IERC20(token).transfer(msg.sender, amount);
     }
 
-    function totalPendingBurns()
-      external
-      view
-      returns (uint256)
-    {
+    /**
+     * @notice the sum of all unredeemed burns in the contract
+     */
+    function totalPendingBurns() external view returns (uint256) {
         return sums[burns.length - 1] - reedemed;
     }
-    
-    function getBurnIds(address account)
-      internal 
-      view
-      returns (uint256[] memory)
-    {
+
+    function getBurnIds(
+        address account
+    ) internal view returns (uint256[] memory) {
         uint256[] memory burn_ids = new uint256[](burns.length);
         uint256 t = 0;
-        for (uint256 i=0; i<burns.length; i++) {
+        for (uint256 i = 0; i < burns.length; i++) {
             if (burns[i].user == account) {
                 burn_ids[t] = i;
                 t++;
@@ -119,26 +147,29 @@ contract Burner {
 
         // remove extra zeros
         uint256[] memory burn_ids_ = new uint256[](t);
-        for (uint256 i=0; i<t; i++) {
+        for (uint256 i = 0; i < t; i++) {
             burn_ids_[i] = burn_ids[i];
         }
 
         return burn_ids_;
     }
 
-    // returns all the pending burns of a user
-    function getBurns(address account)
-      external
-      view
-      returns (burn_[] memory, uint256[] memory, bool[] memory)
-    {
+    /**
+     * @notice get all the burns of an account, the the full structs, ids, and if they can be redeemed.
+     */
+    function getBurns(
+        address account
+    ) external view returns (burn_[] memory, uint256[] memory, bool[] memory) {
         uint256[] memory burn_ids = getBurnIds(account);
         burn_[] memory burns_ = new burn_[](burn_ids.length);
         bool[] memory redeemables = new bool[](burn_ids.length);
-        for (uint256 i=0; i<burn_ids.length; i++) {
+        for (uint256 i = 0; i < burn_ids.length; i++) {
             burns_[i] = burns[burn_ids[i]];
 
-            if (burns[burn_ids[i]].completed == false && subtract(sums[burn_ids[i]], reedemed) <= balance) {
+            if (
+                burns[burn_ids[i]].completed == false &&
+                subtract(sums[burn_ids[i]], reedemed) <= balance
+            ) {
                 redeemables[i] = true;
             } else {
                 redeemables[i] = false;
@@ -148,47 +179,37 @@ contract Burner {
         return (burns_, burn_ids, redeemables);
     }
 
-    function redeemable(uint256 burn_id)
-      external
-      view
-      returns (bool)
-    {
-      if (burns[burn_id].completed == false && subtract(sums[burn_id], reedemed) <= balance) {
-        return true;
-      } else {
-        return false;
-      }
+    /** @notice is a burn redeemable
+     */
+    function redeemable(uint256 burn_id) external view returns (bool) {
+        if (
+            burns[burn_id].completed == false &&
+            subtract(sums[burn_id], reedemed) <= balance
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    function getAllBurns()
-        external
-        view
-        returns (burn_[] memory)
-    {
+    function getAllBurns() external view returns (burn_[] memory) {
         return burns;
     }
 
-    function subtract(uint a, uint b) 
-      public 
-      pure 
-      returns (uint) 
-    {
-      unchecked {
-        if (a<b) return 0;
-        return a - b;
-      }
+    function subtract(uint a, uint b) public pure returns (uint) {
+        unchecked {
+            if (a < b) return 0;
+            return a - b;
+        }
     }
 
-    function importData(Burner burnerToImport) 
-        external
-        onlyGov
-        returns (bool)
-    {
-
+    /** @notice will be used if we ever need to make a new burn contract
+     */
+    function importData(Burner burnerToImport) external onlyGov returns (bool) {
         burn_[] memory allBurns = burnerToImport.getAllBurns();
 
         for (uint i = 1; i < allBurns.length; i++) {
-            sums.push( burnerToImport.sums(i));
+            sums.push(burnerToImport.sums(i));
             burns.push(allBurns[i]);
         }
 
@@ -197,5 +218,3 @@ contract Burner {
         return true;
     }
 }
-
-
