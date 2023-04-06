@@ -105,9 +105,8 @@ contract Burner {
 
     /**
      * @notice deposits native tokens into the contract
-     * @dev limited to onlyGov
      */
-    function deposit(uint256 amount) external onlyGov {
+    function deposit(uint256 amount) external {
         flip.transferFrom(msg.sender, address(this), amount);
         balance = balance.add(amount);
     }
