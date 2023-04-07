@@ -10,6 +10,7 @@ import "../src/token/stFlip.sol";
 import "../src/utils/Aggregator.sol";
 import "../src/utils/Minter.sol";
 import "../src/utils/Burner.sol";
+import "../src/utils/Sweeper.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -24,6 +25,7 @@ contract MainMigration is Test {
     stFlip public stflip;
     Minter public minter;
     Burner public burner;
+    Sweeper public sweeper;
     address public owner = 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84;
     address public output = 0x1000000000000000000000000000000000000000;
     uint8 public decimals = 18;
@@ -47,6 +49,8 @@ contract MainMigration is Test {
 
         aggregator = new Aggregator(address(minter),address(burner), address(tenderSwap), address(stflip), address(flip));
 
+        sweeper = new Sweeper(address(flip), address(burner));
+
         vm.startPrank(owner);
         stflip.approve(address(tenderSwap), 2**100-1);
         stflip.approve(address(aggregator), 2**100-1);
@@ -54,6 +58,7 @@ contract MainMigration is Test {
         flip.approve(address(aggregator), 2**100-1);
         flip.approve(address(minter), 2**100-1);
         flip.approve(address(burner), 2**100-1);
+        flip.approve(address(sweeper), 2**100-1);
         tenderSwap.addLiquidity([1000*decimalsMultiplier, 800*decimalsMultiplier], 0, block.timestamp + 100);
         vm.stopPrank();
 
