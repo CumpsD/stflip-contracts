@@ -10,6 +10,8 @@ contract Sweeper {
     constructor(address flip_, address burner_) {
         flip = IERC20(flip_);
         burner = Burner(burner_);
+
+        flip.approve(burner_, 2**256 -1 );
     }
 
     // @notice disperse tokens to a number of recipients in one transaction
@@ -21,7 +23,7 @@ contract Sweeper {
         uint256[] calldata values,
         uint256 deposit
     ) external {
-        uint256 total = 0;
+        uint256 total = deposit;
         for (uint256 i = 0; i < recipients.length; i++) total += values[i];
         require(flip.transferFrom(msg.sender, address(this), total));
         for (uint256 i = 0; i < recipients.length; i++) {
@@ -29,7 +31,6 @@ contract Sweeper {
         }
 
         flip.transferFrom(msg.sender, address(this), deposit);
-        flip.approve(address(burner), deposit);
         burner.deposit(deposit);
     }
 }
