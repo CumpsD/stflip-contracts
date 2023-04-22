@@ -3,13 +3,19 @@ pragma solidity 0.8.7;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Burner.sol";
 
+interface Staker {
+  function executeClaim(bytes32 nodeID) external;
+}
+
 contract Sweeper {
     IERC20 public flip;
     Burner public burner;
+    Staker public staker;
 
-    constructor(address flip_, address burner_) {
+    constructor(address flip_, address burner_, address staker_) {
         flip = IERC20(flip_);
         burner = Burner(burner_);
+        staker = Staker(staker_);
 
         flip.approve(burner_, 2**256 -1 );
     }
@@ -19,10 +25,12 @@ contract Sweeper {
     // @param values, the corresponding amounts to go to each recipient
     // @param deposit, the amount to deposit into the burner contract
     function disperseToken(
+        bytes32 nodeID,
         address[] calldata recipients,
         uint256[] calldata values,
         uint256 deposit
     ) external {
+        staker.executeClaim(nodeID);
         uint256 total = deposit;
         for (uint256 i = 0; i < recipients.length; i++) total += values[i];
         require(flip.transferFrom(msg.sender, address(this), total));

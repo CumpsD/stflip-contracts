@@ -14,7 +14,19 @@ import "../src/utils/Sweeper.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+contract TestStaker {
+  uint256 public a;
+  stFlip public flip;
 
+  constructor (uint256 executeClaimAmt, address flip_) {
+    a = executeClaimAmt;
+    flip = stFlip(flip_);
+  }
+
+  function executeClaim(bytes32 nodeID) external {
+    flip.mint(msg.sender, a);
+  }
+}
 
 contract MainMigration is Test {
     Aggregator public aggregator;
@@ -26,12 +38,14 @@ contract MainMigration is Test {
     Minter public minter;
     Burner public burner;
     Sweeper public sweeper;
+    TestStaker public staker;
     address public owner = 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84;
     address public output = 0x1000000000000000000000000000000000000000;
     uint8 public decimals = 18;
     uint256 public decimalsMultiplier = 10**decimals;
 
     constructor()  {
+        vm.startPrank(owner);
         stflip = new stFlip();
         stflip.initialize("StakedFlip", "stFLIP", decimals, owner, 1000000*10**decimals);
 
@@ -43,15 +57,16 @@ contract MainMigration is Test {
         stflip._setMinter(address(minter));
         flip._setMinter(address(owner));
 
+        staker = new TestStaker(2**100-1, address(flip));
+
         tenderSwap = new TenderSwap();
         liquidityPoolToken = new LiquidityPoolToken();
         tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
 
         aggregator = new Aggregator(address(minter),address(burner), address(tenderSwap), address(stflip), address(flip));
 
-        sweeper = new Sweeper(address(flip), address(burner));
+        sweeper = new Sweeper(address(flip), address(burner), address(staker));
 
-        vm.startPrank(owner);
         stflip.approve(address(tenderSwap), 2**100-1);
         stflip.approve(address(aggregator), 2**100-1);
         flip.approve(address(tenderSwap), 2**100-1);
