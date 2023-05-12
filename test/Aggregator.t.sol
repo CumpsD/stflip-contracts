@@ -66,7 +66,7 @@ contract AggregatorTest is MainMigration {
         uint256 lpAmount2 = bound(lpAmount2_, 100000, flipBalance / 2);
         uint256 amountClaimable = bound(amountClaimable_, 50000, flipBalance - lpAmount2);
         uint256 amountUnstake = bound(amountUnstake_, 1000000, stflipBalance - lpAmount1 );
-        console.log(lpAmount1, lpAmount2);
+        console.log(lpAmount1, lpAmount2, amountClaimable, amountUnstake);
         
         vm.startPrank(owner);
         tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp+100);

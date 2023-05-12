@@ -69,10 +69,10 @@ contract Aggregator {
         if (amountSwap > 0) {
             console.log("performing swap for ", amountSwap);
             received = tenderSwap.swap(stflip, amountSwap, minimumAmountSwapOut, deadline);
-            console.log("transferring FLIP back to user ", received);
+            console.log("transferring FLIP back to user ", received - 1);
             console.log("FLIP balance of contract ", flip.balanceOf(address(this)));
             console.log("stFLIP balance of contract ", stflip.balanceOf(address(this)));
-            flip.transfer(msg.sender, received);
+            flip.transfer(msg.sender, received - 1);
         }
 
         emit BurnAggregation(amountInstantBurn, amountBurn, received);
