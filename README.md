@@ -54,10 +54,11 @@ Please see `docs/` for the documentation of each contract and its functions, alo
 
 #### ABI
 
-The ABIs are in `out/`
+The ABIs are in `abi/`
 
-The file structure is `out/<contract file name>/<ContractName>.json`. For example `out/Aggregator.sol/Aggregator.json` is the ABI of the `Aggregator` contract.
+The file structure is `abi/<ContractName>.json`. For example `abi/Aggregator.json` is the ABI of the `Aggregator` contract.
 
+The script `filter_abi.py` reads through the `out` folder created by Foundry during the build process. As the files created during the build process contain significant redundant information, and change on every build, it does not make sense to push these to GitHub. Please run `filter_abi.py` after making contract changes and prior to committing. This can be made into an action or commit hook later. 
 #### Addresses
 
 The contracts are deployed at the following on Goerli
