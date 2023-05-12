@@ -11,7 +11,7 @@ contract BurnerScript is Script {
         stFlip flip = stFlip(vm.envAddress("FLIP_ADDRESS"));
         vm.startBroadcast(govKey);
         //0xD1cc80373acb7d172E1A2c4507B0A2693abBDEf1 
-        Burner oldBurner = Burner(0xD7Bd2F1934f1DA7E3C2F4d3C2B954b17d9e00642);
+        Burner oldBurner = Burner(0xcde75a4a795D70B68c4FCF387C0B30EB7faF6aEE);
         Burner newBurner = new Burner(
             address(stflip),
             vm.addr(govKey),
