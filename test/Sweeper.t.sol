@@ -3,13 +3,14 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 import "../src/utils/Sweeper.sol";
 import "./MainMigration.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract SweeperTest is MainMigration {
     function setUp() public {
         MainMigration migration = new MainMigration();
 
         vm.startPrank(owner);
-        flip.mint(owner, 1000 * decimalsMultiplier);
+        flip._setMinter(address(staker));
         vm.stopPrank();
     }
 
@@ -26,7 +27,7 @@ contract SweeperTest is MainMigration {
 
         uint256 deposit = 200;
 
-        sweeper.disperseToken(users, amounts, deposit);
+        sweeper.disperseToken(0x0, users, amounts, deposit);
 
         for (uint i = 0; i < users.length; i++) {
             require(flip.balanceOf(users[i]) == amounts[i], "wrong amount");
