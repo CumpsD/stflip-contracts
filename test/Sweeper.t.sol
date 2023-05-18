@@ -34,7 +34,7 @@ contract SweeperTest is MainMigration {
         }
 
         require(
-            burner.balance() == deposit,
+            wrappedBurnerProxy.balance() == deposit,
             "burner was transferred, not deposited"
         );
         vm.stopPrank();

@@ -1,7 +1,7 @@
 pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./Burner.sol";
+import "./BurnerV1.sol";
 
 interface Staker {
   function executeClaim(bytes32 nodeID) external;
@@ -9,12 +9,12 @@ interface Staker {
 
 contract Sweeper {
     IERC20 public flip;
-    Burner public burner;
+    BurnerV1 public burner;
     Staker public staker;
 
     constructor(address flip_, address burner_, address staker_) {
         flip = IERC20(flip_);
-        burner = Burner(burner_);
+        burner = BurnerV1(burner_);
         staker = Staker(staker_);
 
         flip.approve(burner_, 2**256 -1 );

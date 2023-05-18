@@ -2,24 +2,29 @@ pragma solidity ^0.8.4;
 
 // import "./IERC20.sol";
 import "../tenderswap/TenderSwap.sol";
-import "./Minter.sol";
-import "./Burner.sol";
+import "./MinterV1.sol";
+import "./BurnerV1.sol";
 import "forge-std/console.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-
-contract Aggregator {
+contract AggregatorV1 is Initializable {
 
 
     IERC20 public stflip;
     IERC20 public flip;
-    Minter public minter;
-    Burner public burner;
+    MinterV1 public minter;
+    BurnerV1 public burner;
     TenderSwap public tenderSwap;
 
-    constructor(address minter_, address burner_, address liquidityPool_, address stflip_, address flip_) {
+    constructor () {
+        _disableInitializers();
+    }
+
+    function initialize (address minter_, address burner_, address liquidityPool_, address stflip_, address flip_) initializer public {
         // associating relevant contracts
-        minter = Minter(minter_);
-        burner = Burner(burner_);
+        minter = MinterV1(minter_);
+        burner = BurnerV1(burner_);
         tenderSwap = TenderSwap(liquidityPool_);
         flip = IERC20(flip_);
         stflip = IERC20(stflip_);

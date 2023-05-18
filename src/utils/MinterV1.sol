@@ -1,8 +1,11 @@
 pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-contract Minter {
+
+contract MinterV1 is Initializable {
     // using SafeMath for uint256;
     address public gov;
     address public pendingGov;
@@ -11,7 +14,11 @@ contract Minter {
     stFlip public stflip;
     IERC20 public flip;
 
-    constructor(address stflip_, address output_, address gov_, address flip_) {
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address stflip_, address output_, address gov_, address flip_) initializer public {
         stflip = stFlip(stflip_);
         output = output_;
         gov = gov_;

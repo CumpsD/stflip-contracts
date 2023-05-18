@@ -2,12 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../src/utils/Burner.sol";
 import "./MainMigration.sol";
 
 
 contract MinterTest is MainMigration {
-    Minter public counter;
     address user1 = 0x0000000000000000000000000000000000000001;
     address user2 = 0x0000000000000000000000000000000000000002;
     address user3 = 0x0000000000000000000000000000000000000003;
@@ -29,7 +27,7 @@ contract MinterTest is MainMigration {
 
         vm.startPrank(user1);
         flip.approve(address(minter),amountToMint);
-        minter.mint(user1,amountToMint);
+        wrappedMinterProxy.mint(user1,amountToMint);
         vm.stopPrank();
 
         require(initialFlipSupply == flip.totalSupply(), "flip supply change");

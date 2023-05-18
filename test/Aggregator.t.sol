@@ -2,11 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../src/utils/Aggregator.sol";
+import "../src/utils/AggregatorV1.sol";
 import "./MainMigration.sol";
 
 contract AggregatorTest is MainMigration {
-    Aggregator public counter;
 
     function setUp() public {
         MainMigration migration = new MainMigration();
@@ -22,7 +21,7 @@ contract AggregatorTest is MainMigration {
         uint256 targetError = bound(targetError_, 10**12, 10**16);
         vm.prank(owner);
         tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp);
-        aggregator.calculatePurchasable(targetPrice, targetError, 1000);
+        wrappedAggregatorProxy.calculatePurchasable(targetPrice, targetError, 1000);
     }
 
     function testFuzz_Aggregate(uint256 amount_, uint256 lpAmount1_, uint256 lpAmount2_) public {
@@ -37,7 +36,7 @@ contract AggregatorTest is MainMigration {
 
         vm.startPrank(owner);
         tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp+100);
-        uint256 purchasable = aggregator.calculatePurchasable(1003*10**(decimals - 3), 10**(decimals-2), 100);
+        uint256 purchasable = wrappedAggregatorProxy.calculatePurchasable(1003*10**(decimals - 3), 10**(decimals-2), 100);
         uint256 _dx;
         uint256 _minDy;
 
@@ -55,7 +54,7 @@ contract AggregatorTest is MainMigration {
             _minDy = tenderSwap.calculateSwap(IERC20(address(flip)), _dx);
         }
         
-        aggregator.stakeAggregate(amount, _dx, _minDy, block.timestamp + 100);
+        wrappedAggregatorProxy.stakeAggregate(amount, _dx, _minDy, block.timestamp + 100);
     }
 
     function testFuzz_UnstakeAggregate(bool instantUnstake, uint256 lpAmount1_, uint256 lpAmount2_, uint256 amountClaimable_, uint256 amountUnstake_) public {
@@ -70,7 +69,7 @@ contract AggregatorTest is MainMigration {
         
         vm.startPrank(owner);
         tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp+100);
-        burner.deposit(amountClaimable);
+        wrappedBurnerProxy.deposit(amountClaimable);
 
         uint256 amountSwapOut = 0;
         uint256 amountInstantBurn;
@@ -97,7 +96,7 @@ contract AggregatorTest is MainMigration {
             }
         }
         console.log(amountInstantBurn, amountBurn, amountSwap);
-        aggregator.unstakeAggregate(amountInstantBurn, amountBurn, amountSwap, amountSwapOut, block.timestamp);
+        wrappedAggregatorProxy.unstakeAggregate(amountInstantBurn, amountBurn, amountSwap, amountSwapOut, block.timestamp);
 
         vm.stopPrank();
     }

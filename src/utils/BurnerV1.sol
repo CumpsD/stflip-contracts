@@ -2,8 +2,10 @@ pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-contract Burner {
+contract BurnerV1 is Initializable {
     using SafeMath for uint256;
 
     address public gov;
@@ -21,7 +23,11 @@ contract Burner {
     stFlip public stflip;
     IERC20 public flip;
 
-    constructor(address stflip_, address gov_, address flip_) {
+    constructor () {
+        _disableInitializers();
+    }
+
+    function initialize(address stflip_, address gov_, address flip_) initializer public {
         stflip = stFlip(stflip_);
         gov = gov_;
         flip = IERC20(flip_);
@@ -203,7 +209,7 @@ contract Burner {
 
     /** @notice will be used if we ever need to make a new burn contract
      */
-    function importData(Burner burnerToImport) external onlyGov returns (bool) {
+    function importData(BurnerV1 burnerToImport) external onlyGov returns (bool) {
         burn_[] memory allBurns = burnerToImport.getAllBurns();
 
         for (uint i = 1; i < allBurns.length; i++) {

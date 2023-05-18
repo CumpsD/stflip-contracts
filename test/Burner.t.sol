@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../src/utils/Burner.sol";
+import "../src/utils/BurnerV1.sol";
 import "./MainMigration.sol";
 
 
 contract BurnerTest is MainMigration {
-    Burner public counter;
+    
     address user1 = 0x0000000000000000000000000000000000000001;
     address user2 = 0x0000000000000000000000000000000000000002;
     address user3 = 0x0000000000000000000000000000000000000003;
@@ -17,9 +17,9 @@ contract BurnerTest is MainMigration {
 
         vm.startPrank(owner);
         flip.mint(owner, 3000000*decimalsMultiplier);
-        minter.mint(user1, 1000000*decimalsMultiplier);
-        minter.mint(user2, 1000000*decimalsMultiplier);
-        minter.mint(user3, 1000000*decimalsMultiplier);
+        wrappedMinterProxy.mint(user1, 1000000*decimalsMultiplier);
+        wrappedMinterProxy.mint(user2, 1000000*decimalsMultiplier);
+        wrappedMinterProxy.mint(user3, 1000000*decimalsMultiplier);
         vm.stopPrank();
 
         vm.prank(user1);
@@ -34,26 +34,26 @@ contract BurnerTest is MainMigration {
     function testFail_BurnOrder() public {
         // depositing some flip
         vm.prank(owner);
-        burner.deposit(1000*decimalsMultiplier);
+        wrappedBurnerProxy.deposit(1000*decimalsMultiplier);
 
         // first user doing an instant burn for all the flip
         vm.startPrank(user1);
-        uint256 id1 = burner.burn(user1, 1000*decimalsMultiplier);
-        burner.redeem(id1);
+        uint256 id1 = wrappedBurnerProxy.burn(user1, 1000*decimalsMultiplier);
+        wrappedBurnerProxy.redeem(id1);
         vm.stopPrank();
 
         // depositing some more flip. 
         vm.prank(owner);
-        burner.deposit(100*decimalsMultiplier);
+        wrappedBurnerProxy.deposit(100*decimalsMultiplier);
         
         // doing a burn for the amount that was just deposited
         vm.prank(user1);
-        uint256 id2 = burner.burn(user1,100*decimalsMultiplier);
+        uint256 id2 = wrappedBurnerProxy.burn(user1,100*decimalsMultiplier);
 
         // also doing a burn for the amount that was just deposited, except claiming it right after
         vm.startPrank(user2);
-        uint256 id3 = burner.burn(user2,100*decimalsMultiplier);
-        burner.redeem(id3);
+        uint256 id3 = wrappedBurnerProxy.burn(user2,100*decimalsMultiplier);
+        wrappedBurnerProxy.redeem(id3);
         vm.stopPrank();
 
         console.log("uh oh");
@@ -61,25 +61,25 @@ contract BurnerTest is MainMigration {
 
     function test_Burn() public {
         vm.prank(owner);
-        burner.deposit(1000*decimalsMultiplier);
+        wrappedBurnerProxy.deposit(1000*decimalsMultiplier);
 
         vm.prank(user1);
-        uint256 id1 = burner.burn(user1,100*decimalsMultiplier);
+        uint256 id1 = wrappedBurnerProxy.burn(user1,100*decimalsMultiplier);
 
         vm.prank(user2);
-        uint256 id2 = burner.burn(user2,500*decimalsMultiplier);
+        uint256 id2 = wrappedBurnerProxy.burn(user2,500*decimalsMultiplier);
 
         vm.prank(user3);
-        uint256 id3 = burner.burn(user3,400*decimalsMultiplier);
+        uint256 id3 = wrappedBurnerProxy.burn(user3,400*decimalsMultiplier);
         
         vm.prank(user3);
-        burner.redeem(id3);
+        wrappedBurnerProxy.redeem(id3);
 
         vm.prank(user1);
-        burner.redeem(id1);
+        wrappedBurnerProxy.redeem(id1);
 
         vm.prank(user2);
-        burner.redeem(id2);
+        wrappedBurnerProxy.redeem(id2);
 
     }
     
@@ -89,9 +89,9 @@ contract BurnerTest is MainMigration {
         vm.rollFork(8_700_200);
         MainMigration goerliMigration = new MainMigration();
 
-        vm.startPrank(goerliMigration.burner().gov());
-        Burner burnerToImport = Burner(0xD1cc80373acb7d172E1A2c4507B0A2693abBDEf1);
-        Burner burner_ = goerliMigration.burner();
+        vm.startPrank(goerliMigration.wrappedBurnerProxy().gov());
+        BurnerV1 burnerToImport = BurnerV1(0xD1cc80373acb7d172E1A2c4507B0A2693abBDEf1);
+        BurnerV1 burner_ = goerliMigration.wrappedBurnerProxy();
         burner_.importData(burnerToImport);
         vm.stopPrank();
 
@@ -124,4 +124,6 @@ contract BurnerTest is MainMigration {
         require(burner_.balance() == 0, "balance var not zero");
         require(depositAmount == total, "deposited != withdrawn");
     }
+
+
 }
