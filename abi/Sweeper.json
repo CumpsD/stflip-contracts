@@ -10,6 +10,11 @@
         "internalType": "address",
         "name": "burner_",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "staker_",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -20,7 +25,7 @@
     "name": "burner",
     "outputs": [
       {
-        "internalType": "contract Burner",
+        "internalType": "contract BurnerV1",
         "name": "",
         "type": "address"
       }
@@ -30,6 +35,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "nodeID",
+        "type": "bytes32"
+      },
       {
         "internalType": "address[]",
         "name": "recipients",
@@ -57,6 +67,19 @@
     "outputs": [
       {
         "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "staker",
+    "outputs": [
+      {
+        "internalType": "contract Staker",
         "name": "",
         "type": "address"
       }

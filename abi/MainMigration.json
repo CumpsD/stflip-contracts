@@ -383,10 +383,36 @@
   },
   {
     "inputs": [],
+    "name": "admin",
+    "outputs": [
+      {
+        "internalType": "contract ProxyAdmin",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "aggregator",
     "outputs": [
       {
-        "internalType": "contract Aggregator",
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "aggregatorV1",
+    "outputs": [
+      {
+        "internalType": "contract AggregatorV1",
         "name": "",
         "type": "address"
       }
@@ -399,7 +425,20 @@
     "name": "burner",
     "outputs": [
       {
-        "internalType": "contract Burner",
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "burnerV1",
+    "outputs": [
+      {
+        "internalType": "contract BurnerV1",
         "name": "",
         "type": "address"
       }
@@ -516,7 +555,20 @@
     "name": "minter",
     "outputs": [
       {
-        "internalType": "contract Minter",
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minterV1",
+    "outputs": [
+      {
+        "internalType": "contract MinterV1",
         "name": "",
         "type": "address"
       }
@@ -543,6 +595,19 @@
     "outputs": [
       {
         "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "staker",
+    "outputs": [
+      {
+        "internalType": "contract TestStaker",
         "name": "",
         "type": "address"
       }
@@ -671,6 +736,45 @@
     "outputs": [
       {
         "internalType": "contract TenderSwap",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wrappedAggregatorProxy",
+    "outputs": [
+      {
+        "internalType": "contract AggregatorV1",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wrappedBurnerProxy",
+    "outputs": [
+      {
+        "internalType": "contract BurnerV1",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wrappedMinterProxy",
+    "outputs": [
+      {
+        "internalType": "contract MinterV1",
         "name": "",
         "type": "address"
       }
