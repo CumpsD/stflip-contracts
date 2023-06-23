@@ -1,6 +1,7 @@
 pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
+import "forge-std/console.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
@@ -10,7 +11,8 @@ contract MinterV1 is Initializable {
     address public gov;
     address public pendingGov;
     address public output;
-
+    address public rebaser;
+    
     stFlip public stflip;
     IERC20 public flip;
 
@@ -18,11 +20,12 @@ contract MinterV1 is Initializable {
         _disableInitializers();
     }
 
-    function initialize(address stflip_, address output_, address gov_, address flip_) initializer public {
+    function initialize(address stflip_, address output_, address gov_, address flip_, address rebaser_) initializer public {
         stflip = stFlip(stflip_);
         output = output_;
         gov = gov_;
         flip = IERC20(flip_);
+        rebaser = rebaser_;
     }
 
     event NewPendingGov(address oldPendingGov, address newPendingGov);
@@ -73,6 +76,13 @@ contract MinterV1 is Initializable {
         return true;
     }
 
+    function mintStflipFee(address to, uint256 amount)
+        external
+        returns (bool)
+    {
+        require(msg.sender == rebaser, "Minter: only rebaser can mint stflip fee");
+        _mint(to, amount);
+    }
     function _mint(address to, uint256 amount)
         internal
     {

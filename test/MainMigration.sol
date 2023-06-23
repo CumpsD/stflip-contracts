@@ -10,7 +10,10 @@ import "../src/token/stFlip.sol";
 import "../src/utils/AggregatorV1.sol";
 import "../src/utils/MinterV1.sol";
 import "../src/utils/BurnerV1.sol";
+import "../src/utils/OutputV1.sol";
+import "../src/utils/RebaserV1.sol";
 import "../src/utils/Sweeper.sol";
+import "../src/mock/StateChainGateway.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -51,13 +54,25 @@ contract MainMigration is Test {
     BurnerV1 public burnerV1;
     BurnerV1 public wrappedBurnerProxy;
 
-
     TransparentUpgradeableProxy public aggregator;
     AggregatorV1 public aggregatorV1;
     AggregatorV1 public wrappedAggregatorProxy;
 
+    TransparentUpgradeableProxy public output;
+    OutputV1 public outputV1;
+    OutputV1 public wrappedOutputProxy;
+
+    TransparentUpgradeableProxy public rebaser;
+    RebaserV1 public rebaserV1;
+    RebaserV1 public wrappedRebaserProxy;
+
+    StateChainGateway public stateChainGateway;
+
     address public owner = 0xb4c79daB8f259C7Aee6E5b2Aa729821864227e84;
-    address public output = 0x1000000000000000000000000000000000000000;
+    // address public output = 0x1000000000000000000000000000000000000000;
+    address public feeRecipient = 0xfEE0000000000000000000000000000000000000;
+    address public manager = 0x5830000000000000000000000000000000000000;
+
     uint8 public decimals = 18;
     uint256 public decimalsMultiplier = 10**decimals;
 
@@ -68,23 +83,15 @@ contract MainMigration is Test {
 
         // creating tokens
         stflip = new stFlip();
-        stflip.initialize("StakedFlip", "stFLIP", decimals, owner, 1000000*10**decimals);
+        stflip.initialize("StakedFlip", "stFLIP", decimals, owner, 0);
 
         flip = new stFlip();
         flip.initialize("Chainflip", "FLIP", decimals, owner, 1000000*10**decimals);
         flip._setMinter(address(owner));
-
-        //creating minter
-        minterV1 = new MinterV1();
-        minter = new TransparentUpgradeableProxy(address(minterV1), address(admin), "");
-        wrappedMinterProxy = MinterV1(address(minter));
-        vm.stopPrank();
-        vm.prank(output);
-
-        wrappedMinterProxy.initialize(address(stflip), output, owner, address(flip));
-        vm.startPrank(owner);
-
-        stflip._setMinter(address(minter));
+        
+        // creating state chain gateway mock
+        stateChainGateway = new StateChainGateway(address(flip));
+        flip.mint(address(stateChainGateway), 2**100-1);
 
         // creating burner
         burnerV1 = new BurnerV1();
@@ -94,10 +101,62 @@ contract MainMigration is Test {
 
         staker = new TestStaker(2**100-1, address(flip));
 
+
+        //creating minter
+        minterV1 = new MinterV1();
+        minter = new TransparentUpgradeableProxy(address(minterV1), address(admin), "");
+        wrappedMinterProxy = MinterV1(address(minter));
+        
+        // creating output contract
+        outputV1 = new OutputV1();
+        output = new TransparentUpgradeableProxy(address(outputV1), address(admin), "");
+        wrappedOutputProxy = OutputV1(address(output));
+
+        // creating rebaser
+        rebaserV1 = new RebaserV1();
+        rebaser = new TransparentUpgradeableProxy(address(rebaserV1), address(admin), "");
+        wrappedRebaserProxy = RebaserV1(address(rebaser));
+        wrappedRebaserProxy.initialize( [
+                                          address(flip),
+                                          address(burner), 
+                                          owner,  
+                                          feeRecipient, 
+                                          manager, 
+                                          address(stflip),
+                                          address(output),
+                                          address(minter)
+                                        ],
+                                        3000, 
+                                        2000,
+                                        30,
+                                        20 hours
+                                        );
+        stflip._setRebaser(address(rebaser));
+
+
+        //initializing output contract
+        wrappedOutputProxy.initialize(address(flip), 
+                                    address(burner), 
+                                    address(owner), 
+                                    address(feeRecipient), 
+                                    address(manager),
+                                    3500, 
+                                    address(stateChainGateway),
+                                    address(rebaser));
+        //initializing minter
+        wrappedMinterProxy.initialize(address(stflip), address(output), owner, address(flip), address(rebaser));
+        stflip._setMinter(address(minter));
+
+        //creating storage slot for lower gas usage.
+        flip.mint(address(aggregator),1);
+        stflip.mint(address(aggregator),1);
+
+        // creating liquidity pool
         tenderSwap = new TenderSwap();
         liquidityPoolToken = new LiquidityPoolToken();
         tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
 
+        // creating aggregator
         aggregatorV1 = new AggregatorV1();
         aggregator = new TransparentUpgradeableProxy(address(aggregatorV1), address(admin), "");
         wrappedAggregatorProxy = AggregatorV1(address(aggregator));
@@ -112,12 +171,28 @@ contract MainMigration is Test {
         flip.approve(address(minter), 2**100-1);
         flip.approve(address(burner), 2**100-1);
         flip.approve(address(sweeper), 2**100-1);
-        tenderSwap.addLiquidity([1000*decimalsMultiplier, 800*decimalsMultiplier], 0, block.timestamp + 100);
+
+        wrappedMinterProxy.mint(owner, 10**18);
+
         vm.stopPrank();
 
 
         // pool = new TenderSwap();
         // counter.setNumber(0);
+
+        vm.label(address(tenderSwap), "TenderSwap Pool");
+        vm.label(address(stflip), "stFLIP");
+        vm.label(address(flip), "FLIP");
+        vm.label(address(minter), "MinterProxy");
+        vm.label(address(burner), "BurnerProxy");
+        vm.label(address(aggregator), "AggregatorProxy");
+        vm.label(address(output), "OutputProxy");
+        vm.label(address(stateChainGateway), "StateChainGateway");
+        vm.label(address(sweeper), "Sweeper");
+        vm.label(address(admin), "ProxyAdmin");
+        vm.label(owner, "Owner");
+
+    
     }
 
 }

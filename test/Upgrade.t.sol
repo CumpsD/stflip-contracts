@@ -32,7 +32,7 @@ contract MigrationTest is MainMigration {
         wrappedBurnerProxy.initialize(address(stflip), address(this), address(flip));
 
         vm.expectRevert("Initializable: contract is already initialized");
-        wrappedMinterProxy.initialize(address(stflip), address(output), address(owner), address(flip));
+        wrappedMinterProxy.initialize(address(stflip), address(output), address(owner), address(flip), address(rebaser));
 
         vm.expectRevert("Initializable: contract is already initialized");
         wrappedAggregatorProxy.initialize(address(stflip), address(output), address(tenderSwap), address(owner), address(flip));

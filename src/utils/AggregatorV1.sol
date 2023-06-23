@@ -94,7 +94,6 @@ contract AggregatorV1 is Initializable {
     {
         console.log("transferring to contract ", uint2str(amountTotal));
         flip.transferFrom(msg.sender, address(this), amountTotal);
-       
         uint256 received;
         uint256 mintAmount = amountTotal - amountSwap;
 

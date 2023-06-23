@@ -9,6 +9,11 @@ contract AggregatorTest is MainMigration {
 
     function setUp() public {
         MainMigration migration = new MainMigration();
+
+        vm.startPrank(owner);
+        stflip.mint(owner, 1000*10**18);
+        tenderSwap.addLiquidity([1000*decimalsMultiplier, 800*decimalsMultiplier], 0, block.timestamp + 100);
+        vm.stopPrank();
     }
 
     function testFuzz_Calculate(uint256 lpAmount1_, uint256 lpAmount2_, uint256 targetPrice_, uint256 targetError_) public {
@@ -100,4 +105,5 @@ contract AggregatorTest is MainMigration {
 
         vm.stopPrank();
     }
+
 }

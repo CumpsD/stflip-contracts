@@ -29,6 +29,9 @@ contract BurnerTest is MainMigration {
         vm.prank(user3);
         stflip.approve(address(burner),1000000*decimalsMultiplier);
 
+
+        vm.prank(owner);
+        flip.mint(user1,1000000000000);
     }
 
     function testFail_BurnOrder() public {

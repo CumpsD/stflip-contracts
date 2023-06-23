@@ -26,7 +26,7 @@ contract MinterTest is MainMigration {
         uint256 initialStflipBalance = stflip.balanceOf(user1);
 
         vm.startPrank(user1);
-        flip.approve(address(minter),amountToMint);
+        flip.approve(address(minter), 2**256-1);
         wrappedMinterProxy.mint(user1,amountToMint);
         vm.stopPrank();
 
