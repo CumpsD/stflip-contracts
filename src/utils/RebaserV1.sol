@@ -35,7 +35,7 @@ contract RebaserV1 is Initializable {
     stFlip public stflip;
 
     event FeeClaim(address feeRecipient, uint256 amount, bool receivedFlip);
-
+    event RebaserRebase(uint256 apr, uint256 feeIncrement, uint256 previousSupply, uint256 newSupply);
     constructor () {
         _disableInitializers();
     }
@@ -137,32 +137,25 @@ contract RebaserV1 is Initializable {
         wrappedBurnerProxy.deposit(amount);
     }
 
-    event Apr(uint256 aprBps);
     function rebase (uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyManager {
         uint256 timeElapsed = block.timestamp - lastRebaseTime;
         require(timeElapsed >= rebaseInterval, "Rebaser: rebase too soon");
 
         uint256 currentSupply = stflip.totalSupply();
-        console.log("current supply", currentSupply/10**18, currentSupply);
         uint256 pendingBurns = wrappedBurnerProxy.totalPendingBurns();
-        console.log("pending Burns", pendingBurns/10**18,pendingBurns);
 
         uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy)) + wrappedBurnerProxy.balance();
-        console.log("onchain balance", onchainBalance/10**18);
         uint256 newSupply = stateChainBalance + onchainBalance - pendingBurns - pendingFee;
-        console.log("new supply", newSupply/10**18,newSupply);
 
         uint256 apr;
-        
+        uint256 feeIncrement;
+
         if (newSupply > currentSupply){
-            // TODO: emit APR in event, either in here or in token
             apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
-            console.log("APR", apr);
+
             require(apr + 1 < aprThresholdBps, "Rebaser: apr too high");
-
-
             if (takeFee == true) {
-                uint256 feeIncrement = (newSupply - currentSupply) * feeBps / 10000;
+                feeIncrement = (newSupply - currentSupply) * feeBps / 10000;
                 pendingFee += feeIncrement;
                 newSupply -= feeIncrement;
             } 
@@ -174,13 +167,15 @@ contract RebaserV1 is Initializable {
         uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
         stflip.setRebase(epoch, newRebaseFactor);
         lastRebaseTime = block.timestamp;
+
+        emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);
     }
 
     function claimFee (uint256 amount, bool max, bool receiveFlip) external onlyManager {
         require (max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
 
         uint256 amountToClaim = max ? pendingFee : amount;
-        
+
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), feeRecipient, amountToClaim);
         } else {

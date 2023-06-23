@@ -157,6 +157,7 @@ contract RebaserTest is MainMigration {
             .depth(0)
             .checked_write(initialPendingFee);
     }
+
     function testFuzz_SuccessfulClaimFee(uint256 initialMint_, uint256 initialPendingFee_, uint256 amountToClaim_, bool max, bool receiveFlip) public {
         uint256 initialPendingFee = bound(initialPendingFee_, 0, 1_000_000*10**18);
         uint256 amountToClaim = bound(amountToClaim_, 0, initialPendingFee);
@@ -183,8 +184,5 @@ contract RebaserTest is MainMigration {
         uint256 expectedStflipSupply = receiveFlip ? initialStflipSupply : initialStflipSupply + expectedClaim;
         require(_relativelyEq(expectedStflipSupply, stflip.totalSupply()), "testFuzz_SuccessfulClaimFee: incorrect stflip supply change");
     }
-
-    // function testFuzz_ExcessiveClaimFee() {}
-
 
 }
