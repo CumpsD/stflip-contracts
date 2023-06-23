@@ -49,6 +49,8 @@ contract OutputV1 is Initializable {
         
         flip.approve(address(rebaser_), 2**256-1);
         flip.approve(address(wrappedBurnerProxy), 2**256 - 1);
+        flip.approve(address(stateChainGateway), 2**256 - 1);
+
     }
 
     /**
@@ -109,10 +111,6 @@ contract OutputV1 is Initializable {
         feeBps = feeBps_;
     }
 
-    function burnerDeposit (uint256 amount) external onlyManager{
-        wrappedBurnerProxy.deposit(amount);
-    }
-
     function addValidators(bytes32[] calldata addresses) external onlyGov {
         for (uint256 i = 0; i < addresses.length; i++) {
             validators[addresses[i]] = 1;
@@ -125,7 +123,7 @@ contract OutputV1 is Initializable {
         }
     }
 
-    function stake(bytes32[] calldata addresses, uint256[] calldata amounts) external onlyManager{
+    function fundValidators(bytes32[] calldata addresses, uint256[] calldata amounts) external onlyManager{
         require(addresses.length == amounts.length, "lengths must match");
         for (uint i = 0; i < addresses.length; i++) {
             require(validators[addresses[i]] == 1, "Output: address not added");
@@ -133,25 +131,10 @@ contract OutputV1 is Initializable {
         }
     }
 
-    function unstake(bytes32[] calldata addresses) external onlyManager {
+    function redeemValidators(bytes32[] calldata addresses) external onlyManager {
         for (uint i = 0; i < addresses.length; i++) {
             stateChainGateway.executeRedemption(addresses[i]);
         }
-    }
-
-    function sweep(bytes32[] calldata addresses) external onlyManager {
-        uint256 initial_balance = flip.balanceOf(address(this));
-        console.log("addreses length", addresses.length);
-        for (uint i = 0; i < addresses.length; i++) {
-            stateChainGateway.executeRedemption(addresses[i]);
-        }
-        uint256 final_balance = flip.balanceOf(address(this));
-
-        uint256 amount_to_sweep = (final_balance - initial_balance) * feeBps / 10000;
-
-        flip.transfer(feeRecipient, amount_to_sweep);
-        
-        emit Sweep(feeRecipient, final_balance - initial_balance - amount_to_sweep, amount_to_sweep);
     }
 
 }
