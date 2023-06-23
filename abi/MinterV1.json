@@ -154,6 +154,11 @@
         "internalType": "address",
         "name": "flip_",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "rebaser_",
+        "type": "address"
       }
     ],
     "name": "initialize",
@@ -186,6 +191,30 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "mintStflipFee",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "output",
     "outputs": [
@@ -201,6 +230,19 @@
   {
     "inputs": [],
     "name": "pendingGov",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rebaser",
     "outputs": [
       {
         "internalType": "address",

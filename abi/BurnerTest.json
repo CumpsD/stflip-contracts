@@ -521,6 +521,19 @@
   },
   {
     "inputs": [],
+    "name": "feeRecipient",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "flip",
     "outputs": [
       {
@@ -538,6 +551,19 @@
     "outputs": [
       {
         "internalType": "contract LiquidityPoolToken",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "manager",
+    "outputs": [
+      {
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -576,7 +602,20 @@
     "name": "output",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "outputV1",
+    "outputs": [
+      {
+        "internalType": "contract OutputV1",
         "name": "",
         "type": "address"
       }
@@ -599,6 +638,32 @@
   },
   {
     "inputs": [],
+    "name": "rebaser",
+    "outputs": [
+      {
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rebaserV1",
+    "outputs": [
+      {
+        "internalType": "contract RebaserV1",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "setUp",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -610,6 +675,19 @@
     "outputs": [
       {
         "internalType": "contract TestStaker",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stateChainGateway",
+    "outputs": [
+      {
+        "internalType": "contract StateChainGateway",
         "name": "",
         "type": "address"
       }
@@ -798,6 +876,32 @@
     "outputs": [
       {
         "internalType": "contract MinterV1",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wrappedOutputProxy",
+    "outputs": [
+      {
+        "internalType": "contract OutputV1",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wrappedRebaserProxy",
+    "outputs": [
+      {
+        "internalType": "contract RebaserV1",
         "name": "",
         "type": "address"
       }
