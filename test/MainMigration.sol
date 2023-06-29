@@ -97,10 +97,10 @@ contract MainMigration is Test {
         burnerV1 = new BurnerV1();
         burner = new TransparentUpgradeableProxy(address(burnerV1), address(admin), "");
         wrappedBurnerProxy = BurnerV1(address(burner));
-        wrappedBurnerProxy.initialize(address(stflip), owner, address(flip));
+        stflip._setBurner(address(burner));
+
 
         staker = new TestStaker(2**100-1, address(flip));
-
 
         //creating minter
         minterV1 = new MinterV1();
@@ -147,6 +147,9 @@ contract MainMigration is Test {
         wrappedMinterProxy.initialize(address(stflip), address(output), owner, address(flip), address(rebaser));
         stflip._setMinter(address(minter));
 
+        //initializing burner
+        wrappedBurnerProxy.initialize(address(stflip), owner, address(flip), address(output));
+        
         //creating storage slot for lower gas usage.
         flip.mint(address(aggregator),1);
         stflip.mint(address(aggregator),1);

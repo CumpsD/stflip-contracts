@@ -29,7 +29,7 @@ contract MigrationTest is MainMigration {
 
     function test_OnlyInitializeOnce() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        wrappedBurnerProxy.initialize(address(stflip), address(this), address(flip));
+        wrappedBurnerProxy.initialize(address(stflip), address(this), address(flip), address(output));
 
         vm.expectRevert("Initializable: contract is already initialized");
         wrappedMinterProxy.initialize(address(stflip), address(output), address(owner), address(flip), address(rebaser));

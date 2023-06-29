@@ -233,6 +233,7 @@ contract StakedFLIP is TokenStorage {
     function burn(uint256 value, address refundee)
         external
         notFrozen
+        onlyBurner
         returns (bool)
     {
         _burn(value, refundee);
@@ -258,11 +259,11 @@ contract StakedFLIP is TokenStorage {
 
       require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
-      _yamBalances[msg.sender] = _yamBalances[msg.sender].sub(yamValue);
+      _yamBalances[refundee] = _yamBalances[refundee].sub(yamValue);
 
       // add to balance of receiver
       emit Burn(msg.sender, value, refundee);
-      emit Transfer(msg.sender, address(0), value);
+      emit Transfer(refundee, address(0), value);
 
     }
     /**

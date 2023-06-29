@@ -2,14 +2,18 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
+import "forge-std/console.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+
 
 contract BurnerV1 is Initializable {
     using SafeMath for uint256;
 
     address public gov;
     address public pendingGov;
+    address public output;
+
     uint256 public balance = 0;
     uint256 public reedemed = 0;
     struct burn_ {
@@ -27,12 +31,13 @@ contract BurnerV1 is Initializable {
         _disableInitializers();
     }
 
-    function initialize(address stflip_, address gov_, address flip_) initializer public {
+    function initialize(address stflip_, address gov_, address flip_, address output_) initializer public {
         stflip = stFlip(stflip_);
         gov = gov_;
         flip = IERC20(flip_);
         burns.push(burn_(address(0), 0, true));
         sums.push(0);
+        output = output_;
     }
 
     /**
@@ -82,11 +87,9 @@ contract BurnerV1 is Initializable {
      * @param amount, the amount to burn
      */
     function burn(address to, uint256 amount) external returns (uint256) {
-        stflip.transferFrom(msg.sender, address(this), amount);
         burns.push(burn_(to, amount, false));
         sums.push(amount.add(sums[sums.length - 1]));
-        stflip.burn(amount, address(this));
-
+        stflip.burn(amount, msg.sender);
         emit Burn(amount, burns.length - 1);
 
         return burns.length - 1;
@@ -99,14 +102,14 @@ contract BurnerV1 is Initializable {
     function redeem(uint256 burn_id) external {
         require(burns[burn_id].completed == false, "completed");
         require(
-            subtract(sums[burn_id], reedemed) <= balance,
+            subtract(sums[burn_id], reedemed) <= flip.balanceOf(output),
             "insufficient balance"
         );
 
-        flip.transfer(burns[burn_id].user, burns[burn_id].amount);
+        flip.transferFrom(output, burns[burn_id].user, burns[burn_id].amount);
         burns[burn_id].completed = true;
         reedemed = reedemed.add(burns[burn_id].amount);
-        balance = balance.sub(burns[burn_id].amount);
+        // balance = balance.sub(burns[burn_id].amount);
     }
 
     /**
