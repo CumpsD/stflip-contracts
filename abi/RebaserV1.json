@@ -10,19 +10,6 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "aprBps",
-        "type": "uint256"
-      }
-    ],
-    "name": "Apr",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
       },
@@ -59,6 +46,37 @@
       }
     ],
     "name": "FeeClaim",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "apr",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "feeIncrement",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "previousSupply",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newSupply",
+        "type": "uint256"
+      }
+    ],
+    "name": "GovRebase",
     "type": "event"
   },
   {
@@ -113,6 +131,37 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "apr",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "feeIncrement",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "previousSupply",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newSupply",
+        "type": "uint256"
+      }
+    ],
+    "name": "RebaserRebase",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "_acceptGov",
     "outputs": [],
@@ -143,19 +192,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "burnerDeposit",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -218,6 +254,29 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "epoch",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stateChainBalance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "takeFee",
+        "type": "bool"
+      }
+    ],
+    "name": "forceRebase",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -357,9 +416,22 @@
   {
     "inputs": [
       {
-        "internalType": "uint8",
+        "internalType": "uint256",
+        "name": "aprThresholdBps_",
+        "type": "uint256"
+      }
+    ],
+    "name": "setAprThresholdBps",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "feeBps_",
-        "type": "uint8"
+        "type": "uint256"
       }
     ],
     "name": "setFeeBps",
@@ -389,6 +461,32 @@
       }
     ],
     "name": "setManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "rebaseInterval_",
+        "type": "uint256"
+      }
+    ],
+    "name": "setRebaseInterval",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "slashThresholdBps_",
+        "type": "uint256"
+      }
+    ],
+    "name": "setSlashThresholdBps",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

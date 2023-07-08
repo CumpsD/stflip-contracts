@@ -663,6 +663,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "removed",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "setUp",
     "outputs": [],
@@ -824,8 +843,83 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "test_Sweep",
+    "inputs": [
+      {
+        "internalType": "bytes32[50]",
+        "name": "validators_",
+        "type": "bytes32[50]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "length_",
+        "type": "uint256"
+      }
+    ],
+    "name": "testFuzz_AddValidators",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[50]",
+        "name": "validators_",
+        "type": "bytes32[50]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "length_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "remove_",
+        "type": "uint256"
+      }
+    ],
+    "name": "testFuzz_RemoveValidators",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[50]",
+        "name": "validators_",
+        "type": "bytes32[50]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "length_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8[50]",
+        "name": "amounts_",
+        "type": "uint8[50]"
+      }
+    ],
+    "name": "testFuzz_StakeValidators",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[50]",
+        "name": "validators_",
+        "type": "bytes32[50]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "length_",
+        "type": "uint256"
+      }
+    ],
+    "name": "testFuzz_UnstakeValidators",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

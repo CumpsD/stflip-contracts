@@ -839,13 +839,6 @@
   },
   {
     "inputs": [],
-    "name": "test_ImportData",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "wrappedAggregatorProxy",
     "outputs": [
       {
