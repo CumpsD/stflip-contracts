@@ -37,8 +37,8 @@ contract AggregatorV1 is Initializable {
 
     }
 
-    event Aggregation (uint256 total, uint256 swapped, uint256 minted);
-    event BurnAggregation (uint256 amountInstantBurn, uint256 amountBurn, uint256 received);
+    event Aggregation (address sender, uint256 total, uint256 swapped, uint256 minted);
+    event BurnAggregation (address sender, uint256 amountInstantBurn, uint256 amountBurn, uint256 received);
     
     // 1) transfer the stflip from user to this contract
     // 2) burn amountInstantBurn and claim it immediately to msg.sender
@@ -80,7 +80,7 @@ contract AggregatorV1 is Initializable {
             flip.transfer(msg.sender, received - 1);
         }
 
-        emit BurnAggregation(amountInstantBurn, amountBurn, received);
+        emit BurnAggregation(msg.sender,amountInstantBurn, amountBurn, received);
 
         return amountInstantBurn + received;
     }
@@ -121,7 +121,7 @@ contract AggregatorV1 is Initializable {
 
         stflip.transfer( msg.sender, mintAmount + received - 1);
 
-        emit Aggregation (mintAmount + received, received, mintAmount);
+        emit Aggregation (msg.sender,mintAmount + received, received, mintAmount);
 
         console.log("aggregation complete. total, received, mintAmount");
         console.log(uint2str(mintAmount + received), uint2str(received), uint2str(mintAmount));

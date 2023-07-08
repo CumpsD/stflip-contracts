@@ -112,23 +112,6 @@ contract BurnerV1 is Initializable {
         // balance = balance.sub(burns[burn_id].amount);
     }
 
-    /**
-     * @notice deposits native tokens into the contract
-     */
-    function deposit(uint256 amount) external {
-        flip.transferFrom(msg.sender, address(this), amount);
-        balance = balance.add(amount);
-    }
-
-    /**
-     * @notice withdraws native tokens into the contract
-     * @dev limited to onlyGov
-     */
-    function govWithdraw(uint256 amount) external onlyGov {
-        flip.transfer(msg.sender, amount);
-        balance = balance.sub(amount);
-    }
-
     function emergencyWithdraw(uint256 amount, address token) external onlyGov {
         IERC20(token).transfer(msg.sender, amount);
     }
@@ -175,7 +158,7 @@ contract BurnerV1 is Initializable {
 
             if (
                 burns[burn_ids[i]].completed == false &&
-                subtract(sums[burn_ids[i]], reedemed) <= balance
+                subtract(sums[burn_ids[i]], reedemed) <= flip.balanceOf(address(output))
             ) {
                 redeemables[i] = true;
             } else {
@@ -191,7 +174,7 @@ contract BurnerV1 is Initializable {
     function redeemable(uint256 burn_id) external view returns (bool) {
         if (
             burns[burn_id].completed == false &&
-            subtract(sums[burn_id], reedemed) <= balance
+            subtract(sums[burn_id], reedemed) <= flip.balanceOf(address(output))
         ) {
             return true;
         } else {

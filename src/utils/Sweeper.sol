@@ -39,6 +39,6 @@ contract Sweeper {
         }
 
         flip.transferFrom(msg.sender, address(this), deposit);
-        burner.deposit(deposit);
+        // burner.deposit(deposit);
     }
 }

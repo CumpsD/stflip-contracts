@@ -36,6 +36,8 @@ contract RebaserV1 is Initializable {
 
     event FeeClaim(address feeRecipient, uint256 amount, bool receivedFlip);
     event RebaserRebase(uint256 apr, uint256 feeIncrement, uint256 previousSupply, uint256 newSupply);
+    event GovRebase(uint256 apr, uint256 feeIncrement, uint256 previousSupply, uint256 newSupply);
+
     constructor () {
         _disableInitializers();
     }
@@ -129,12 +131,16 @@ contract RebaserV1 is Initializable {
         feeRecipient = feeRecipient_;
     }
 
-    function setFeeBps(uint8 feeBps_) external onlyGov {
+    function setFeeBps(uint256 feeBps_) external onlyGov {
         feeBps = feeBps_;
     }
 
-    function burnerDeposit (uint256 amount) external onlyManager{
-        wrappedBurnerProxy.deposit(amount);
+    function setAprThresholdBps(uint256 aprThresholdBps_) external onlyGov {
+        aprThresholdBps = aprThresholdBps_;
+    }
+
+    function setSlashThresholdBps(uint256 slashThresholdBps_) external onlyGov {
+        slashThresholdBps = slashThresholdBps_;
     }
 
     function rebase (uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyManager {
@@ -144,7 +150,7 @@ contract RebaserV1 is Initializable {
         uint256 currentSupply = stflip.totalSupply();
         uint256 pendingBurns = wrappedBurnerProxy.totalPendingBurns();
 
-        uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy)) + wrappedBurnerProxy.balance();
+        uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy));
         uint256 newSupply = stateChainBalance + onchainBalance - pendingBurns - pendingFee;
 
         uint256 apr;
@@ -171,6 +177,36 @@ contract RebaserV1 is Initializable {
         emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);
     }
 
+    function forceRebase(uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyGov {
+        uint256 timeElapsed = block.timestamp - lastRebaseTime;
+
+        uint256 currentSupply = stflip.totalSupply();
+        uint256 pendingBurns = wrappedBurnerProxy.totalPendingBurns();
+
+        uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy));
+        uint256 newSupply = stateChainBalance + onchainBalance - pendingBurns - pendingFee;
+
+        uint256 apr;
+        uint256 feeIncrement;
+
+        if (newSupply > currentSupply){
+            apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
+
+            if (takeFee == true) {
+                feeIncrement = (newSupply - currentSupply) * feeBps / 10000;
+                pendingFee += feeIncrement;
+                newSupply -= feeIncrement;
+            } 
+        } 
+        
+        uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
+        stflip.setRebase(epoch, newRebaseFactor);
+        lastRebaseTime = block.timestamp;
+
+        emit GovRebase(apr, feeIncrement, currentSupply, newSupply);
+    }
+
+
     function claimFee (uint256 amount, bool max, bool receiveFlip) external onlyManager {
         require (max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
 
@@ -185,6 +221,10 @@ contract RebaserV1 is Initializable {
         pendingFee -= amountToClaim;
 
         emit FeeClaim(feeRecipient, amountToClaim, receiveFlip);
+    }
+
+    function setRebaseInterval(uint256 rebaseInterval_) external onlyGov {
+        rebaseInterval = rebaseInterval_;
     }
 }
 

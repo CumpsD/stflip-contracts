@@ -73,7 +73,7 @@ contract BurnerTest is MainMigration {
 
     function test_Burn() public {
         vm.prank(owner);
-        wrappedBurnerProxy.deposit(1000*decimalsMultiplier);
+        flip.transfer(address(output),1000*decimalsMultiplier);
 
         vm.prank(user1);
         uint256 id1 = wrappedBurnerProxy.burn(user1,100*decimalsMultiplier);

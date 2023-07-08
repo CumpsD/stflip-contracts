@@ -74,7 +74,7 @@ contract AggregatorTest is MainMigration {
         
         vm.startPrank(owner);
         tenderSwap.addLiquidity([lpAmount1, lpAmount2], 0, block.timestamp+100);
-        wrappedBurnerProxy.deposit(amountClaimable);
+        flip.transfer(address(output),amountClaimable);
 
         uint256 amountSwapOut = 0;
         uint256 amountInstantBurn;

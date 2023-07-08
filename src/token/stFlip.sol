@@ -12,8 +12,7 @@ contract StakedFLIP is TokenStorage {
 
 
     constructor() {
-    rebaser = msg.sender; // 'msg.sender' is sender of current call, contract deployer for a constructor
-    gov = msg.sender;
+        gov = msg.sender;
     }
 
     /**
@@ -670,7 +669,6 @@ contract stFlip is StakedFLIP {
         initSupply = _fragmentToYam(initTotalSupply_);
         totalSupply = initTotalSupply_;
         _yamBalances[initial_owner] = initSupply;
-
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 DOMAIN_TYPEHASH,

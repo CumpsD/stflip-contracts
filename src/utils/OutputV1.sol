@@ -17,8 +17,6 @@ contract OutputV1 is Initializable {
     address public manager;
     address public rebaser;
 
-    uint256 public feeBps;
-
     mapping (bytes32 => uint8) public validators;
 
     StateChainGateway public stateChainGateway;
@@ -36,15 +34,16 @@ contract OutputV1 is Initializable {
                         address gov_,  
                         address feeRecipient_, 
                         address manager_, 
-                        uint256 feeBps_, 
                         address stateChainGateway_,
                         address rebaser_) initializer public {
         flip = IERC20(flip_);
         wrappedBurnerProxy = BurnerV1(burnerProxy_);
+
         gov = gov_;
+
         feeRecipient = feeRecipient_;
         manager = manager_;
-        feeBps = feeBps_;
+        
         stateChainGateway = StateChainGateway(stateChainGateway_);
         
         flip.approve(address(rebaser_), 2**256-1);
@@ -107,10 +106,6 @@ contract OutputV1 is Initializable {
         feeRecipient = feeRecipient_;
     }
 
-    function setFeeBps(uint8 feeBps_) external onlyGov {
-        feeBps = feeBps_;
-    }
-
     function addValidators(bytes32[] calldata addresses) external onlyGov {
         for (uint256 i = 0; i < addresses.length; i++) {
             validators[addresses[i]] = 1;
@@ -135,6 +130,10 @@ contract OutputV1 is Initializable {
         for (uint i = 0; i < addresses.length; i++) {
             stateChainGateway.executeRedemption(addresses[i]);
         }
+    }
+
+    function govWithdraw(address token, uint256 amount) external onlyGov {
+        IERC20(token).transfer(msg.sender, amount);
     }
 
 }

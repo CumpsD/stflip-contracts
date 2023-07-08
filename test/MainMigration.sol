@@ -140,7 +140,6 @@ contract MainMigration is Test {
                                     address(owner), 
                                     address(feeRecipient), 
                                     address(manager),
-                                    3500, 
                                     address(stateChainGateway),
                                     address(rebaser));
         //initializing minter
@@ -149,7 +148,7 @@ contract MainMigration is Test {
 
         //initializing burner
         wrappedBurnerProxy.initialize(address(stflip), owner, address(flip), address(output));
-        
+
         //creating storage slot for lower gas usage.
         flip.mint(address(aggregator),1);
         stflip.mint(address(aggregator),1);
