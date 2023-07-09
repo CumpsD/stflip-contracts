@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 import "../src/utils/AggregatorV1.sol";
 import "./MainMigration.sol";
+import "forge-std/console.sol";
+import "../src/mock/IStableSwap.sol";
 
 contract AggregatorTest is MainMigration {
 
@@ -106,4 +108,31 @@ contract AggregatorTest is MainMigration {
         vm.stopPrank();
     }
 
+    function _relativelyEq(uint256 num1, uint256 num2) internal returns (bool) {
+        return (num1 > num2) ? (num1 - num2 <= 10**13) : (num2 - num1 <= 10**13);
+    }
+
+    function testFork_Calculate() public {
+        uint256 goerliFork = vm.createFork(vm.envString("MAINNET_RPC_URL"));
+        vm.selectFork(goerliFork);
+        vm.rollFork(14_950_000); //steth was at big discount here (mid june '22)
+ 
+        MainMigration goerliMigration = new MainMigration();
+        IStableSwap pool = IStableSwap(0xDC24316b9AE028F1497c275EB9192a3Ea0f67022);
+        uint256 price = 10001*10**(decimals - 4);
+        uint256 error = 10**(decimals-5);
+        uint256 amount = goerliMigration.wrappedAggregatorProxy().calculatePurchasableMainnet(price, 
+                                                                            error, 
+                                                                            1000,
+                                                                            0xDC24316b9AE028F1497c275EB9192a3Ea0f67022,
+                                                                            0,
+                                                                            1);
+
+
+        vm.deal(owner, amount*2);
+        vm.prank(owner);
+            pool.exchange{value: amount}(0,1,amount,amount);
+
+        require(_relativelyEq(price, pool.get_dy(0,1,10**18)), "calculate purchasable did not report correct amount");
+    }   
 }

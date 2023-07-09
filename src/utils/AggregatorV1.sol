@@ -2,6 +2,7 @@ pragma solidity ^0.8.4;
 
 // import "./IERC20.sol";
 import "../tenderswap/TenderSwap.sol";
+import "../mock/IStableSwap.sol";
 import "./MinterV1.sol";
 import "./BurnerV1.sol";
 import "forge-std/console.sol";
@@ -9,7 +10,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract AggregatorV1 is Initializable {
-
 
     IERC20 public stflip;
     IERC20 public flip;
@@ -92,31 +92,31 @@ contract AggregatorV1 is Initializable {
         external
         returns (uint256)
     {
-        console.log("transferring to contract ", uint2str(amountTotal));
+        console.log("transferring to contract ", amountTotal);
         flip.transferFrom(msg.sender, address(this), amountTotal);
         uint256 received;
         uint256 mintAmount = amountTotal - amountSwap;
 
         if (amountSwap > 0){
-             console.log("swapping ", uint2str(amountSwap));
+             console.log("swapping ", amountSwap);
 
             received = tenderSwap.swap(flip, amountSwap, minimumAmountSwapOut, _deadline);
-            console.log("received", uint2str(received));
+            console.log("received", received);
         } else {
             received = 0;
         }
 
         if (mintAmount > 0) {
-             console.log("minting ", uint2str(mintAmount));
+             console.log("minting ", mintAmount);
 
             minter.mint(address(this), mintAmount);
 
             console.log("successfully minted");
         }
 
-        console.log("transferring back to user ", uint2str(mintAmount + received - 1));
-        console.log("Mintamount", uint2str(mintAmount));
-        console.log("Received", uint2str(received));
+        console.log("transferring back to user ", mintAmount + received - 1);
+        console.log("Mintamount", mintAmount);
+        console.log("Received", received);
         console.log("actual balance", stflip.balanceOf(address(this)));
 
         stflip.transfer( msg.sender, mintAmount + received - 1);
@@ -124,7 +124,7 @@ contract AggregatorV1 is Initializable {
         emit Aggregation (msg.sender,mintAmount + received, received, mintAmount);
 
         console.log("aggregation complete. total, received, mintAmount");
-        console.log(uint2str(mintAmount + received), uint2str(received), uint2str(mintAmount));
+        console.log(mintAmount + received, received, mintAmount);
         return mintAmount + received;
     }
 
@@ -164,11 +164,11 @@ contract AggregatorV1 is Initializable {
 
         uint256 startPrice = _marginalCost(1*10**18);
         if (startPrice < targetPrice) {
-            console.log(uint2str(startPrice), " less than the targetPrice of ", uint2str(targetPrice), " returning zero ");
+            console.log(startPrice, " less than the targetPrice of ",targetPrice, " returning zero ");
             return 0;
         }
 
-        console.log("targetPrice, targetError, attempts", uint2str(targetPrice), uint2str(targetError), uint2str(attempts));
+        console.log("targetPrice, targetError, attempts", targetPrice, targetError, attempts);
         console.log("amt, price, error, attempts");
 
 
@@ -197,35 +197,69 @@ contract AggregatorV1 is Initializable {
                 error = (price*10**18/targetPrice) - 10**18;
             }
 
-            console.log(uint2str(mid), uint2str(price), uint2str(error), uint2str(attempts));
+            console.log(mid, price, error, attempts);
 
             // if the error is acceptable then we can return the amountIn we found
             if (error < targetError) {
-                console.log("returning val ", uint2str(mid));
+                console.log("returning val ", mid);
                 return mid;
             }
         }
     }
 
-   function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k-1;
-            uint8 temp = (48 + uint8(_i - _i / 10 * 10));
-            bytes1 b1 = bytes1(temp);
-            bstr[k] = b1;
-            _i /= 10;
-        }
-        return string(bstr);
+    function _marginalCostMainnet(address pool, int128 tokenIn, int128 tokenOut, uint256 amount) internal view returns (uint256) {
+        uint256 dx1 = amount;
+        uint256 dx2 = amount + 10**18;
+
+        uint256 amt1 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx1);
+        uint256 amt2 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx2);
+
+        return (amt2 - amt1)* 10**18 / (dx2 - dx1);
     }
+
+    function calculatePurchasableMainnet(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool, int128 tokenIn, int128 tokenOut)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 first = 0;
+        uint256 mid = 0;
+        // this would be the absolute maximum of FLIP spendable, so we can start there
+        uint256 last = IStableSwap(pool).balances(uint256(int256(tokenOut)));
+        uint256 price;
+        uint256 currentError = targetError;
+        uint256 startPrice = _marginalCostMainnet(pool, tokenIn, tokenOut, 1*10**18);
+
+        if (startPrice < targetPrice) {
+            return 0;
+        }
+
+        while (true) {
+            require(attempts > 0, "Aggregator: no attempts left");
+
+            mid = (last+first) / 2;
+            price = _marginalCostMainnet(pool, tokenIn, tokenOut, mid);
+
+            if (price > targetPrice) {
+                first = mid + 1;
+            } else {
+                last = mid - 1;
+            }
+
+            attempts = attempts - 1;
+
+            if (price < targetPrice) {
+                currentError = 10**18 - (price*10**18/targetPrice);
+            } else {
+                currentError = (price*10**18/targetPrice) - 10**18;
+            }
+
+            if (currentError < targetError) {
+                console.log("price, target", price, targetPrice);
+                console.log("curr, target", currentError, targetError);
+                return mid;
+            }
+        }
+    }
+
 }
