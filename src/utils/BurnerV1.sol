@@ -15,7 +15,7 @@ contract BurnerV1 is Initializable {
     address public output;
 
     uint256 public balance = 0;
-    uint256 public reedemed = 0;
+    uint256 public redeemed = 0;
     struct burn_ {
         address user;
         uint256 amount;
@@ -40,20 +40,14 @@ contract BurnerV1 is Initializable {
         output = output_;
     }
 
-    /**
-     * @notice Event emitted when pendingGov is changed
-     */
+    /// @notice Event emitted when pendingGov is changed
     event NewPendingGov(address oldPendingGov, address newPendingGov);
 
-    /**
-     * @notice Event emitted when gov is changed
-     */
+    /// @notice Event emitted when gov is changed
     event NewGov(address oldGov, address newGov);
 
-    /**
-     * @notice Tokens burned event
-     */
-    event Burn(uint256 amount, uint256 burn_id);
+    /// @notice Tokens burned event
+    event Burn(uint256 amount, uint256 burnId);
 
     // Modifiers
     modifier onlyGov() {
@@ -61,18 +55,15 @@ contract BurnerV1 is Initializable {
         _;
     }
 
-    /** @notice sets the pendingGov
-     * @param pendingGov_ The address of the rebaser contract to use for authentication.
-     */
+    /// @notice sets the pendingGov
+    /// @param pendingGov_ The address of the rebaser contract to use for authentication.
     function _setPendingGov(address pendingGov_) external onlyGov {
         address oldPendingGov = pendingGov;
         pendingGov = pendingGov_;
         emit NewPendingGov(oldPendingGov, pendingGov_);
     }
 
-    /** @notice lets msg.sender accept governance
-     *
-     */
+    /// @notice lets msg.sender accept governance
     function _acceptGov() external {
         require(msg.sender == pendingGov, "!pending");
         address oldGov = gov;
@@ -82,34 +73,30 @@ contract BurnerV1 is Initializable {
     }
 
     /**
-     * @notice Burns tokens, transfering tokens from msg.sender, burning them, adding an item to the burns list
+     * @notice Burns stflip tokens, transfers FLIP tokens from msg.sender, adds entry to burns/sums list
      * @param to, the owner of the burn, the address that will receive the burn once completed
      * @param amount, the amount to burn
      */
     function burn(address to, uint256 amount) external returns (uint256) {
+        stflip.burn(amount, msg.sender);
         burns.push(burn_(to, amount, false));
         sums.push(amount.add(sums[sums.length - 1]));
-        stflip.burn(amount, msg.sender);
+
         emit Burn(amount, burns.length - 1);
 
         return burns.length - 1;
     }
 
     /**
-     * @notice redeems a burn, claiming native FLIP back to "to"
-     * @param burn_id, the ID of the burn to redeem.
+     * @notice redeems a burn, claiming native FLIP back to "to" field of burn entry
+     * @param burnId, the ID of the burn to redeem.
      */
-    function redeem(uint256 burn_id) external {
-        require(burns[burn_id].completed == false, "completed");
-        require(
-            subtract(sums[burn_id], reedemed) <= flip.balanceOf(output),
-            "insufficient balance"
-        );
+    function redeem(uint256 burnId) external {
+        require(_redeemable(burnId), "Burner: not redeemable. either already claimed or insufficient balance");
 
-        flip.transferFrom(output, burns[burn_id].user, burns[burn_id].amount);
-        burns[burn_id].completed = true;
-        reedemed = reedemed.add(burns[burn_id].amount);
-        // balance = balance.sub(burns[burn_id].amount);
+        flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
+        burns[burnId].completed = true;
+        redeemed = redeemed.add(burns[burnId].amount);
     }
 
     function emergencyWithdraw(uint256 amount, address token) external onlyGov {
@@ -120,28 +107,36 @@ contract BurnerV1 is Initializable {
      * @notice the sum of all unredeemed burns in the contract
      */
     function totalPendingBurns() external view returns (uint256) {
-        return sums[burns.length - 1] - reedemed;
+        return sums[burns.length - 1] - redeemed;
     }
 
-    function getBurnIds(
+    /// @notice all the burn ids associated with an address
+    /// @param account The address of the user to check
+    function _getBurnIds(
         address account
     ) internal view returns (uint256[] memory) {
-        uint256[] memory burn_ids = new uint256[](burns.length);
+
+        uint256[] memory burnIds = new uint256[](burns.length);
         uint256 t = 0;
+
         for (uint256 i = 0; i < burns.length; i++) {
             if (burns[i].user == account) {
-                burn_ids[t] = i;
+                burnIds[t] = i;
                 t++;
             }
         }
 
-        // remove extra zeros
-        uint256[] memory burn_ids_ = new uint256[](t);
+        uint256[] memory filteredBurnIds = new uint256[](t);
         for (uint256 i = 0; i < t; i++) {
-            burn_ids_[i] = burn_ids[i];
+            filteredBurnIds[i] = burnIds[i];
         }
 
-        return burn_ids_;
+        return filteredBurnIds;
+    }
+
+    /// @notice public function to get all the burn ids associated with an address
+    function getBurnIds(address account) external view returns (uint256[] memory) {
+        return _getBurnIds(account);
     }
 
     /**
@@ -150,38 +145,38 @@ contract BurnerV1 is Initializable {
     function getBurns(
         address account
     ) external view returns (burn_[] memory, uint256[] memory, bool[] memory) {
-        uint256[] memory burn_ids = getBurnIds(account);
-        burn_[] memory burns_ = new burn_[](burn_ids.length);
-        bool[] memory redeemables = new bool[](burn_ids.length);
-        for (uint256 i = 0; i < burn_ids.length; i++) {
-            burns_[i] = burns[burn_ids[i]];
+        uint256[] memory burnIds = _getBurnIds(account);
+        burn_[] memory userBurns = new burn_[](burnIds.length);
+        bool[] memory userRedeemables = new bool[](burnIds.length);
 
-            if (
-                burns[burn_ids[i]].completed == false &&
-                subtract(sums[burn_ids[i]], reedemed) <= flip.balanceOf(address(output))
-            ) {
-                redeemables[i] = true;
-            } else {
-                redeemables[i] = false;
-            }
+        for (uint256 i = 0; i < burnIds.length; i++) {
+            userBurns[i] = burns[burnIds[i]];
+            userRedeemables[i] = _redeemable(burnIds[i]);
         }
 
-        return (burns_, burn_ids, redeemables);
+        return (userBurns, burnIds, userRedeemables);
     }
 
-    /** @notice is a burn redeemable
-     */
-    function redeemable(uint256 burn_id) external view returns (bool) {
-        if (
-            burns[burn_id].completed == false &&
-            subtract(sums[burn_id], reedemed) <= flip.balanceOf(address(output))
-        ) {
-            return true;
-        } else {
-            return false;
-        }
+    /**
+    * @notice is a burn redeemable
+    * @param burnId The id of the burn to check
+    * Firstly, burn can obviously not be redeemable if it has already been redeemed. 
+    * Secondly, we ensure that there is enough FLIP to satisfy all prior burns in the burn queue, 
+    * and the burn of `burnId` itself. `Sums[burnId]` is the sum of all burns up to and including `burnId`.
+    * redeemed is the sum of all burns that have been redeemed. If the difference between the two is <= than the
+    * balance of FLIP in the contract, then the burn is redeemable.
+     */ 
+    function _redeemable(uint256 burnId) internal view returns (bool) {
+        return burns[burnId].completed == false && subtract(sums[burnId], redeemed) <= flip.balanceOf(address(output));
     }
 
+
+    /// @notice Public getter for redeemable
+    function redeemable(uint256 burnId) external view returns (bool) {
+        return _redeemable(burnId);
+    }
+
+    /// @notice Public getter for the burns struct list
     function getAllBurns() external view returns (burn_[] memory) {
         return burns;
     }
@@ -191,20 +186,5 @@ contract BurnerV1 is Initializable {
             if (a < b) return 0;
             return a - b;
         }
-    }
-
-    /** @notice will be used if we ever need to make a new burn contract
-     */
-    function importData(BurnerV1 burnerToImport) external onlyGov returns (bool) {
-        burn_[] memory allBurns = burnerToImport.getAllBurns();
-
-        for (uint i = 1; i < allBurns.length; i++) {
-            sums.push(burnerToImport.sums(i));
-            burns.push(allBurns[i]);
-        }
-
-        reedemed = burnerToImport.reedemed();
-
-        return true;
     }
 }
