@@ -156,11 +156,9 @@ contract AggregatorV1 is Initializable {
         uint256 mid = 0;
         // this would be the absolute maximum of FLIP spendable, so we can start there
         uint256 last = stflip.balanceOf(address(tenderSwap));
-        // initiating the variable
         uint256 price = 10**17;
 
         uint256 error = targetError;
-
 
         uint256 startPrice = _marginalCost(1*10**18);
         if (startPrice < targetPrice) {
@@ -181,7 +179,6 @@ contract AggregatorV1 is Initializable {
 
             price = _marginalCost(mid);
 
-            // go into the top half or the bottom half?
             if (price > targetPrice) {
                 first = mid + 1;
             } else {

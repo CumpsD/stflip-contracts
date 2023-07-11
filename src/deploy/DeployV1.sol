@@ -12,7 +12,6 @@ import "../utils/MinterV1.sol";
 import "../utils/BurnerV1.sol";
 import "../utils/OutputV1.sol";
 import "../utils/RebaserV1.sol";
-import "../utils/Sweeper.sol";
 import "../mock/StateChainGateway.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -107,7 +106,6 @@ contract DeployV1 {
                                         address(flip), 
                                         address(burner), 
                                         address(gov), 
-                                        address(feeRecipient), 
                                         address(manager),
                                         address(stateChainGateway),
                                         address(rebaser))

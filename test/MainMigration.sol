@@ -12,7 +12,6 @@ import "../src/utils/MinterV1.sol";
 import "../src/utils/BurnerV1.sol";
 import "../src/utils/OutputV1.sol";
 import "../src/utils/RebaserV1.sol";
-import "../src/utils/Sweeper.sol";
 import "../src/mock/StateChainGateway.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -41,7 +40,6 @@ contract MainMigration is Test {
     stFlip public flip;
     stFlip public stflip;
 
-    Sweeper public sweeper;
     TestStaker public staker;
 
     ProxyAdmin public admin;
@@ -138,7 +136,6 @@ contract MainMigration is Test {
         wrappedOutputProxy.initialize(address(flip), 
                                     address(burner), 
                                     address(owner), 
-                                    address(feeRecipient), 
                                     address(manager),
                                     address(stateChainGateway),
                                     address(rebaser));
@@ -164,15 +161,12 @@ contract MainMigration is Test {
         wrappedAggregatorProxy = AggregatorV1(address(aggregator));
         wrappedAggregatorProxy.initialize(address(minter),address(burner), address(tenderSwap), address(stflip), address(flip));
 
-        sweeper = new Sweeper(address(flip), address(burner), address(staker));
-
         stflip.approve(address(tenderSwap), 2**100-1);
         stflip.approve(address(aggregator), 2**100-1);
         flip.approve(address(tenderSwap), 2**100-1);
         flip.approve(address(aggregator), 2**100-1);
         flip.approve(address(minter), 2**100-1);
         flip.approve(address(burner), 2**100-1);
-        flip.approve(address(sweeper), 2**100-1);
 
         wrappedMinterProxy.mint(owner, 10**18);
 
@@ -190,7 +184,6 @@ contract MainMigration is Test {
         vm.label(address(aggregator), "AggregatorProxy");
         vm.label(address(output), "OutputProxy");
         vm.label(address(stateChainGateway), "StateChainGateway");
-        vm.label(address(sweeper), "Sweeper");
         vm.label(address(admin), "ProxyAdmin");
         vm.label(owner, "Owner");
 

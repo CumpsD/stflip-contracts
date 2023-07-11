@@ -58,24 +58,25 @@ contract MinterV1 is Initializable {
         emit NewGov(oldGov, gov);
     }
 
-    function _setOutput(address output_)
-        external
-        onlyGov
-    {
-        output = output_;
-    }
-
+    /** Public mint function. Takes FLIP from users and returns stFLIP 1:1
+     * @param to The address to mint stFLIP to
+     * @param amount The amount of stFLIP to mint
+     */
     function mint(address to, uint256 amount)
         external
         returns (bool)
     {
-        // require(stflip.minter() == address(this), "this is not a valid mint contract");
         flip.transferFrom(msg.sender, output, amount);
 
         _mint(to, amount);
         return true;
     }
 
+    
+    /** Called by the rebaser to mint stflip fee
+     * @param to Address to mint stflip to
+     * @param amount Amount of stflip to mint
+     */
     function mintStflipFee(address to, uint256 amount)
         external
         returns (bool)
@@ -83,6 +84,11 @@ contract MinterV1 is Initializable {
         require(msg.sender == rebaser, "Minter: only rebaser can mint stflip fee");
         _mint(to, amount);
     }
+
+    /** Calls mint on stFLIP contract and emits event
+     * @param to Address to mint stflip to
+     * @param amount Amount of stflip to mint
+     */
     function _mint(address to, uint256 amount)
         internal
     {
