@@ -1,5 +1,5 @@
 # ISelfPermit
-[Git Source](https://github.com/thunderhead-labs/stflip-contracts/blob/7cc8544d9ea72822b709c48cbb1ce3c466520cc8/src/tenderswap/SelfPermit.sol)
+[Git Source](https://github.com/thunderhead-labs/stflip-contracts/blob/a54a4561fa7129ea9a332ff80d4d3e8aee76ae43/src/tenderswap/SelfPermit.sol)
 
 Functionality to call permit on any EIP-2612-compliant token for use in the route
 

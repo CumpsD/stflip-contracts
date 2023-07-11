@@ -1,5 +1,5 @@
 # BurnerV1
-[Git Source](https://github.com/thunderhead-labs/stflip-contracts/blob/7cc8544d9ea72822b709c48cbb1ce3c466520cc8/src/utils/BurnerV1.sol)
+[Git Source](https://github.com/thunderhead-labs/stflip-contracts/blob/a54a4561fa7129ea9a332ff80d4d3e8aee76ae43/src/utils/BurnerV1.sol)
 
 **Inherits:**
 Initializable
@@ -185,6 +185,12 @@ public function to get all the burn ids associated with an address
 ```solidity
 function getBurnIds(address account) external view returns (uint256[] memory);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`account`|`address`|The address of the user to check|
+
 
 ### getBurns
 
@@ -194,10 +200,22 @@ get all the burns of an account, the the full structs, ids, and if they can be r
 ```solidity
 function getBurns(address account) external view returns (burn_[] memory, uint256[] memory, bool[] memory);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`account`|`address`|The address of the user to pull burns for|
+
 
 ### _redeemable
 
 is a burn redeemable
+
+*Firstly, burn can obviously not be redeemable if it has already been redeemed.
+Secondly, we ensure that there is enough FLIP to satisfy all prior burns in the burn queue,
+and the burn of `burnId` itself. `Sums[burnId]` is the sum of all burns up to and including `burnId`.
+redeemed is the sum of all burns that have been redeemed. If the difference between the two is <= than the
+balance of FLIP in the contract, then the burn is redeemable.*
 
 
 ```solidity
@@ -207,7 +225,7 @@ function _redeemable(uint256 burnId) internal view returns (bool);
 
 |Name|Type|Description|
 |----|----|-----------|
-|`burnId`|`uint256`|The id of the burn to check Firstly, burn can obviously not be redeemable if it has already been redeemed. Secondly, we ensure that there is enough FLIP to satisfy all prior burns in the burn queue, and the burn of `burnId` itself. `Sums[burnId]` is the sum of all burns up to and including `burnId`. redeemed is the sum of all burns that have been redeemed. If the difference between the two is <= than the balance of FLIP in the contract, then the burn is redeemable.|
+|`burnId`|`uint256`|The id of the burn to check|
 
 
 ### redeemable
@@ -218,6 +236,12 @@ Public getter for redeemable
 ```solidity
 function redeemable(uint256 burnId) external view returns (bool);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`burnId`|`uint256`|The id of the burn to check|
+
 
 ### getAllBurns
 

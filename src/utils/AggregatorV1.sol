@@ -40,14 +40,15 @@ contract AggregatorV1 is Initializable {
     event Aggregation (address sender, uint256 total, uint256 swapped, uint256 minted);
     event BurnAggregation (address sender, uint256 amountInstantBurn, uint256 amountBurn, uint256 received);
     
-    // 1) transfer the stflip from user to this contract
-    // 2) burn amountInstantBurn and claim it immediately to msg.sender
-    // 3) perform burn for amountBurn to msg.sender
-    // 4) perform swap for amountSwap
-    // 5) transfer funds back to user 
-    //      TODO: use LP that has a 'to' field 
-    // 6) emit BurnAggregation
-    // 7) return amount of FLIP that user received
+    /**
+    * @notice Spends stFLIP for FLIP via swap, instant burn, and unstake request.
+    * @param amountInstantBurn The amount of stFLIP to instant burn
+    * @param amountBurn The amount of stFLIP to burn.
+    * @param amountSwap The amount of stFLIP to swap for FLIP
+    * @param minimumAmountSwapOut The minimum amount of FLIP  to receive from the swap piece of the route
+    * @param _deadline Unix swap deadline
+    * @dev Contract will only swap if `amountSwap > 0`. Contract will only mint if amountSwap < amountTotal.
+     */
     function unstakeAggregate(uint256 amountInstantBurn, uint256 amountBurn, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 deadline)
         external
         returns (uint256)
@@ -80,14 +81,20 @@ contract AggregatorV1 is Initializable {
             flip.transfer(msg.sender, received - 1);
         }
 
-        emit BurnAggregation(msg.sender,amountInstantBurn, amountBurn, received);
+        emit BurnAggregation(msg.sender,amountInstantBurn, amountBurn, received-1);
 
         return amountInstantBurn + received;
     }
-    // 1) transfer all FLIP from user to this contract
-    // 2) swap amountSwap amount of FLIP in the pool for minimum _minDy
-    // 2) mint the excess amount of FLIP into stFLIP (amountTotal - amountSwap)
-    // 3) transfer the amount of stFLIP bought + the amount of stFLIP minted back to the user
+
+    /**
+    * @notice Spends FLIP to mint and swap for stFLIP in the same transaction.
+    * @param amountTotal The total amount of FLIP to spend.
+    * @param amountSwap The amount of FLIP to swap for stFLIP.
+    * @param minimumAmountSwapOut The minimum amount of stFLIP to receive from the swap piece of the route
+    * @param _deadline Unix swap deadline
+    * @dev Contract will only swap if `amountSwap > 0`. Contract will only mint if amountSwap < amountTotal. 
+    * Use `calculatePurchasable` on frontend to determine route prior to calling this.  
+     */
     function stakeAggregate(uint256 amountTotal, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 _deadline)
         external
         returns (uint256)
@@ -135,6 +142,11 @@ contract AggregatorV1 is Initializable {
 
         // calculates the marginal cost for the last unit of swap
     // essentially calculates the price of the pool (dy/dx) after a given input
+
+    /**
+    * @notice Calculates the marginal cost for the last unit of swap of `amount`
+    * @param amount The size to calculate marginal cost for the last unit of swap
+     */
     function _marginalCost(uint256 amount) internal view returns (uint256) {
         uint256 dx1 = amount;
         uint256 dx2 = amount + 10**18;
@@ -144,9 +156,15 @@ contract AggregatorV1 is Initializable {
         return (amt2 - amt1)* 10**18 / (dx2 - dx1);
     }
 
-
-    // calculates the total amount of stFLIP purchasable within targetError of a certain targetPrice
-    // it uses binary search. specify a number of attempts so it doesnt get stuck in an infinite loop if it doesn't find something
+    /**
+    * @notice Calculates the total amount of stFLIP purchasable within targetError of a certain targetPrice
+    * @param targetPrice The target price to calculate the amount of stFLIP purchasable until. 10**18 = 1
+    * @param targetError The acceptable range around `targetPrice` for acceptable return value. 10**18 = 100%
+    * @param attempts The number of hops within the binary search allowed before reverting
+    * @dev Uses binary search. Must specify number of attempts to prevent infinite loop. This is not a perfect
+    * calculation because the marginal cost is not exactly equal to dy. This is a decent approximation though
+    * An analytical solution would be ideal but its not easy to get.
+     */
     function calculatePurchasable(uint256 targetPrice, uint256 targetError, uint256 attempts)
         external
         view
@@ -204,6 +222,8 @@ contract AggregatorV1 is Initializable {
         }
     }
 
+
+    /// @notice Marginal cost for mainnet
     function _marginalCostMainnet(address pool, int128 tokenIn, int128 tokenOut, uint256 amount) internal view returns (uint256) {
         uint256 dx1 = amount;
         uint256 dx2 = amount + 10**18;
@@ -214,6 +234,8 @@ contract AggregatorV1 is Initializable {
         return (amt2 - amt1)* 10**18 / (dx2 - dx1);
     }
 
+
+    /// @notice Calculate purchaseable function for mainnet
     function calculatePurchasableMainnet(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool, int128 tokenIn, int128 tokenOut)
         external
         view

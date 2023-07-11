@@ -135,12 +135,14 @@ contract BurnerV1 is Initializable {
     }
 
     /// @notice public function to get all the burn ids associated with an address
+    /// @param account The address of the user to check
     function getBurnIds(address account) external view returns (uint256[] memory) {
         return _getBurnIds(account);
     }
 
     /**
      * @notice get all the burns of an account, the the full structs, ids, and if they can be redeemed.
+     * @param account The address of the user to pull burns for
      */
     function getBurns(
         address account
@@ -160,7 +162,7 @@ contract BurnerV1 is Initializable {
     /**
     * @notice is a burn redeemable
     * @param burnId The id of the burn to check
-    * Firstly, burn can obviously not be redeemable if it has already been redeemed. 
+    * @dev Firstly, burn can obviously not be redeemable if it has already been redeemed. 
     * Secondly, we ensure that there is enough FLIP to satisfy all prior burns in the burn queue, 
     * and the burn of `burnId` itself. `Sums[burnId]` is the sum of all burns up to and including `burnId`.
     * redeemed is the sum of all burns that have been redeemed. If the difference between the two is <= than the
@@ -171,7 +173,10 @@ contract BurnerV1 is Initializable {
     }
 
 
-    /// @notice Public getter for redeemable
+    /**
+    * @notice Public getter for redeemable
+    * @param burnId The id of the burn to check
+     */
     function redeemable(uint256 burnId) external view returns (bool) {
         return _redeemable(burnId);
     }
