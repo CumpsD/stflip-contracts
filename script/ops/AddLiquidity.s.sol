@@ -13,7 +13,6 @@ import "../../src/utils/MinterV1.sol";
 import "../../src/utils/BurnerV1.sol";
 import "../../src/utils/OutputV1.sol";
 import "../../src/utils/RebaserV1.sol";
-import "../../src/utils/Sweeper.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
