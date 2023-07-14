@@ -4,7 +4,6 @@ import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
 import "../../src/deploy/DeployV1.sol";
-import "../../lib/safe-tools/src/SafeTestTools.sol";
 
 import "../../src/token/stFlip.sol";
 import "../../src/token/stFlip.sol";
@@ -30,9 +29,11 @@ contract NewAggregator is Script {
             ProxyAdmin admin = ProxyAdmin(vm.envAddress("PROXY_ADMIN"));
 
             address aggregatorProxy = vm.envAddress("AGGREGATOR");
-            admin.upgrade(
-                            TransparentUpgradeableProxy(payable(aggregatorProxy)), 
-                            address(aggregatorV1)
+            bytes memory data;
+            admin.upgradeAndCall(
+                            ITransparentUpgradeableProxy(payable(aggregatorProxy)), 
+                            address(aggregatorV1),
+                            data
                         );
 
             console.log("upgraded aggregator ", aggregatorProxy, " to ", address(aggregatorV1));

@@ -4,7 +4,6 @@ import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
 import "../src/deploy/DeployV1.sol";
-import "../lib/safe-tools/src/SafeTestTools.sol";
 
 import "../src/token/stFlip.sol";
 import "../src/token/stFlip.sol";
@@ -18,8 +17,7 @@ import "../src/utils/RebaserV1.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-contract DeployAll is Script, SafeTestTools {
-    using SafeTestLib for SafeInstance;
+contract DeployAll is Script {
 
     TenderSwap public tenderSwap;
 

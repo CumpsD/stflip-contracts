@@ -4,7 +4,6 @@ import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
 import "../../src/deploy/DeployV1.sol";
-import "../../lib/safe-tools/src/SafeTestTools.sol";
 
 import "../../src/token/stFlip.sol";
 import "../../src/token/stFlip.sol";
@@ -31,7 +30,7 @@ contract NewBurner is Script {
 
             address burnerProxy = vm.envAddress("BURNER");
             admin.upgrade(
-                            TransparentUpgradeableProxy(payable(burnerProxy)), 
+                            ITransparentUpgradeableProxy(payable(burnerProxy)), 
                             address(burnerV1)
                         );
 
