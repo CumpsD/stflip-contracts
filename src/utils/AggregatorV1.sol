@@ -1,4 +1,4 @@
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.20;
 
 // import "./IERC20.sol";
 import "../tenderswap/TenderSwap.sol";
@@ -46,7 +46,7 @@ contract AggregatorV1 is Initializable {
     * @param amountBurn The amount of stFLIP to burn.
     * @param amountSwap The amount of stFLIP to swap for FLIP
     * @param minimumAmountSwapOut The minimum amount of FLIP  to receive from the swap piece of the route
-    * @param _deadline Unix swap deadline
+    * @param deadline Unix swap deadline
     * @dev Contract will only swap if `amountSwap > 0`. Contract will only mint if amountSwap < amountTotal.
      */
     function unstakeAggregate(uint256 amountInstantBurn, uint256 amountBurn, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 deadline)
@@ -91,11 +91,11 @@ contract AggregatorV1 is Initializable {
     * @param amountTotal The total amount of FLIP to spend.
     * @param amountSwap The amount of FLIP to swap for stFLIP.
     * @param minimumAmountSwapOut The minimum amount of stFLIP to receive from the swap piece of the route
-    * @param _deadline Unix swap deadline
+    * @param deadline Unix swap deadline
     * @dev Contract will only swap if `amountSwap > 0`. Contract will only mint if amountSwap < amountTotal. 
     * Use `calculatePurchasable` on frontend to determine route prior to calling this.  
      */
-    function stakeAggregate(uint256 amountTotal, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 _deadline)
+    function stakeAggregate(uint256 amountTotal, uint256 amountSwap, uint256 minimumAmountSwapOut, uint256 deadline)
         external
         returns (uint256)
     {
@@ -107,7 +107,7 @@ contract AggregatorV1 is Initializable {
         if (amountSwap > 0){
              console.log("swapping ", amountSwap);
 
-            received = tenderSwap.swap(flip, amountSwap, minimumAmountSwapOut, _deadline);
+            received = tenderSwap.swap(flip, amountSwap, minimumAmountSwapOut, deadline);
             console.log("received", received);
         } else {
             received = 0;

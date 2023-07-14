@@ -1,4 +1,5 @@
-pragma solidity 0.8.18;
+pragma solidity ^0.8.20;
+
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
@@ -11,8 +12,7 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "forge-std/console.sol";
 
 
-contract RebaserV1 is Initializable {
-    using SafeMath for uint256;
+contract RebaserV1 is Initializable, Ownership {
 
     address public gov;
     address public pendingGov;
@@ -42,6 +42,7 @@ contract RebaserV1 is Initializable {
         _disableInitializers();
     }
 
+    
     function initialize(
                         address[8] calldata addresses,
                         // address flip_,
@@ -58,9 +59,12 @@ contract RebaserV1 is Initializable {
                         ) initializer public {
         flip = IERC20(addresses[0]);
         wrappedBurnerProxy = BurnerV1(addresses[1]);
-        gov = addresses[2];
-        feeRecipient = addresses[3];
-        manager = addresses[4];
+        
+        __AccessControlDefaultAdminRules_init(0, addresses[2]);
+        _grantRole(MANAGER_ROLE, addresses[2]);
+        _grantRole(MANAGER_ROLE, addresses[4]);
+        _grantRole(FEE_RECIPIENT_ROLE, addresses[3]);
+
         stflip = stFlip(addresses[5]);
         wrappedOutputProxy = OutputV1(addresses[6]);
         wrappedMinterProxy = MinterV1(addresses[7]);
@@ -75,70 +79,10 @@ contract RebaserV1 is Initializable {
 
     }
 
-    /**
-     * @notice Event emitted when pendingGov is changed
-     */
-    event NewPendingGov(address oldPendingGov, address newPendingGov);
-
-    /**
-     * @notice Event emitted when gov is changed
-     */
-    event NewGov(address oldGov, address newGov);
-
-    /**
-     * @notice Tokens burned event
-     */
-    event Burn(uint256 amount, uint256 burn_id);
-
-    // Modifiers
-    modifier onlyGov() {
-        require(msg.sender == gov, "Output: not gov");
-        _;
-    }
-
-    /** @notice sets the pendingGov
-     * @param pendingGov_ The address of the rebaser contract to use for authentication.
-     */
-    function _setPendingGov(address pendingGov_) external onlyGov {
-        address oldPendingGov = pendingGov;
-        pendingGov = pendingGov_;
-        emit NewPendingGov(oldPendingGov, pendingGov_);
-    }
-
-    /** @notice lets msg.sender accept governance
-     *
-     */
-    function _acceptGov() external {
-        require(msg.sender == pendingGov, "!pending");
-        address oldGov = gov;
-        gov = pendingGov;
-        pendingGov = address(0);
-        emit NewGov(oldGov, gov);
-    }
-
-    modifier onlyManager() {
-        require(msg.sender == manager || msg.sender == gov, "Rebaser: not manager or gov");
-        _;
-    }
-
-    /** Sets manager address, the EOA that can rebase
-     * @param manager_ The address to set the manager role to
-     */
-    function setManager(address manager_) external onlyGov {
-        manager = manager_;
-    }
-
-    /** Sets fee recipient, the address that will receive fee claims
-     * @param feeRecipient_ The address to set the fee recipient to
-     */
-    function setFeeRecipient(address feeRecipient_) external onlyGov {
-        feeRecipient = feeRecipient_;
-    }
-
     /** Sets reward fee in bps, the percentage of rebase that will go to `pendingFee`
      * @param feeBps_ The amount of bps to set the fee to
      */
-    function setFeeBps(uint256 feeBps_) external onlyGov {
+    function setFeeBps(uint256 feeBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         feeBps = feeBps_;
     }
 
@@ -146,7 +90,7 @@ contract RebaserV1 is Initializable {
      * @param aprThresholdBps_ The amount of bps to set apr threshold to
      * @dev If the rebase exceeds this APR, then the rebase will revert
      */
-    function setAprThresholdBps(uint256 aprThresholdBps_) external onlyGov {
+    function setAprThresholdBps(uint256 aprThresholdBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         aprThresholdBps = aprThresholdBps_;
     }
 
@@ -155,7 +99,7 @@ contract RebaserV1 is Initializable {
      * @dev If the supply decreases by this threshold, then the rebase will revert
      * @dev This is different from APR threshold because slashes would be much more serious
      */
-    function setSlashThresholdBps(uint256 slashThresholdBps_) external onlyGov {
+    function setSlashThresholdBps(uint256 slashThresholdBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         slashThresholdBps = slashThresholdBps_;
     }
 
@@ -163,7 +107,7 @@ contract RebaserV1 is Initializable {
      * @param rebaseInterval_ The minimum unix time between rebases
      * @dev If a rebase occurs before this interval elapses, it will revert
      */
-    function setRebaseInterval(uint256 rebaseInterval_) external onlyGov {
+    function setRebaseInterval(uint256 rebaseInterval_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         rebaseInterval = rebaseInterval_;
     }
 
@@ -182,7 +126,7 @@ contract RebaserV1 is Initializable {
      * if there is a slash we need to make up for. Its also worth noting how `pendingFee` is a piece of the pool,
      * in the same way that pending burns are. 
      */
-    function rebase (uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyManager {
+    function rebase (uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyRole(MANAGER_ROLE) {
         uint256 timeElapsed = block.timestamp - lastRebaseTime;
         require(timeElapsed >= rebaseInterval, "Rebaser: rebase too soon");
 
@@ -218,34 +162,34 @@ contract RebaserV1 is Initializable {
 
 
     /// @notice just for testnet purposes. will be deprecated before mainnet
-    function forceRebase(uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyGov {
-        uint256 timeElapsed = block.timestamp - lastRebaseTime;
+    // function forceRebase(uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    //     uint256 timeElapsed = block.timestamp - lastRebaseTime;
 
-        uint256 currentSupply = stflip.totalSupply();
-        uint256 pendingBurns = wrappedBurnerProxy.totalPendingBurns();
+    //     uint256 currentSupply = stflip.totalSupply();
+    //     uint256 pendingBurns = wrappedBurnerProxy.totalPendingBurns();
 
-        uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy));
-        uint256 newSupply = stateChainBalance + onchainBalance - pendingBurns - pendingFee;
+    //     uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy));
+    //     uint256 newSupply = stateChainBalance + onchainBalance - pendingBurns - pendingFee;
 
-        uint256 apr;
-        uint256 feeIncrement;
+    //     uint256 apr;
+    //     uint256 feeIncrement;
 
-        if (newSupply > currentSupply){
-            apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
+    //     if (newSupply > currentSupply){
+    //         apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
 
-            if (takeFee == true) {
-                feeIncrement = (newSupply - currentSupply) * feeBps / 10000;
-                pendingFee += feeIncrement;
-                newSupply -= feeIncrement;
-            } 
-        } 
+    //         if (takeFee == true) {
+    //             feeIncrement = (newSupply - currentSupply) * feeBps / 10000;
+    //             pendingFee += feeIncrement;
+    //             newSupply -= feeIncrement;
+    //         } 
+    //     } 
         
-        uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
-        stflip.setRebase(epoch, newRebaseFactor);
-        lastRebaseTime = block.timestamp;
+    //     uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
+    //     stflip.setRebase(epoch, newRebaseFactor);
+    //     lastRebaseTime = block.timestamp;
 
-        emit GovRebase(apr, feeIncrement, currentSupply, newSupply);
-    }
+    //     emit GovRebase(apr, feeIncrement, currentSupply, newSupply);
+    // }
 
 
 
@@ -260,15 +204,15 @@ contract RebaserV1 is Initializable {
      *  @param max Whether or not to claim all pending fees
      *  @param receiveFlip Whether or not to receive the fee in flip or stflip
      */
-    function claimFee (uint256 amount, bool max, bool receiveFlip) external onlyManager {
+    function claimFee (uint256 amount, bool max, bool receiveFlip) external onlyRole(FEE_RECIPIENT_ROLE) {
         require (max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
 
         uint256 amountToClaim = max ? pendingFee : amount;
 
         if (receiveFlip == true) {
-            flip.transferFrom(address(wrappedOutputProxy), feeRecipient, amountToClaim);
+            flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
-            wrappedMinterProxy.mintStflipFee(feeRecipient, amountToClaim);
+            wrappedMinterProxy.mintStflipFee(msg.sender, amountToClaim);
         }
 
         pendingFee -= amountToClaim;

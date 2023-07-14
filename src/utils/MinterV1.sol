@@ -1,12 +1,13 @@
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
+import "./Ownership.sol";
 import "forge-std/console.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 
-contract MinterV1 is Initializable {
+contract MinterV1 is Initializable, Ownership {
     // using SafeMath for uint256;
     address public gov;
     address public pendingGov;
@@ -23,40 +24,13 @@ contract MinterV1 is Initializable {
     function initialize(address stflip_, address output_, address gov_, address flip_, address rebaser_) initializer public {
         stflip = stFlip(stflip_);
         output = output_;
-        gov = gov_;
+        __AccessControlDefaultAdminRules_init(0, gov_);
+
         flip = IERC20(flip_);
         rebaser = rebaser_;
     }
 
-    event NewPendingGov(address oldPendingGov, address newPendingGov);
-
-    event NewGov(address oldGov, address newGov);
-
     event Mint(address to, uint256 amount);
-
-    modifier onlyGov() {
-        require(msg.sender == gov);
-        _;
-    }
-
-    function _setPendingGov(address pendingGov_)
-        external
-        onlyGov
-    {
-        address oldPendingGov = pendingGov;
-        pendingGov = pendingGov_;
-        emit NewPendingGov(oldPendingGov, pendingGov_);
-    }
-
-    function _acceptGov()
-        external
-    {
-        require(msg.sender == pendingGov, "!pending");
-        address oldGov = gov;
-        gov = pendingGov;
-        pendingGov = address(0);
-        emit NewGov(oldGov, gov);
-    }
 
     /** Public mint function. Takes FLIP from users and returns stFLIP 1:1
      * @param to The address to mint stFLIP to

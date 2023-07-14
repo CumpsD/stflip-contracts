@@ -1,14 +1,14 @@
-pragma solidity 0.8.18;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
 import "forge-std/console.sol";
+import "./Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 
-contract BurnerV1 is Initializable {
-    using SafeMath for uint256;
+contract BurnerV1 is Initializable, Ownership {
 
     address public gov;
     address public pendingGov;
@@ -33,44 +33,15 @@ contract BurnerV1 is Initializable {
 
     function initialize(address stflip_, address gov_, address flip_, address output_) initializer public {
         stflip = stFlip(stflip_);
-        gov = gov_;
+        __AccessControlDefaultAdminRules_init(0, gov_);
         flip = IERC20(flip_);
         burns.push(burn_(address(0), 0, true));
         sums.push(0);
         output = output_;
     }
 
-    /// @notice Event emitted when pendingGov is changed
-    event NewPendingGov(address oldPendingGov, address newPendingGov);
-
-    /// @notice Event emitted when gov is changed
-    event NewGov(address oldGov, address newGov);
-
     /// @notice Tokens burned event
     event Burn(uint256 amount, uint256 burnId);
-
-    // Modifiers
-    modifier onlyGov() {
-        require(msg.sender == gov);
-        _;
-    }
-
-    /// @notice sets the pendingGov
-    /// @param pendingGov_ The address of the rebaser contract to use for authentication.
-    function _setPendingGov(address pendingGov_) external onlyGov {
-        address oldPendingGov = pendingGov;
-        pendingGov = pendingGov_;
-        emit NewPendingGov(oldPendingGov, pendingGov_);
-    }
-
-    /// @notice lets msg.sender accept governance
-    function _acceptGov() external {
-        require(msg.sender == pendingGov, "!pending");
-        address oldGov = gov;
-        gov = pendingGov;
-        pendingGov = address(0);
-        emit NewGov(oldGov, gov);
-    }
 
     /**
      * @notice Burns stflip tokens, transfers FLIP tokens from msg.sender, adds entry to burns/sums list
@@ -80,7 +51,7 @@ contract BurnerV1 is Initializable {
     function burn(address to, uint256 amount) external returns (uint256) {
         stflip.burn(amount, msg.sender);
         burns.push(burn_(to, amount, false));
-        sums.push(amount.add(sums[sums.length - 1]));
+        sums.push(amount + sums[sums.length - 1]);
 
         emit Burn(amount, burns.length - 1);
 
@@ -96,11 +67,7 @@ contract BurnerV1 is Initializable {
 
         flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
         burns[burnId].completed = true;
-        redeemed = redeemed.add(burns[burnId].amount);
-    }
-
-    function emergencyWithdraw(uint256 amount, address token) external onlyGov {
-        IERC20(token).transfer(msg.sender, amount);
+        redeemed = redeemed + burns[burnId].amount;
     }
 
     /**
