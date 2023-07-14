@@ -171,7 +171,7 @@ contract RebaserTest is MainMigration {
         uint256 initialStflipSupply = stflip.totalSupply();
         
 
-        vm.prank(manager);
+        vm.prank(feeRecipient);
             wrappedRebaserProxy.claimFee(amountToClaim, max, receiveFlip);
 
         uint256 expectedClaim = max ? initialPendingFee : amountToClaim;
