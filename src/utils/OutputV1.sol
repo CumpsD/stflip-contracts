@@ -10,11 +10,8 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 
 contract OutputV1 is Initializable, Ownership {
-    address public gov;
-    address public pendingGov;
-    address public manager;
 
-    mapping (bytes32 => uint8) public validators;
+    mapping (bytes32 => bool) public validators;
 
     StateChainGateway public stateChainGateway;
     BurnerV1 public wrappedBurnerProxy;
@@ -40,21 +37,6 @@ contract OutputV1 is Initializable, Ownership {
 
     }
 
-    /**
-     * @notice Event emitted when pendingGov is changed
-     */
-    event NewPendingGov(address oldPendingGov, address newPendingGov);
-
-    /**
-     * @notice Event emitted when gov is changed
-     */
-    event NewGov(address oldGov, address newGov);
-
-    /**
-     * @notice Tokens burned event
-     */
-    event Burn(uint256 amount, uint256 burn_id);
-
     /** Adds validators so that they can be staked to
      * @param addresses The list of addresses to add to the map
      * @dev it should be ensured prior to adding validators to the map
@@ -63,7 +45,7 @@ contract OutputV1 is Initializable, Ownership {
      */
     function addValidators(bytes32[] calldata addresses) external onlyRole(DEFAULT_ADMIN_ROLE) {
         for (uint256 i = 0; i < addresses.length; i++) {
-            validators[addresses[i]] = 1;
+            validators[addresses[i]] = true;
         }
     }
 
@@ -84,7 +66,7 @@ contract OutputV1 is Initializable, Ownership {
     function fundValidators(bytes32[] calldata addresses, uint256[] calldata amounts) external onlyRole(MANAGER_ROLE) {
         require(addresses.length == amounts.length, "lengths must match");
         for (uint i = 0; i < addresses.length; i++) {
-            require(validators[addresses[i]] == 1, "Output: address not added");
+            require(validators[addresses[i]] == true, "Output: address not added");
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
     }

@@ -8,14 +8,14 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 
 contract MinterV1 is Initializable, Ownership {
-    // using SafeMath for uint256;
-    address public gov;
-    address public pendingGov;
+
     address public output;
     address public rebaser;
     
     stFlip public stflip;
     IERC20 public flip;
+
+    event Mint(address to, uint256 amount);
 
     constructor() {
         _disableInitializers();
@@ -30,16 +30,11 @@ contract MinterV1 is Initializable, Ownership {
         rebaser = rebaser_;
     }
 
-    event Mint(address to, uint256 amount);
-
     /** Public mint function. Takes FLIP from users and returns stFLIP 1:1
      * @param to The address to mint stFLIP to
      * @param amount The amount of stFLIP to mint
      */
-    function mint(address to, uint256 amount)
-        external
-        returns (bool)
-    {
+    function mint(address to, uint256 amount) external returns (bool) {
         flip.transferFrom(msg.sender, output, amount);
 
         _mint(to, amount);
@@ -51,10 +46,7 @@ contract MinterV1 is Initializable, Ownership {
      * @param to Address to mint stflip to
      * @param amount Amount of stflip to mint
      */
-    function mintStflipFee(address to, uint256 amount)
-        external
-        returns (bool)
-    {
+    function mintStflipFee(address to, uint256 amount) external returns (bool) {
         require(msg.sender == rebaser, "Minter: only rebaser can mint stflip fee");
         _mint(to, amount);
     }
@@ -63,9 +55,7 @@ contract MinterV1 is Initializable, Ownership {
      * @param to Address to mint stflip to
      * @param amount Amount of stflip to mint
      */
-    function _mint(address to, uint256 amount)
-        internal
-    {
+    function _mint(address to, uint256 amount) internal {
       stflip.mint(to, amount);
       emit Mint(to, amount);
     }

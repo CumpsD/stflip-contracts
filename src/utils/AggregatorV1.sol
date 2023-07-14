@@ -22,7 +22,7 @@ contract AggregatorV1 is Initializable {
     }
 
     function initialize (address minter_, address burner_, address liquidityPool_, address stflip_, address flip_) initializer public {
-        // associating relevant contracts
+        // // associating relevant contracts
         minter = MinterV1(minter_);
         burner = BurnerV1(burner_);
         tenderSwap = TenderSwap(liquidityPool_);
@@ -56,28 +56,19 @@ contract AggregatorV1 is Initializable {
         uint256 total = amountInstantBurn + amountBurn + amountSwap;
         uint256 received = 0;
 
-        console.log("transferring from user to contract", total);
         stflip.transferFrom(msg.sender, address(this), total);
-        console.log("FLIP balance of contract ", flip.balanceOf(address(this)));
-        console.log("stFLIP balance of contract ", stflip.balanceOf(address(this)));
         
         if (amountInstantBurn > 0) {
-            console.log("performing instant burn for ", amountInstantBurn);
             uint256 instantBurnId = burner.burn(msg.sender, amountInstantBurn);
             burner.redeem(instantBurnId); 
         }
 
         if (amountBurn > 0) {
-            console.log("performing normal burn for ", amountBurn);
             uint256 burnId = burner.burn(msg.sender, amountBurn);
         }
 
         if (amountSwap > 0) {
-            console.log("performing swap for ", amountSwap);
             received = tenderSwap.swap(stflip, amountSwap, minimumAmountSwapOut, deadline);
-            console.log("transferring FLIP back to user ", received - 1);
-            console.log("FLIP balance of contract ", flip.balanceOf(address(this)));
-            console.log("stFLIP balance of contract ", stflip.balanceOf(address(this)));
             flip.transfer(msg.sender, received - 1);
         }
 
@@ -99,39 +90,23 @@ contract AggregatorV1 is Initializable {
         external
         returns (uint256)
     {
-        console.log("transferring to contract ", amountTotal);
         flip.transferFrom(msg.sender, address(this), amountTotal);
         uint256 received;
         uint256 mintAmount = amountTotal - amountSwap;
 
         if (amountSwap > 0){
-             console.log("swapping ", amountSwap);
-
             received = tenderSwap.swap(flip, amountSwap, minimumAmountSwapOut, deadline);
-            console.log("received", received);
         } else {
             received = 0;
         }
 
         if (mintAmount > 0) {
-             console.log("minting ", mintAmount);
-
             minter.mint(address(this), mintAmount);
 
-            console.log("successfully minted");
         }
 
-        console.log("transferring back to user ", mintAmount + received - 1);
-        console.log("Mintamount", mintAmount);
-        console.log("Received", received);
-        console.log("actual balance", stflip.balanceOf(address(this)));
-
         stflip.transfer( msg.sender, mintAmount + received - 1);
-
         emit Aggregation (msg.sender,mintAmount + received, received, mintAmount);
-
-        console.log("aggregation complete. total, received, mintAmount");
-        console.log(mintAmount + received, received, mintAmount);
         return mintAmount + received;
     }
 
@@ -180,13 +155,8 @@ contract AggregatorV1 is Initializable {
 
         uint256 startPrice = _marginalCost(1*10**18);
         if (startPrice < targetPrice) {
-            console.log(startPrice, " less than the targetPrice of ",targetPrice, " returning zero ");
             return 0;
         }
-
-        console.log("targetPrice, targetError, attempts", targetPrice, targetError, attempts);
-        console.log("amt, price, error, attempts");
-
 
         while (true) {
 
@@ -216,7 +186,6 @@ contract AggregatorV1 is Initializable {
 
             // if the error is acceptable then we can return the amountIn we found
             if (error < targetError) {
-                console.log("returning val ", mid);
                 return mid;
             }
         }
@@ -224,61 +193,61 @@ contract AggregatorV1 is Initializable {
 
 
     /// @notice Marginal cost for mainnet
-    function _marginalCostMainnet(address pool, int128 tokenIn, int128 tokenOut, uint256 amount) internal view returns (uint256) {
-        uint256 dx1 = amount;
-        uint256 dx2 = amount + 10**18;
+    // function _marginalCostMainnet(address pool, int128 tokenIn, int128 tokenOut, uint256 amount) internal view returns (uint256) {
+    //     uint256 dx1 = amount;
+    //     uint256 dx2 = amount + 10**18;
 
-        uint256 amt1 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx1);
-        uint256 amt2 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx2);
+    //     uint256 amt1 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx1);
+    //     uint256 amt2 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx2);
 
-        return (amt2 - amt1)* 10**18 / (dx2 - dx1);
-    }
+    //     return (amt2 - amt1)* 10**18 / (dx2 - dx1);
+    // }
 
 
-    /// @notice Calculate purchaseable function for mainnet
-    function calculatePurchasableMainnet(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool, int128 tokenIn, int128 tokenOut)
-        external
-        view
-        returns (uint256)
-    {
-        uint256 first = 0;
-        uint256 mid = 0;
-        // this would be the absolute maximum of FLIP spendable, so we can start there
-        uint256 last = IStableSwap(pool).balances(uint256(int256(tokenOut)));
-        uint256 price;
-        uint256 currentError = targetError;
-        uint256 startPrice = _marginalCostMainnet(pool, tokenIn, tokenOut, 1*10**18);
+    // /// @notice Calculate purchaseable function for mainnet
+    // function calculatePurchasableMainnet(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool, int128 tokenIn, int128 tokenOut)
+    //     external
+    //     view
+    //     returns (uint256)
+    // {
+    //     uint256 first = 0;
+    //     uint256 mid = 0;
+    //     // this would be the absolute maximum of FLIP spendable, so we can start there
+    //     uint256 last = IStableSwap(pool).balances(uint256(int256(tokenOut)));
+    //     uint256 price;
+    //     uint256 currentError = targetError;
+    //     uint256 startPrice = _marginalCostMainnet(pool, tokenIn, tokenOut, 1*10**18);
 
-        if (startPrice < targetPrice) {
-            return 0;
-        }
+    //     if (startPrice < targetPrice) {
+    //         return 0;
+    //     }
 
-        while (true) {
-            require(attempts > 0, "Aggregator: no attempts left");
+    //     while (true) {
+    //         require(attempts > 0, "Aggregator: no attempts left");
 
-            mid = (last+first) / 2;
-            price = _marginalCostMainnet(pool, tokenIn, tokenOut, mid);
+    //         mid = (last+first) / 2;
+    //         price = _marginalCostMainnet(pool, tokenIn, tokenOut, mid);
 
-            if (price > targetPrice) {
-                first = mid + 1;
-            } else {
-                last = mid - 1;
-            }
+    //         if (price > targetPrice) {
+    //             first = mid + 1;
+    //         } else {
+    //             last = mid - 1;
+    //         }
 
-            attempts = attempts - 1;
+    //         attempts = attempts - 1;
 
-            if (price < targetPrice) {
-                currentError = 10**18 - (price*10**18/targetPrice);
-            } else {
-                currentError = (price*10**18/targetPrice) - 10**18;
-            }
+    //         if (price < targetPrice) {
+    //             currentError = 10**18 - (price*10**18/targetPrice);
+    //         } else {
+    //             currentError = (price*10**18/targetPrice) - 10**18;
+    //         }
 
-            if (currentError < targetError) {
-                console.log("price, target", price, targetPrice);
-                console.log("curr, target", currentError, targetError);
-                return mid;
-            }
-        }
-    }
+    //         if (currentError < targetError) {
+    //             console.log("price, target", price, targetPrice);
+    //             console.log("curr, target", currentError, targetError);
+    //             return mid;
+    //         }
+    //     }
+    // }
 
 }

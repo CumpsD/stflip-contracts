@@ -28,7 +28,7 @@ contract OutputTest is MainMigration {
             wrappedOutputProxy.addValidators(validators);
 
         for (uint i = 0; i < length; i++) {
-            require(wrappedOutputProxy.validators(validators[i]) == 1, "testFuzz_AddValidators: validators not imported correctly");
+            require(wrappedOutputProxy.validators(validators[i]) == true, "testFuzz_AddValidators: validators not imported correctly");
         }
 
     }
@@ -56,9 +56,9 @@ contract OutputTest is MainMigration {
 
         for (uint i = 0; i < length; i++) {
             if (removed[validators_[i]] == 1) {
-                require(wrappedOutputProxy.validators(validators_[i]) == 0, "testFuzz_RemoveValidators: validators not removed correctly");
+                require(wrappedOutputProxy.validators(validators_[i]) == false, "testFuzz_RemoveValidators: validators not removed correctly");
             } else {
-                require(wrappedOutputProxy.validators(validators_[i]) == 1, "testFuzz_RemoveValidators: validators not imported correctly");
+                require(wrappedOutputProxy.validators(validators_[i]) == true, "testFuzz_RemoveValidators: validators not imported correctly");
             }
         }
     }

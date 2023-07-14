@@ -14,11 +14,6 @@ import "forge-std/console.sol";
 
 contract RebaserV1 is Initializable, Ownership {
 
-    address public gov;
-    address public pendingGov;
-    address public feeRecipient;
-    address public manager;
-
     uint256 public feeBps;
     uint256 public aprThresholdBps;
     uint256 public lastRebaseTime;
@@ -43,20 +38,14 @@ contract RebaserV1 is Initializable, Ownership {
     }
 
     
-    function initialize(
-                        address[8] calldata addresses,
-                        // address flip_,
-                        // address burnerProxy_, 
-                        // address gov_,  
-                        // address feeRecipient_, 
-                        // address manager_, 
-                        // address stflip_,
-                        // address outputProxy_
-                        uint256 feeBps_, 
-                        uint256 aprThresholdBps_,
-                        uint256 slashThresholdBps_,
-                        uint256 rebaseInterval_
-                        ) initializer public {
+    /**
+     * @notice Initializes the contract
+     * @param addresses The addresses of the contracts to use: flip, burnerProxy, gov, feeRecipient, manager, stflip, outputProxy
+     * @param feeBps_ The amount of bps to set the fee to
+     * @param aprThresholdBps_ The amount of bps to set apr threshold to
+     * @param rebaseInterval_ The amount of time in seconds between rebases
+     */
+    function initialize(address[8] calldata addresses, uint256 feeBps_, uint256 aprThresholdBps_, uint256 slashThresholdBps_, uint256 rebaseInterval_) initializer public {
         flip = IERC20(addresses[0]);
         wrappedBurnerProxy = BurnerV1(addresses[1]);
         
@@ -68,7 +57,6 @@ contract RebaserV1 is Initializable, Ownership {
         stflip = stFlip(addresses[5]);
         wrappedOutputProxy = OutputV1(addresses[6]);
         wrappedMinterProxy = MinterV1(addresses[7]);
-        
         
         feeBps = feeBps_;      
         slashThresholdBps = slashThresholdBps_;
@@ -217,7 +205,7 @@ contract RebaserV1 is Initializable, Ownership {
 
         pendingFee -= amountToClaim;
 
-        emit FeeClaim(feeRecipient, amountToClaim, receiveFlip);
+        emit FeeClaim(msg.sender, amountToClaim, receiveFlip);
     }
 
 }
