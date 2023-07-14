@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 
 contract StakedFLIP is TokenStorage {
-    using SafeMath for uint256;
 
 
     constructor() {
@@ -178,19 +177,19 @@ contract StakedFLIP is TokenStorage {
         internal
     {
         // increase totalSupply
-        totalSupply = totalSupply.add(amount);
+        totalSupply = totalSupply + amount;
 
         // get underlying value
         uint256 yamValue = _fragmentToYam(amount);
 
         // increase initSupply
-        initSupply = initSupply.add(yamValue);
+        initSupply = initSupply + yamValue;
 
         // make sure the mint didnt push maxScalingFactor too low
         require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
         // add balance
-        _yamBalances[to] = _yamBalances[to].add(yamValue);
+        _yamBalances[to] = _yamBalances[to] + yamValue;
 
         // add delegates to the minter
         emit Mint(to, amount);
@@ -220,10 +219,10 @@ contract StakedFLIP is TokenStorage {
         uint256 yamValue = _fragmentToYam(value);
 
         // sub from balance of sender
-        _yamBalances[msg.sender] = _yamBalances[msg.sender].sub(yamValue);
+        _yamBalances[msg.sender] = _yamBalances[msg.sender] - yamValue;
 
         // add to balance of receiver
-        _yamBalances[to] = _yamBalances[to].add(yamValue);
+        _yamBalances[to] = _yamBalances[to] + yamValue;
         emit Transfer(msg.sender, to, value);
 
         return true;
@@ -248,17 +247,17 @@ contract StakedFLIP is TokenStorage {
       // minimum transfer value == yamsScalingFactor / 1e24;
 
       // get amount in underlying
-      totalSupply = totalSupply.sub(value);
+      totalSupply = totalSupply - value;
 
       uint256 yamValue = _fragmentToYam(value);
 
-      initSupply = initSupply.sub(yamValue);
+      initSupply = initSupply - yamValue;
 
       // sub from balance of sender
 
       require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
-      _yamBalances[refundee] = _yamBalances[refundee].sub(yamValue);
+      _yamBalances[refundee] = _yamBalances[refundee] - yamValue;
 
       // add to balance of receiver
       emit Burn(msg.sender, value, refundee);
@@ -278,15 +277,15 @@ contract StakedFLIP is TokenStorage {
         returns (bool)
     {
         // decrease allowance
-        _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender].sub(value);
+        _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender] - value;
 
 
         // get value in yams
         uint256 yamValue = _fragmentToYam(value);
 
         // sub from from
-        _yamBalances[from] = _yamBalances[from].sub(yamValue);
-        _yamBalances[to] = _yamBalances[to].add(yamValue);
+        _yamBalances[from] = _yamBalances[from] - yamValue;
+        _yamBalances[to] = _yamBalances[to] + yamValue;
         emit Transfer(from, to, value);
 
         return true;
@@ -309,8 +308,8 @@ contract StakedFLIP is TokenStorage {
         uint256 yamValue = _fragmentToYam(value);
 
         // sub from from
-        _yamBalances[from] = _yamBalances[from].sub(yamValue);
-        _yamBalances[to] = _yamBalances[to].add(yamValue);
+        _yamBalances[from] = _yamBalances[from] - yamValue;
+        _yamBalances[to] = _yamBalances[to] + yamValue;
         emit Transfer(from, to, value);
 
         return true;
@@ -387,7 +386,7 @@ contract StakedFLIP is TokenStorage {
         returns (bool)
     {
         _allowedFragments[msg.sender][spender] =
-            _allowedFragments[msg.sender][spender].add(addedValue);
+            _allowedFragments[msg.sender][spender] + addedValue;
         emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
         return true;
     }
@@ -407,7 +406,7 @@ contract StakedFLIP is TokenStorage {
         if (subtractedValue >= oldValue) {
             _allowedFragments[msg.sender][spender] = 0;
         } else {
-            _allowedFragments[msg.sender][spender] = oldValue.sub(subtractedValue);
+            _allowedFragments[msg.sender][spender] = oldValue - subtractedValue;
         }
         emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
         return true;
@@ -546,10 +545,10 @@ contract StakedFLIP is TokenStorage {
 
         if (!positive) {
             // negative rebase, decrease scaling factor
-            yamsScalingFactor = yamsScalingFactor.mul(BASE.sub(indexDelta)).div(BASE);
+            yamsScalingFactor = yamsScalingFactor * (BASE - indexDelta) / BASE;
         } else {
             // positive reabse, increase scaling factor
-            uint256 newScalingFactor = yamsScalingFactor.mul(BASE.add(indexDelta)).div(BASE);
+            uint256 newScalingFactor = yamsScalingFactor * (BASE + indexDelta) / BASE;
             if (newScalingFactor < _maxScalingFactor()) {
                 yamsScalingFactor = newScalingFactor;
             } else {
@@ -619,7 +618,7 @@ contract StakedFLIP is TokenStorage {
         view
         returns (uint256)
     {
-        return yam.mul(yamsScalingFactor).div(internalDecimals);
+        return yam * yamsScalingFactor / internalDecimals;
     }
 
     function _fragmentToYam(uint256 value)
@@ -627,7 +626,7 @@ contract StakedFLIP is TokenStorage {
         view
         returns (uint256)
     {
-        return value.mul(internalDecimals).div(yamsScalingFactor);
+        return value * internalDecimals / yamsScalingFactor;
     }
 
     // Rescue tokens
