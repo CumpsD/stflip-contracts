@@ -72,7 +72,7 @@ contract DeployAll is Script {
                 burner = new TransparentUpgradeableProxy(address(burnerV1), address(admin), "");
                 console.log("deployed burner proxy", address(burner));
                 wrappedBurnerProxy = BurnerV1(address(burner));
-                stflip._setBurner(address(burner));
+                stflip.grantRole(stflip.BURNER_ROLE(), address(burner));
 
             // creating minter
                 minterV1 = new MinterV1();
@@ -119,7 +119,7 @@ contract DeployAll is Script {
                                                 20 hours
                                                 );
                 console.log("initialized rebaser at", address(rebaser));
-                stflip._setRebaser(address(rebaser));
+                stflip.grantRole(stflip.REBASER_ROLE(), address(rebaser));
                 console.log("set stflip rebaser to", address(rebaser));
 
             //initializing output contract
@@ -135,7 +135,7 @@ contract DeployAll is Script {
             //initializing minter  
                 wrappedMinterProxy.initialize(address(stflip), address(output), gov, address(flip), address(rebaser));
                 console.log("initialized minter at", address(minter));
-                stflip._setMinter(address(minter));
+                stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
                 console.log("set stflip minter to", address(minter));
 
             //initializing burner

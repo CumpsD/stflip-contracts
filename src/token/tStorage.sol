@@ -35,31 +35,6 @@ contract TokenStorage {
     uint8 public decimals;
 
     /**
-     * @notice Governor for this contract
-     */
-    address public gov;
-
-    /**
-     * @notice Pending governance for this contract
-     */
-    address public pendingGov;
-
-    /**
-     * @notice Approved rebaser for this contract
-     */
-    address public rebaser;
-
-    /**
-     * @notice Approved burner for this contract
-     */
-    address public burner;
-
-    /**
-     * @notice Approved minter for this contract
-     */
-    address public minter;
-
-    /**
      * @notice Total supply of YAMs
      */
     uint256 public totalSupply;
