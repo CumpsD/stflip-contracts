@@ -143,7 +143,7 @@ contract DeployAll is Script {
                 console.log("initialized burner at", address(burner));
 
             //initializing aggregator
-                wrappedAggregatorProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip));
+                wrappedAggregatorProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip), gov);
                 console.log("initialized aggregator at", address(aggregator));
 
         vm.stopBroadcast();

@@ -118,6 +118,6 @@ contract DeployV1 {
         wrappedBurnerProxy.initialize(address(stflip), gov, address(flip), address(output));
 
         //initializing aggregator
-        wrappedAggregatorProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip));
+        wrappedAggregatorProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip), gov);
     }
 }
