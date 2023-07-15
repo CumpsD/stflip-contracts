@@ -30,7 +30,14 @@ contract RebaserTest is MainMigration {
         vm.expectRevert("Rebaser: rebase too soon");
         wrappedRebaserProxy.rebase(1, 1, true);
     }
-    
+
+    /**
+     * @notice Does a rebase that has just too high of an APR to ensure a revert
+     * @param elapsedTime_ Time since the last rebase 
+     * @param rewards_ The amount of rewards to have "generated"
+     * @param startSupply_ The supply prior to rebase
+     * @param takeFee Whether or not the rebase should create a fee
+     */
     function testFuzz_ExcessivePositiveRebase(uint256 elapsedTime_, uint256 rewards_, uint256 startSupply_, bool takeFee) public {
         uint256 startSupply = bound(startSupply_, 10**18, 30_000_000*10**18);
     
@@ -52,6 +59,11 @@ contract RebaserTest is MainMigration {
         vm.stopPrank();
     }
 
+    /**
+     * @notice Does a rebase that is too large to ensure a revert
+     * @param slashAmount_ The amount to slash
+     * @param startSupply_ The supply prior to the slash
+     */
     function testFuzz_ExcessiveNegativeRebase(uint256 slashAmount_, uint256 startSupply_) public {
 
         uint256 startSupply = bound(startSupply_, 10**18, 30_000_000*10**18);
@@ -73,6 +85,12 @@ contract RebaserTest is MainMigration {
             wrappedRebaserProxy.rebase(1,0,true);
     }
 
+    /**
+     * @notice Ensure that `pendingFee` changes as it should
+     * @param startSupply_ The supply prior to the rebase
+     * @param rewards_ The amount of rewards to give
+     * @param takeFee Whether or not a fee should be given
+     */
     function testFuzz_PendingFee(uint256 startSupply_, uint256 rewards_, uint256 elapsedTime_,  bool takeFee) public {
         uint256 startSupply = bound(startSupply_, 10**18, 30_000_000*10**18);
         uint256 elapsedTime = bound(elapsedTime_, wrappedRebaserProxy.rebaseInterval(), 365 days);
@@ -95,6 +113,12 @@ contract RebaserTest is MainMigration {
         require (difference == expected || difference + 1 == expected, "testFuzz_PendingFee: expected fee increase != actual");
     }
 
+    /**
+     * @notice Ensure an actual rebase works
+     * @param initialMint_ The initial supply
+     * @param rewards_ The amount of rewards to give
+     * @param elapsedTime_ The time since last rebase
+     */
     function testFuzz_SuccessfulPositiveRebase(uint256 initialMint_, uint256 rewards_, uint256 elapsedTime_) public {
         uint256 initialMint = bound(initialMint_, 10**18, 30_000_000*10**18);
         uint256 initialSupply = stflip.totalSupply();
@@ -114,9 +138,14 @@ contract RebaserTest is MainMigration {
         uint256 expectedSupply = initialMint + rewards + initialSupply;
         uint256 actualSupply = stflip.totalSupply();
 
-        require( (expectedSupply > actualSupply) ? (expectedSupply - actualSupply <= 10**10) : (actualSupply - expectedSupply <= 10**10), "testFuzz_SuccessfulPositiveRebase: supply increase != expected");
+        require( _relativelyEq(expectedSupply,actualSupply), "testFuzz_SuccessfulPositiveRebase: supply increase != expected");
     }
 
+    /**
+     * @notice Ensure a slash rebase actually works
+     * @param startSupply_ Supply prior to the slash
+     * @param slash_ The amount to slash
+     */
     function testFuzz_SuccessfulNegativeRebase(uint256 startSupply_, uint256 slash_) public {
         uint256 startSupply = bound(startSupply_, 10**18, 30_000_000*10**18);
         uint256 initialSupply = stflip.totalSupply();
@@ -138,12 +167,17 @@ contract RebaserTest is MainMigration {
         uint256 expectedSupply = startSupply - slash + initialSupply;
         uint256 actualSupply = stflip.totalSupply();
 
-        require( (expectedSupply > actualSupply) ? (expectedSupply - actualSupply <= 10**10) : (actualSupply - expectedSupply <= 10**10), "testFuzz_SuccessfulNegativeRebase: supply increase != expected");
+        require( _relativelyEq(expectedSupply,actualSupply), "testFuzz_SuccessfulNegativeRebase: supply increase != expected");
     }
 
     using stdStorage for StdStorage;
 
 
+    /**
+     * @notice Easy function to set the pending fee and the initial supply
+     * @param initialMint The amount of supply to create initially
+     * @param initialPendingFee To set the `pendingFee` to
+     */
     function _initializeClaimFee(uint256 initialMint, uint256 initialPendingFee) internal {
         vm.startPrank(owner);
             flip.mint(owner, initialMint);
@@ -158,6 +192,15 @@ contract RebaserTest is MainMigration {
             .checked_write(initialPendingFee);
     }
 
+
+    /**
+     * @notice Ensure that fees can be claimed correctly
+     * @param initialMint_ Initial supply
+     * @param initialPendingFee_ Initial pending fee
+     * @param amountToClaim_ The amount of fee to claim
+     * @param max Whether or not to claim the max amount
+     * @param receiveFlip Whether or not to receive the fee in flip or stflip
+     */
     function testFuzz_SuccessfulClaimFee(uint256 initialMint_, uint256 initialPendingFee_, uint256 amountToClaim_, bool max, bool receiveFlip) public {
         uint256 initialPendingFee = bound(initialPendingFee_, 0, 1_000_000*10**18);
         uint256 amountToClaim = bound(amountToClaim_, 0, initialPendingFee);

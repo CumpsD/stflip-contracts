@@ -1,10 +1,11 @@
-pragma solidity 0.8.20;
 // Thunderhead: https://github.com/thunderhead-labs
 
 
 // Author(s)
 // Addison Spiegel: https://addison.is
 // Pierre Spiegel: https://pierre.wtf
+
+pragma solidity 0.8.20;
 
 import "../tenderswap/TenderSwap.sol";
 import "../mock/IStableSwap.sol";

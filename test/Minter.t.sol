@@ -14,6 +14,11 @@ contract MinterTest is MainMigration {
         MainMigration migration = new MainMigration();
     }
 
+
+    /**
+     * @notice Fuzz function to ensure minting works as expected
+     * @param amountToMint_ Amount to mint
+     */
     function testFuzz_OneToOne(uint256 amountToMint_) public {      
         uint256 amountToMint = bound(amountToMint_, 0, 100_000_000*decimalsMultiplier);
         vm.startPrank(owner);
