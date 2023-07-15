@@ -1,4 +1,11 @@
-pragma solidity ^0.8.20;
+// Thunderhead: https://github.com/thunderhead-labs
+
+
+// Author(s)
+// Addison Spiegel: https://addison.is
+// Pierre Spiegel: https://pierre.wtf
+
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
@@ -7,7 +14,12 @@ import "./Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-
+/**
+ * @title Burner contract for stFLIP
+ * @notice Allows users to burn their stFLIP to enter the burn queue.
+ * Allows users to later redeem their native FLIP. Contains many
+ * getter functions that are useful for a frontend. 
+ */
 contract BurnerV1 is Initializable, Ownership {
 
     address public gov;
@@ -79,9 +91,7 @@ contract BurnerV1 is Initializable, Ownership {
 
     /// @notice all the burn ids associated with an address
     /// @param account The address of the user to check
-    function _getBurnIds(
-        address account
-    ) internal view returns (uint256[] memory) {
+    function _getBurnIds(address account) internal view returns (uint256[] memory) {
 
         uint256[] memory burnIds = new uint256[](burns.length);
         uint256 t = 0;
@@ -136,7 +146,8 @@ contract BurnerV1 is Initializable, Ownership {
     * balance of FLIP in the contract, then the burn is redeemable.
      */ 
     function _redeemable(uint256 burnId) internal view returns (bool) {
-        return burns[burnId].completed == false && subtract(sums[burnId], redeemed) <= flip.balanceOf(address(output));
+        uint256 difference = sums[burnId] < redeemed ? 0 : sums[burnId] - redeemed;
+        return burns[burnId].completed == false && difference <= flip.balanceOf(address(output));
     }
 
 
@@ -153,10 +164,4 @@ contract BurnerV1 is Initializable, Ownership {
         return burns;
     }
 
-    function subtract(uint a, uint b) public pure returns (uint) {
-        unchecked {
-            if (a < b) return 0;
-            return a - b;
-        }
-    }
 }
