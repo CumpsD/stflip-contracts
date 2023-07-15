@@ -63,6 +63,7 @@ contract AggregatorTest is MainMigration {
         vm.makePersistent(poolAddress);
     }
 
+
     function _makePersistent() internal {
         vm.makePersistent(address(flipProxy));
         vm.makePersistent(address(flipV1));
@@ -224,8 +225,11 @@ contract AggregatorTest is MainMigration {
      */
     function _relativelyEq(uint256 num1, uint256 num2) internal returns (bool) {
         return (num1 > num2) ? (num1 - num2 <= 10**14) : (num2 - num1 <= 10**14);
-    }
+    }  
 
+    /**
+     * @notice Additional sanity check on stETH/ETH pool
+     */
     function testFork_Calculate() public {
         uint256 mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"));
         vm.selectFork(mainnetFork);
