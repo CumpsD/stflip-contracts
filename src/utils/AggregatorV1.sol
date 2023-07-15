@@ -193,61 +193,61 @@ contract AggregatorV1 is Initializable {
 
 
     /// @notice Marginal cost for mainnet
-    // function _marginalCostMainnet(address pool, int128 tokenIn, int128 tokenOut, uint256 amount) internal view returns (uint256) {
-    //     uint256 dx1 = amount;
-    //     uint256 dx2 = amount + 10**18;
+    function _marginalCostMainnet(address pool, int128 tokenIn, int128 tokenOut, uint256 amount) internal view returns (uint256) {
+        uint256 dx1 = amount;
+        uint256 dx2 = amount + 10**18;
 
-    //     uint256 amt1 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx1);
-    //     uint256 amt2 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx2);
+        uint256 amt1 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx1);
+        uint256 amt2 = IStableSwap(pool).get_dy(tokenIn, tokenOut, dx2);
 
-    //     return (amt2 - amt1)* 10**18 / (dx2 - dx1);
-    // }
+        return (amt2 - amt1)* 10**18 / (dx2 - dx1);
+    }
 
 
-    // /// @notice Calculate purchaseable function for mainnet
-    // function calculatePurchasableMainnet(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool, int128 tokenIn, int128 tokenOut)
-    //     external
-    //     view
-    //     returns (uint256)
-    // {
-    //     uint256 first = 0;
-    //     uint256 mid = 0;
-    //     // this would be the absolute maximum of FLIP spendable, so we can start there
-    //     uint256 last = IStableSwap(pool).balances(uint256(int256(tokenOut)));
-    //     uint256 price;
-    //     uint256 currentError = targetError;
-    //     uint256 startPrice = _marginalCostMainnet(pool, tokenIn, tokenOut, 1*10**18);
+    /// @notice Calculate purchaseable function for mainnet
+    function calculatePurchasableMainnet(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool, int128 tokenIn, int128 tokenOut)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 first = 0;
+        uint256 mid = 0;
+        // this would be the absolute maximum of FLIP spendable, so we can start there
+        uint256 last = IStableSwap(pool).balances(uint256(int256(tokenOut)));
+        uint256 price;
+        uint256 currentError = targetError;
+        uint256 startPrice = _marginalCostMainnet(pool, tokenIn, tokenOut, 1*10**18);
 
-    //     if (startPrice < targetPrice) {
-    //         return 0;
-    //     }
+        if (startPrice < targetPrice) {
+            return 0;
+        }
 
-    //     while (true) {
-    //         require(attempts > 0, "Aggregator: no attempts left");
+        while (true) {
+            require(attempts > 0, "Aggregator: no attempts left");
 
-    //         mid = (last+first) / 2;
-    //         price = _marginalCostMainnet(pool, tokenIn, tokenOut, mid);
+            mid = (last+first) / 2;
+            price = _marginalCostMainnet(pool, tokenIn, tokenOut, mid);
 
-    //         if (price > targetPrice) {
-    //             first = mid + 1;
-    //         } else {
-    //             last = mid - 1;
-    //         }
+            if (price > targetPrice) {
+                first = mid + 1;
+            } else {
+                last = mid - 1;
+            }
 
-    //         attempts = attempts - 1;
+            attempts = attempts - 1;
 
-    //         if (price < targetPrice) {
-    //             currentError = 10**18 - (price*10**18/targetPrice);
-    //         } else {
-    //             currentError = (price*10**18/targetPrice) - 10**18;
-    //         }
+            if (price < targetPrice) {
+                currentError = 10**18 - (price*10**18/targetPrice);
+            } else {
+                currentError = (price*10**18/targetPrice) - 10**18;
+            }
 
-    //         if (currentError < targetError) {
-    //             console.log("price, target", price, targetPrice);
-    //             console.log("curr, target", currentError, targetError);
-    //             return mid;
-    //         }
-    //     }
-    // }
+            if (currentError < targetError) {
+                console.log("price, target", price, targetPrice);
+                console.log("curr, target", currentError, targetError);
+                return mid;
+            }
+        }
+    }
 
 }

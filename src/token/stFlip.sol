@@ -4,45 +4,22 @@ pragma solidity ^0.8.7;
 
 /* import "./YAMTokenInterface.sol"; */
 import "./tStorage.sol";
+import "../utils/Ownership.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 
-contract StakedFLIP is TokenStorage {
+contract stFlip is Initializable, Ownership, TokenStorage {
 
 
     constructor() {
-        gov = msg.sender;
+        _disableInitializers();
     }
 
     /**
      * @notice Event emitted when tokens are rebased
      */
     event Rebase(uint256 epoch, uint256 prevYamsScalingFactor, uint256 newYamsScalingFactor);
-
-    /**
-     * @notice Event emitted when pendingGov is changed
-     */
-    event NewPendingGov(address oldPendingGov, address newPendingGov);
-
-    /**
-     * @notice Event emitted when gov is changed
-     */
-    event NewGov(address oldGov, address newGov);
-
-    /**
-     * @notice Sets the rebaser contract
-     */
-    event NewRebaser(address oldRebaser, address newRebaser);
-
-    /**
-     * @notice Sets the minter contract
-     */
-    event NewMinter(address oldMinter, address newMinter);
-
-    /**
-      * @notice sets the burner contract
-      */
-    event NewBurner(address oldBurner, address newBurner);
 
     /* - ERC20 Events - */
 
@@ -68,42 +45,8 @@ contract StakedFLIP is TokenStorage {
     event Burn(address from, uint256 amount, address refundee);
 
     // Modifiers
-    modifier onlyGov() {
-        require(msg.sender == gov);
-        _;
-    }
-
-    modifier onlyRebaser() {
-        require(msg.sender == rebaser);
-        _;
-    }
-
-    modifier onlyMinter() {
-        require(
-            msg.sender == gov
-            || msg.sender == minter,
-            "not minter"
-        );
-        _;
-    }
-
-    modifier onlyBurner() {
-        require(
-            msg.sender == gov
-            || msg.sender == burner,
-            "not burner"
-        );
-        _;
-    }
-
     modifier notFrozen() {
         require(frozen==false, "frozen");
-        _;
-    }
-
-    modifier validRecipient(address to) {
-        require(to != address(0x0));
-        require(to != address(this));
         _;
     }
 
@@ -111,37 +54,39 @@ contract StakedFLIP is TokenStorage {
     * @notice Initializes the contract name, symbol, and decimals
     * @dev Limited to onlyGov modifier
     */
-    function initialize(
-        string memory name_,
-        string memory symbol_,
-        uint8 decimals_
-    )
-        onlyGov
-        public
-    {
-        require(yamsScalingFactor == BASE, "already initialized");
+    function initialize(string memory name_, string memory symbol_, uint8 decimals_, address gov_, uint256 initialSupply_) initializer public {
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
+
+        yamsScalingFactor = BASE;
+        initSupply = _fragmentToYam(initialSupply_);
+        totalSupply = initialSupply_;
+        _yamBalances[gov_] = initSupply;
+
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                DOMAIN_TYPEHASH,
+                keccak256(bytes(name)),
+                3,
+                address(this)
+            )
+        );
+
+        __AccessControlDefaultAdminRules_init(0, gov_);
+        _grantRole(REBASER_ROLE, gov_);
+        _grantRole(MINTER_ROLE, gov_);
     }
 
 
     /**
     * @notice Computes the current max scaling factor
     */
-    function maxScalingFactor()
-        external
-        view
-        returns (uint256)
-    {
+    function maxScalingFactor() external view returns (uint256) {
         return _maxScalingFactor();
     }
 
-    function _maxScalingFactor()
-        internal
-        view
-        returns (uint256)
-    {
+    function _maxScalingFactor() internal view returns (uint256) {
         // scaling factor can only go up to 2**256-1 = initSupply * yamsScalingFactor
         // this is used to check if yamsScalingFactor will be too high to compute balances when rebasing.
         return type(uint).max / initSupply;
@@ -151,31 +96,21 @@ contract StakedFLIP is TokenStorage {
     * @notice Freezes any user transfers of the contract
     * @dev Limited to onlyGov modifier
     */
-    function freeze(bool status)
-        external
-        onlyGov
-        returns (bool)
-        {
-            frozen = status;
-            return true;
-        }
+    function freeze(bool status) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+        frozen = status;
+        return true;
+    }
 
     /**
     * @notice Mints new tokens, increasing totalSupply, initSupply, and a users balance.
     * @dev Limited to onlyMinter modifier
     */
-    function mint(address to, uint256 amount)
-        external
-        onlyMinter
-        returns (bool)
-    {
+    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) returns (bool) {
         _mint(to, amount);
         return true;
     }
 
-    function _mint(address to, uint256 amount)
-        internal
-    {
+    function _mint(address to, uint256 amount) internal {
         // increase totalSupply
         totalSupply = totalSupply + amount;
 
@@ -204,12 +139,7 @@ contract StakedFLIP is TokenStorage {
     * @param value The amount to be transferred.
     * @return True on success, false otherwise.
     */
-    function transfer(address to, uint256 value)
-        external
-        validRecipient(to)
-        notFrozen
-        returns (bool)
-    {
+    function transfer(address to, uint256 value) external notFrozen returns (bool) {
         // underlying balance is stored in yams, so divide by current scaling factor
 
         // note, this means as scaling factor grows, dust will be untransferrable.
@@ -228,19 +158,12 @@ contract StakedFLIP is TokenStorage {
         return true;
     }
 
-    function burn(uint256 value, address refundee)
-        external
-        notFrozen
-        onlyBurner
-        returns (bool)
-    {
+    function burn(uint256 value, address refundee) external notFrozen onlyRole(BURNER_ROLE) returns (bool) {
         _burn(value, refundee);
         return true;
     }
 
-    function _burn(uint256 value, address refundee)
-        internal
-    {
+    function _burn(uint256 value, address refundee) internal {
       // underlying balance is stored in yams, so divide by current scaling factor
 
       // note, this means as scaling factor grows, dust will be untransferrable.
@@ -270,12 +193,7 @@ contract StakedFLIP is TokenStorage {
     * @param to The address you want to transfer to.
     * @param value The amount of tokens to be transferred.
     */
-    function transferFrom(address from, address to, uint256 value)
-        external
-        validRecipient(to)
-        notFrozen
-        returns (bool)
-    {
+    function transferFrom(address from, address to, uint256 value) external notFrozen returns (bool) {
         // decrease allowance
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender] - value;
 
@@ -291,53 +209,23 @@ contract StakedFLIP is TokenStorage {
         return true;
     }
 
-    /**
-    * @dev Transfer tokens from one address to another.
-    * @param from The address you want to send tokens from.
-    * @param to The address you want to transfer to.
-    * @param value The amount of tokens to be transferred.
-    */
-    function govTransferFrom(address from, address to, uint256 value)
-        external
-        validRecipient(to)
-        onlyGov
-        returns (bool)
-    {
-
-        // get value in yams
-        uint256 yamValue = _fragmentToYam(value);
-
-        // sub from from
-        _yamBalances[from] = _yamBalances[from] - yamValue;
-        _yamBalances[to] = _yamBalances[to] + yamValue;
-        emit Transfer(from, to, value);
-
-        return true;
-    }
 
     /**
     * @param who The address to query.
     * @return The balance of the specified address.
     */
-    function balanceOf(address who)
-      external
-      view
-      returns (uint256)
-    {
-      return _yamToFragment(_yamBalances[who]);
+    function balanceOf(address who) external view returns (uint256) {
+        return _yamToFragment(_yamBalances[who]);
     }
 
     /** @notice Currently returns the internal storage amount
     * @param who The address to query.
     * @return The underlying balance of the specified address.
     */
-    function balanceOfUnderlying(address who)
-      external
-      view
-      returns (uint256)
-    {
-      return _yamBalances[who];
+    function balanceOfUnderlying(address who) external view returns (uint256) {
+        return _yamBalances[who];
     }
+    
 
     /**
      * @dev Function to check the amount of tokens that an owner has allowed to a spender.
@@ -345,11 +233,7 @@ contract StakedFLIP is TokenStorage {
      * @param spender The address which will spend the funds.
      * @return The number of tokens still available for the spender.
      */
-    function allowance(address owner_, address spender)
-        external
-        view
-        returns (uint256)
-    {
+    function allowance(address owner_, address spender) external view returns (uint256) {
         return _allowedFragments[owner_][spender];
     }
 
@@ -364,10 +248,7 @@ contract StakedFLIP is TokenStorage {
      * @param spender The address which will spend the funds.
      * @param value The amount of tokens to be spent.
      */
-    function approve(address spender, uint256 value)
-        external
-        returns (bool)
-    {
+    function approve(address spender, uint256 value) external returns (bool) {
         _allowedFragments[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
         return true;
@@ -380,13 +261,8 @@ contract StakedFLIP is TokenStorage {
      * @param spender The address which will spend the funds.
      * @param addedValue The amount of tokens to increase the allowance by.
      */
-    function increaseAllowance(address spender, uint256 addedValue)
-        external
-        notFrozen
-        returns (bool)
-    {
-        _allowedFragments[msg.sender][spender] =
-            _allowedFragments[msg.sender][spender] + addedValue;
+    function increaseAllowance(address spender, uint256 addedValue) external notFrozen returns (bool) {
+        _allowedFragments[msg.sender][spender] = _allowedFragments[msg.sender][spender] + addedValue;
         emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
         return true;
     }
@@ -397,11 +273,7 @@ contract StakedFLIP is TokenStorage {
      * @param spender The address which will spend the funds.
      * @param subtractedValue The amount of tokens to decrease the allowance by.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue)
-        external
-        notFrozen
-        returns (bool)
-    {
+    function decreaseAllowance(address spender, uint256 subtractedValue) external notFrozen returns (bool) {
         uint256 oldValue = _allowedFragments[msg.sender][spender];
         if (subtractedValue >= oldValue) {
             _allowedFragments[msg.sender][spender] = 0;
@@ -411,22 +283,10 @@ contract StakedFLIP is TokenStorage {
         emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
         return true;
     }
-
-
-    // --- Approve by signature ---
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    )
-        notFrozen
-        external
-    {
-        require(block.timestamp <= deadline, "YAM/permit-expired");
+    
+        // --- Approve by signature ---
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) notFrozen external {
+        require(block.timestamp <= deadline, "stFlip: permit-expired");
 
         bytes32 digest =
             keccak256(
@@ -446,8 +306,8 @@ contract StakedFLIP is TokenStorage {
                 )
             );
 
-        require(owner != address(0), "YAM/invalid-address-0");
-        require(owner == ecrecover(digest, v, r, s), "YAM/invalid-permit");
+        require(owner != address(0), "stFlip: invalid-address-0");
+        require(owner == ecrecover(digest, v, r, s), "stFlip: invalid-permit");
         _allowedFragments[owner][spender] = value;
         emit Approval(owner, spender, value);
     }
@@ -457,64 +317,6 @@ contract StakedFLIP is TokenStorage {
     /** @notice sets the rebaser
      * @param rebaser_ The address of the rebaser contract to use for authentication.
      */
-    function _setRebaser(address rebaser_)
-        external
-        onlyGov
-    {
-        address oldRebaser = rebaser;
-        rebaser = rebaser_;
-        emit NewRebaser(oldRebaser, rebaser_);
-    }
-
-    /** @notice sets the minter
-     * @param minter_ The address of the minter contract to use for authentication.
-     */
-    function _setMinter(address minter_)
-        external
-        onlyGov
-    {
-        address oldMinter = minter_;
-        minter = minter_;
-        emit NewMinter(oldMinter, minter_);
-    }
-
-    /** @notice sets the burner
-     * @param burner_ The address of the burner contract to use for authentication.
-     */
-    function _setBurner(address burner_)
-        external
-        onlyGov
-    {
-        address oldBurner = burner;
-        burner = burner_;
-        emit NewBurner(oldBurner, burner_);
-    }
-
-    /** @notice sets the pendingGov
-     * @param pendingGov_ The address of the rebaser contract to use for authentication.
-     */
-    function _setPendingGov(address pendingGov_)
-        external
-        onlyGov
-    {
-        address oldPendingGov = pendingGov;
-        pendingGov = pendingGov_;
-        emit NewPendingGov(oldPendingGov, pendingGov_);
-    }
-
-    /** @notice lets msg.sender accept governance
-     *
-     */
-    function _acceptGov()
-        external
-    {
-        require(msg.sender == pendingGov, "!pending");
-        address oldGov = gov;
-        gov = pendingGov;
-        pendingGov = address(0);
-        emit NewGov(oldGov, gov);
-    }
-
     /* - Extras - */
 
     /**
@@ -524,53 +326,8 @@ contract StakedFLIP is TokenStorage {
     *      Where DeviationFromTargetRate is (MarketOracleRate - targetRate) / targetRate
     *      and targetRate is CpiOracleRate / baseCpi
     */
-    function rebase(
-        uint256 epoch,
-        uint256 indexDelta,
-        bool positive
-    )
-        external
-        onlyRebaser
-        returns (uint256)
-    {
-        // no change
-        if (indexDelta == 0) {
-          emit Rebase(epoch, yamsScalingFactor, yamsScalingFactor);
-          return totalSupply;
-        }
-
-        // for events
-        uint256 prevYamsScalingFactor = yamsScalingFactor;
-
-
-        if (!positive) {
-            // negative rebase, decrease scaling factor
-            yamsScalingFactor = yamsScalingFactor * (BASE - indexDelta) / BASE;
-        } else {
-            // positive reabse, increase scaling factor
-            uint256 newScalingFactor = yamsScalingFactor * (BASE + indexDelta) / BASE;
-            if (newScalingFactor < _maxScalingFactor()) {
-                yamsScalingFactor = newScalingFactor;
-            } else {
-                yamsScalingFactor = _maxScalingFactor();
-            }
-        }
-
-        // update total supply, correctly
-        totalSupply = _yamToFragment(initSupply);
-
-        emit Rebase(epoch, prevYamsScalingFactor, yamsScalingFactor);
-        return totalSupply;
-    }
-
-    function setRebase(
-        uint256 epoch,
-        uint256 value
-    )
-        external
-        onlyRebaser
-        returns (uint256)
-    {
+  
+    function setRebase(uint256 epoch, uint256 value) external onlyRole(REBASER_ROLE) returns (uint256) {
         // no change
         if (value == yamsScalingFactor) {
           emit Rebase(epoch, yamsScalingFactor, yamsScalingFactor);
@@ -579,8 +336,6 @@ contract StakedFLIP is TokenStorage {
 
         // for events
         uint256 prevYamsScalingFactor = yamsScalingFactor;
-
-
 
         // positive reabse, increase scaling factor
         uint256 newScalingFactor = value;
@@ -597,84 +352,51 @@ contract StakedFLIP is TokenStorage {
         return totalSupply;
     }
 
-    function yamToFragment(uint256 yam)
-        external
-        view
-        returns (uint256)
-    {
+    function yamToFragment(uint256 yam) external view returns (uint256) {
         return _yamToFragment(yam);
     }
 
-    function fragmentToYam(uint256 value)
-        external
-        view
-        returns (uint256)
-    {
+    function fragmentToYam(uint256 value) external view returns (uint256) {
         return _fragmentToYam(value);
     }
 
-    function _yamToFragment(uint256 yam)
-        internal
-        view
-        returns (uint256)
-    {
+    function _yamToFragment(uint256 yam) internal view returns (uint256) {
         return yam * yamsScalingFactor / internalDecimals;
     }
 
-    function _fragmentToYam(uint256 value)
-        internal
-        view
-        returns (uint256)
-    {
+    function _fragmentToYam(uint256 value) internal view returns (uint256) {
         return value * internalDecimals / yamsScalingFactor;
     }
 
     // Rescue tokens
-    function rescueTokens(
-        address token,
-        address to,
-        uint256 amount
-    )
-        external
-        onlyGov
-        returns (bool)
-    {
+    function rescueTokens(address token, address to, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         // transfer to
         SafeERC20.safeTransfer(IERC20(token), to, amount);
         return true;
     }
 }
 
-contract stFlip is StakedFLIP {
-    /**
-     * @notice Initialize the new money market
-     * @param name_ ERC-20 name of this token
-     * @param symbol_ ERC-20 symbol of this token
-     * @param decimals_ ERC-20 decimal precision of this token
-     */
-    function initialize(
-        string memory name_,
-        string memory symbol_,
-        uint8 decimals_,
-        address initial_owner,
-        uint256 initTotalSupply_
-    )
-        onlyGov
-        public
-    {
-        super.initialize(name_, symbol_, decimals_);
+// contract stFlip is StakedFLIP {
+//     /**
+//      * @notice Initialize the new money market
+//      * @param name_ ERC-20 name of this token
+//      * @param symbol_ ERC-20 symbol of this token
+//      * @param decimals_ ERC-20 decimal precision of this token
+//      */
+//     function initialize(string memory name_, string memory symbol_, uint8 decimals_, address initial_owner, uint256 initTotalSupply_) onlyGov public {
+//         super.initialize(name_, symbol_, decimals_);
 
-        yamsScalingFactor = BASE;
-        initSupply = _fragmentToYam(initTotalSupply_);
-        totalSupply = initTotalSupply_;
-        _yamBalances[initial_owner] = initSupply;
-        DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                3,
-                address(this)
-            )
-        );
-    }
-}
+//         yamsScalingFactor = BASE;
+//         initSupply = _fragmentToYam(initTotalSupply_);
+//         totalSupply = initTotalSupply_;
+//         _yamBalances[initial_owner] = initSupply;
+//         DOMAIN_SEPARATOR = keccak256(
+//             abi.encode(
+//                 DOMAIN_TYPEHASH,
+//                 keccak256(bytes(name)),
+//                 3,
+//                 address(this)
+//             )
+//         );
+//     }
+// }

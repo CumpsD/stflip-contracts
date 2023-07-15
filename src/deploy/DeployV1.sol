@@ -61,7 +61,7 @@ contract DeployV1 {
         burnerV1 = new BurnerV1();
         burner = new TransparentUpgradeableProxy(address(burnerV1), address(admin), "");
         wrappedBurnerProxy = BurnerV1(address(burner));
-        stflip._setBurner(address(burner));
+        stflip.grantRole(stflip.BURNER_ROLE(), address(burner));
 
         // creating minter
         minterV1 = new MinterV1();
@@ -99,7 +99,7 @@ contract DeployV1 {
                                         30,
                                         20 hours
                                         );
-        stflip._setRebaser(address(rebaser));
+        stflip.grantRole(stflip.REBASER_ROLE(), address(rebaser));
 
         //initializing output contract
         wrappedOutputProxy.initialize(  
@@ -112,7 +112,7 @@ contract DeployV1 {
                                     ;
         //initializing minter  
         wrappedMinterProxy.initialize(address(stflip), address(output), gov, address(flip), address(rebaser));
-        stflip._setMinter(address(minter));
+        stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
 
         //initializing burner
         wrappedBurnerProxy.initialize(address(stflip), gov, address(flip), address(output));

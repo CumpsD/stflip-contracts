@@ -37,7 +37,12 @@ contract MainMigration is Test {
     TenderSwap public tenderSwap;
     LiquidityPoolToken public liquidityPoolToken;
     // TODO change flip to be a normal erc20 token
+    TransparentUpgradeableProxy public flipProxy;
+    stFlip public flipV1;
     stFlip public flip;
+
+    TransparentUpgradeableProxy public stflipProxy;
+    stFlip public stflipV1;
     stFlip public stflip;
 
     TestStaker public staker;
@@ -80,12 +85,17 @@ contract MainMigration is Test {
         admin = new ProxyAdmin();
 
         // creating tokens
-        stflip = new stFlip();
+
+        stflipV1 = new stFlip();
+        stflipProxy = new TransparentUpgradeableProxy(address(stflipV1), address(admin), "");
+        stflip = stFlip(address(stflipProxy));
         stflip.initialize("StakedFlip", "stFLIP", decimals, owner, 0);
 
-        flip = new stFlip();
+        flipV1 = new stFlip();
+        flipProxy = new TransparentUpgradeableProxy(address(flipV1), address(admin), "");
+        flip = stFlip(address(flipProxy));
         flip.initialize("Chainflip", "FLIP", decimals, owner, 1000000*10**decimals);
-        flip._setMinter(address(owner));
+        flip.grantRole(flip.MINTER_ROLE(), owner);
         
         // creating state chain gateway mock
         stateChainGateway = new StateChainGateway(address(flip));
@@ -95,7 +105,7 @@ contract MainMigration is Test {
         burnerV1 = new BurnerV1();
         burner = new TransparentUpgradeableProxy(address(burnerV1), address(admin), "");
         wrappedBurnerProxy = BurnerV1(address(burner));
-        stflip._setBurner(address(burner));
+        stflip.grantRole(stflip.BURNER_ROLE(), address(burner));
 
 
         staker = new TestStaker(2**100-1, address(flip));
@@ -129,7 +139,7 @@ contract MainMigration is Test {
                                         30,
                                         20 hours
                                         );
-        stflip._setRebaser(address(rebaser));
+        stflip.grantRole(stflip.REBASER_ROLE(), address(rebaser));
 
 
         //initializing output contract
@@ -141,7 +151,7 @@ contract MainMigration is Test {
                                     address(rebaser));
         //initializing minter
         wrappedMinterProxy.initialize(address(stflip), address(output), owner, address(flip), address(rebaser));
-        stflip._setMinter(address(minter));
+        stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
 
         //initializing burner
         wrappedBurnerProxy.initialize(address(stflip), owner, address(flip), address(output));
