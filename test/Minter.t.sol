@@ -18,11 +18,15 @@ contract MinterTest is MainMigration {
     /**
      * @notice Fuzz function to ensure minting works as expected
      * @param amountToMint_ Amount to mint
+     * @param rebaseFactor_ Ensure this holds for all rebase factors
      */
-    function testFuzz_OneToOne(uint256 amountToMint_) public {      
+    function testFuzz_OneToOne(uint256 amountToMint_, uint256 rebaseFactor_) public {      
         uint256 amountToMint = bound(amountToMint_, 0, 100_000_000*decimalsMultiplier);
+        uint256 rebaseFactor = bound(rebaseFactor_, stflip.BASE(), stflip.BASE()*10);
+
         vm.startPrank(owner);
-        flip.mint(user1, amountToMint);
+            flip.mint(user1, amountToMint);
+            stflip.setRebase(0, rebaseFactor);
         vm.stopPrank();
 
         uint256 initialFlipSupply = flip.totalSupply();
@@ -31,14 +35,21 @@ contract MinterTest is MainMigration {
         uint256 initialStflipBalance = stflip.balanceOf(user1);
 
         vm.startPrank(user1);
-        flip.approve(address(minter), 2**256-1);
-        wrappedMinterProxy.mint(user1,amountToMint);
+            flip.approve(address(minter), 2**256-1);
+            wrappedMinterProxy.mint(user1,amountToMint);
         vm.stopPrank();
+        
+        console.log("amount to mint",amountToMint);
+        console.log("expected v. actual flip supply",initialFlipSupply,flip.totalSupply());
+        console.log("expected v. actual stflip supply",initialStflipSupply + amountToMint,stflip.totalSupply());
+        console.log("expected v. actual stflip balance",initialStflipBalance + amountToMint,stflip.balanceOf(user1));
+        console.log("expected v. actual flip balance",initialFlipBalance - amountToMint,flip.balanceOf(user1));
 
         require(initialFlipSupply == flip.totalSupply(), "flip supply change");
         require(initialStflipSupply + amountToMint == stflip.totalSupply(), "unexpected stflip supply change");
         require(initialFlipBalance - amountToMint == flip.balanceOf(user1), "unexpected flip balance change");
-        require(initialStflipBalance + amountToMint == stflip.balanceOf(user1), "unexpected flip balance change");
+        // rebase token rounding :/
+        require(initialStflipBalance + amountToMint == stflip.balanceOf(user1) || initialStflipBalance + amountToMint - 1 == stflip.balanceOf(user1), "unexpected stflip balance change");
     }
     
 }
