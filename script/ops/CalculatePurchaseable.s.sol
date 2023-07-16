@@ -7,7 +7,7 @@ import "../../src/deploy/DeployV1.sol";
 
 import "../../src/token/stFlip.sol";
 import "../../src/token/stFlip.sol";
-import "../../src/utils/AggregatorV1.sol";
+import "../../src/testnet/AggregatorTestnetV1.sol";
 import "../../src/utils/MinterV1.sol";
 import "../../src/utils/BurnerV1.sol";
 import "../../src/utils/OutputV1.sol";
@@ -23,7 +23,7 @@ contract CalculateSwap is Script {
     function run() external {
 
         
-        AggregatorV1 wrappedAggregatorProxy = AggregatorV1(vm.envAddress("AGGREGATOR"));
+        AggregatorTestnetV1 wrappedAggregatorProxy = AggregatorTestnetV1(vm.envAddress("AGGREGATOR"));
         uint256 purchasable = wrappedAggregatorProxy.calculatePurchasable(1030*10**15, 10**13, 1000);
         console.log("purchasable raw", purchasable);
         console.log("purchasable", purchasable / 10**18);

@@ -13,6 +13,8 @@ import "../src/utils/BurnerV1.sol";
 import "../src/utils/OutputV1.sol";
 import "../src/utils/RebaserV1.sol";
 import "../src/mock/StateChainGateway.sol";
+import "../src/mock/ICurveDeployer.sol";
+import "../src/mock/IStableSwap.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -34,8 +36,9 @@ contract TestStaker {
 
 contract MainMigration is Test {
 
-    TenderSwap public tenderSwap;
-    LiquidityPoolToken public liquidityPoolToken;
+    IStableSwap public canonicalPool;
+    ICurveDeployer public curveDeployer = ICurveDeployer(0xB9fC157394Af804a3578134A6585C0dc9cc990d4);
+
     // TODO change flip to be a normal erc20 token
     TransparentUpgradeableProxy public flipProxy;
     stFlip public flipV1;
@@ -75,7 +78,6 @@ contract MainMigration is Test {
     // address public output = 0x1000000000000000000000000000000000000000;
     address public feeRecipient = 0xfEE0000000000000000000000000000000000000;
     address public manager = 0x5830000000000000000000000000000000000000;
-
     uint8 public decimals = 18;
     uint256 public decimalsMultiplier = 10**decimals;
 
@@ -160,20 +162,16 @@ contract MainMigration is Test {
         flip.mint(address(aggregator),1);
         stflip.mint(address(aggregator),1);
 
-        // creating liquidity pool
-        tenderSwap = new TenderSwap();
-        liquidityPoolToken = new LiquidityPoolToken();
-        tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
+        // creating liquidity pool. 
+        // https://github.com/curvefi/curve-factory/blob/99300cbfd75f6c8c4e36be8e5a3a1c850d668025/contracts/Factory.vy#L505
 
         // creating aggregator
         aggregatorV1 = new AggregatorV1();
         aggregator = new TransparentUpgradeableProxy(address(aggregatorV1), address(admin), "");
         wrappedAggregatorProxy = AggregatorV1(address(aggregator));
-        wrappedAggregatorProxy.initialize(address(minter),address(burner), address(tenderSwap), address(stflip), address(flip));
+        wrappedAggregatorProxy.initialize(address(minter),address(burner), address(canonicalPool), address(stflip), address(flip), owner);
 
-        stflip.approve(address(tenderSwap), 2**100-1);
         stflip.approve(address(aggregator), 2**100-1);
-        flip.approve(address(tenderSwap), 2**100-1);
         flip.approve(address(aggregator), 2**100-1);
         flip.approve(address(minter), 2**100-1);
         flip.approve(address(burner), 2**100-1);
@@ -182,11 +180,6 @@ contract MainMigration is Test {
 
         vm.stopPrank();
 
-
-        // pool = new TenderSwap();
-        // counter.setNumber(0);
-
-        vm.label(address(tenderSwap), "TenderSwap Pool");
         vm.label(address(stflip), "stFLIP");
         vm.label(address(flip), "FLIP");
         vm.label(address(minter), "MinterProxy");
