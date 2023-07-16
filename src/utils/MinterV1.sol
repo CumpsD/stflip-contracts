@@ -1,4 +1,10 @@
-pragma solidity ^0.8.20;
+// Thunderhead: https://github.com/thunderhead-labs
+
+// Author(s)
+// Addison Spiegel: https://addison.is
+// Pierre Spiegel: https://pierre.wtf
+
+pragma solidity 0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
 import "./Ownership.sol";
@@ -7,6 +13,11 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 
+/**
+ * @title Minter contract for stFLIP
+ * @notice Allows users to mint stFLIP 1:1 with native FLIP
+ * Allows the rebaser to mint stFLIP fee
+ */
 contract MinterV1 is Initializable, Ownership {
 
     address public output;

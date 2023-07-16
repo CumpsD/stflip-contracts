@@ -1,5 +1,11 @@
-pragma solidity ^0.8.20;
+// Thunderhead: https://github.com/thunderhead-labs
 
+
+// Author(s)
+// Addison Spiegel: https://addison.is
+// Pierre Spiegel: https://pierre.wtf
+
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
@@ -12,6 +18,12 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "forge-std/console.sol";
 
 
+/**
+ * @title Rebaser contract for stFLIP
+ * @notice Will be called by an offchain service to set the rebase factor.
+ * Has protections so the rebase can't be too large or small. Fees come from
+ * rebases, there is a fee claim function to claim fees.
+ */
 contract RebaserV1 is Initializable, Ownership {
 
     uint256 public feeBps;
@@ -147,39 +159,6 @@ contract RebaserV1 is Initializable, Ownership {
 
         emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);
     }
-
-
-    /// @notice just for testnet purposes. will be deprecated before mainnet
-    // function forceRebase(uint256 epoch, uint256 stateChainBalance, bool takeFee) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    //     uint256 timeElapsed = block.timestamp - lastRebaseTime;
-
-    //     uint256 currentSupply = stflip.totalSupply();
-    //     uint256 pendingBurns = wrappedBurnerProxy.totalPendingBurns();
-
-    //     uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy));
-    //     uint256 newSupply = stateChainBalance + onchainBalance - pendingBurns - pendingFee;
-
-    //     uint256 apr;
-    //     uint256 feeIncrement;
-
-    //     if (newSupply > currentSupply){
-    //         apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
-
-    //         if (takeFee == true) {
-    //             feeIncrement = (newSupply - currentSupply) * feeBps / 10000;
-    //             pendingFee += feeIncrement;
-    //             newSupply -= feeIncrement;
-    //         } 
-    //     } 
-        
-    //     uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
-    //     stflip.setRebase(epoch, newRebaseFactor);
-    //     lastRebaseTime = block.timestamp;
-
-    //     emit GovRebase(apr, feeIncrement, currentSupply, newSupply);
-    // }
-
-
 
     /** 
      *  @notice Claims pending fees to the fee recipient in either stflip or flip

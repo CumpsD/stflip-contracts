@@ -15,6 +15,11 @@ contract OutputTest is MainMigration {
         MainMigration migration = new MainMigration();
     }
 
+    /**
+     * @notice Fuzz function to test adding validators
+     * @param validators_ The validators to add
+     * @param length_ The number of validators to add
+     */
     function testFuzz_AddValidators(bytes32[50] memory validators_, uint256 length_) external {
         uint256 length = bound(length_, 1, 49);
         
@@ -33,6 +38,12 @@ contract OutputTest is MainMigration {
 
     }
 
+    /**
+     * @notice Fuzz function to test removing validators
+     * @param validators_ The validators to add/remove
+     * @param length_ The index to add validators until
+     * @param remove_ The index to remove validators until
+     */
     function testFuzz_RemoveValidators(bytes32[50] memory validators_, uint256 length_, uint256 remove_) external {
         uint256 length = bound(length_, 1, 49);
         uint256 remove = bound(remove_, 1, length);
@@ -63,6 +74,12 @@ contract OutputTest is MainMigration {
         }
     }
 
+    /**
+     * @notice Fuzz function to test staking validators
+     * @param validators_ The validators to stake
+     * @param length_ The number of validators to stake
+     * @param amounts_ The amounts to stake
+     */
     function testFuzz_StakeValidators(bytes32[50] memory validators_, uint256 length_, uint8[50] memory amounts_) external {
         uint256 length = bound(length_, 1, 49);
         
@@ -87,6 +104,11 @@ contract OutputTest is MainMigration {
         require(initialBalance == expectedBalance, "testFuzz_StakeValidators: output balance unnecessarily changed");
     }
 
+    /**
+     * @notice Fuzz function to test unstaking validators
+     * @param validators_ The validators to unstake
+     * @param length_ The number of validators to unstake
+     */
     function testFuzz_UnstakeValidators(bytes32[50] memory validators_, uint256 length_) external {
         uint256 length = bound(length_, 1, 49);
         

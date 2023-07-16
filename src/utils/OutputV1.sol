@@ -1,4 +1,11 @@
-pragma solidity ^0.8.20;
+// Thunderhead: https://github.com/thunderhead-labs
+
+
+// Author(s)
+// Addison Spiegel: https://addison.is
+// Pierre Spiegel: https://pierre.wtf
+
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
@@ -8,7 +15,11 @@ import "../utils/Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-
+/**
+ * @title Output contract for stFLIP
+ * @notice Will hold all unstaked FLIP. Can stake/unstake to
+ * whitelisted validators.
+ */
 contract OutputV1 is Initializable, Ownership {
 
     mapping (bytes32 => bool) public validators;

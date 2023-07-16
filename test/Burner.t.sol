@@ -94,47 +94,123 @@ contract BurnerTest is MainMigration {
         wrappedBurnerProxy.redeem(id2);
 
     }
-    
-    // function test_ImportData() public {
-    //     uint256 goerliFork = vm.createFork(vm.envString("GOERLI_RPC_URL"));
-    //     vm.selectFork(goerliFork);
-    //     vm.rollFork(8_700_200);
-    //     MainMigration goerliMigration = new MainMigration();
 
-    //     vm.startPrank(goerliMigration.wrappedBurnerProxy().gov());
-    //     BurnerV1 burnerToImport = BurnerV1(0xD1cc80373acb7d172E1A2c4507B0A2693abBDEf1);
-    //     BurnerV1 burner_ = goerliMigration.wrappedBurnerProxy();
-    //     burner_.importData(burnerToImport);
-    //     vm.stopPrank();
 
-    //     vm.startPrank(goerliMigration.owner());
-    //     console.log("flip balance ", goerliMigration.flip().balanceOf(goerliMigration.owner()));
-    //     goerliMigration.flip().approve(address(burner_),2**100-1);
-    //     goerliMigration.stflip().approve(address(burner_),2**100-1);
-    //     uint256 depositAmount = burner_.totalPendingBurns();
-    //     burner_.deposit(depositAmount);
-    //     vm.stopPrank();
+    mapping (uint256 => bool) public claimed;
 
-    //     uint256 burnLength = burner_.getAllBurns().length;
-    //     address user;
-    //     uint256 amount;
-    //     bool completed;
-    //     uint256 total = 0;
-    //     for (uint i = 1; i < burnLength; i++) {
+    function testFuzz_BurnOrder(address[50] memory users, uint16[50] memory amounts_, uint256 claimableIndex_) public {
 
-    //         (user, amount, completed) = burner_.burns(i);
-
-    //         if (!completed) {  
-    //             console.log("burn amount, balance var, contract balance", amount, burner_.balance(), goerliMigration.flip().balanceOf(address(burner_)));
-    //             vm.prank(user);
-    //             burner_.redeem(i);
-    //             total += amount;
-    //         }
-    //     }
+        uint256 claimableIndex = bound(claimableIndex_, 1, 49); // the index at which burns become not claimable
+        uint256 total = 0;
+        uint256[50] memory amounts;
+        uint256[50] memory claimOrder;
+        uint256 claimable;
+ 
+        // we ignore i = 0 so that the index of the user aligns with their burn id
+        for (uint i = 1; i < 50; i++) {
+            amounts[i] = uint256(amounts_[i]) * 10**18;
+        }
         
-    //     require(goerliMigration.flip().balanceOf(address(burner_)) == 0, "actual balance not zero");
-    //     require(burner_.balance() == 0, "balance var not zero");
-    //     require(depositAmount == total, "deposited != withdrawn");
-    // }
+        // creating random order to claim the burnIds
+        for (uint i = 1; i < 50; i++) {
+            claimOrder[i] = i;
+        }
+       
+        for (uint i = 50 - 1; i > 0; i--) {
+            uint j = uint(keccak256(abi.encodePacked(block.timestamp, i))) % (i + 1);
+
+            if (j == 0 || i == 0) {
+                continue;
+            }
+            (claimOrder[i], claimOrder[j]) = (claimOrder[j], claimOrder[i]);
+        }
+
+
+        // ensure claim order shuffle worked
+        for (uint i = 0; i < 50; i++) {
+            console.log(claimOrder[i]);
+        }
+
+        // mint all the users enough stflip, and then burn it
+        for (uint i = 1; i < 50; i++) {
+            vm.prank(owner);
+                flip.mint(users[i], amounts[i] );
+
+            vm.startPrank(users[i]);
+                flip.approve(address(minter), 2**256 - 1);
+                stflip.approve(address(burner), 2**256 - 1);
+                wrappedMinterProxy.mint(users[i], amounts[i]);
+                wrappedBurnerProxy.burn(users[i], amounts[i]);
+            vm.stopPrank();
+
+            total += uint256(amounts[i]);
+        }
+
+        // ensure that the burns entered as expected
+        console.log("actual v. expected", wrappedBurnerProxy.totalPendingBurns(), total);
+        require(wrappedBurnerProxy.totalPendingBurns() == total, "total pending burns is not correct");
+
+        // deposit the flip needed to satisfy claimableIndex
+        for (uint i = 1; i < claimableIndex; i++) {
+            claimable += amounts[i];
+        }
+
+        vm.startPrank(address(output));
+            flip.transfer(address(0), flip.balanceOf(address(output)));
+        vm.stopPrank();
+
+        vm.prank(owner);
+            flip.mint(address(output), claimable);
+
+        // print initial state for debugging
+        uint256 initialFlipBalance;
+        uint256 id;
+        console.log("claimableIndex", claimableIndex);
+        console.log("amount claimable", claimable);
+        console.log("output balance", flip.balanceOf(address(output)));
+        console.log("initial burn state");
+        for (uint i = 0; i < 50; i++) {
+            console.log(i, wrappedBurnerProxy.redeemable(i), amounts[i], wrappedBurnerProxy.sums(i));
+        }
+
+
+        // go through the random claimOrder list. Prior to burning if it can, check that all the burns are claimable or not as expected
+        for (uint i = 1; i < 50; i++) {
+            
+            // check all burns
+            for (uint j = 1; j < 50; j++) {
+                id = claimOrder[j];
+                
+                // if there are burns at the edge of claimableness, it is still claimable (weird but still satisifes invariant)
+                if (amounts[id] == 0) {
+                    continue; 
+                }
+                
+                if (id < claimableIndex) {
+                    if (claimed[id] == true) {
+                        require(wrappedBurnerProxy.redeemable(id) == false, "Claimed claimable burn not reporting unclaimable");
+                    } else {
+                        require(wrappedBurnerProxy.redeemable(id) == true, "Claimable burn not reporting claimed");
+                    }
+                } else {
+                    require(wrappedBurnerProxy.redeemable(id) == false, "Unclaimable burn not reporting unclaimable");   
+                }
+
+            }
+
+            if (claimOrder[i] < claimableIndex) {
+                initialFlipBalance = flip.balanceOf(users[claimOrder[i]]);
+                vm.prank(users[claimOrder[i]]); // can be from anyone   
+                    wrappedBurnerProxy.redeem(claimOrder[i]);
+                claimed[claimOrder[i]] = true;
+                console.log("actual v. expected balance", flip.balanceOf(users[claimOrder[i]]), initialFlipBalance + amounts[claimOrder[i]]);
+                require(initialFlipBalance + amounts[claimOrder[i]] == flip.balanceOf(users[claimOrder[i]]), "FLIP balance incorrect after claiming" );
+            }
+            
+        }
+
+
+    }
+
 
 }
