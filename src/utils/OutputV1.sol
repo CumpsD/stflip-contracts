@@ -22,11 +22,28 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
  */
 contract OutputV1 is Initializable, Ownership {
 
-    mapping (bytes32 => bool) public validators;
-
     StateChainGateway public stateChainGateway;
     BurnerV1 public wrappedBurnerProxy;
     IERC20 public flip;
+
+    struct Validator {
+        uint256 operatorId;
+        bool whitelisted;
+    }
+
+    struct Operator {
+        string name;
+        bool whitelisted;
+        address manager;
+        address feeRecipient;
+        uint256 staked;
+        uint256 unstaked;
+        uint256 serviceFeeBps;
+        uint256 validatorFeeBps;
+    }
+
+    mapping (bytes32 => Validator) public validators;
+    Operator[] public operators;
 
     constructor () {
         _disableInitializers();
@@ -54,19 +71,25 @@ contract OutputV1 is Initializable, Ownership {
      * that there was a state chain transaction submitted that sets the
      * withdrawal address to the output address to ensure non-custodial
      */
-    function addValidators(bytes32[] calldata addresses) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function addValidators(bytes32[] calldata addresses, uint256 operatorId) external {
+        require(operators[operatorId].manager == msg.sender, "Output: not manager of operator");
+        require(operators[operatorId].whitelisted == true, "Output: operator not whitelisted");
+
         for (uint256 i = 0; i < addresses.length; i++) {
-            validators[addresses[i]] = true;
+            validators[addresses[i]].operatorId = operatorId;
+            validators[addresses[i]].whitelisted = true;
+        } 
+    }
+
+    function setValidatorsWhitelist(bytes32[] calldata addresses, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for (uint256 i = 0; i < addresses.length; i++) {
+            validators[addresses[i]].whitelisted = status;
         }
     }
 
-    /** Removes validators that can be staked to
-     * @param addresses The list of addresses to remove from the map
-     */
-    function removeValidators(bytes32[] calldata addresses) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        for (uint256 i = 0; i < addresses.length; i++) {
-            delete validators[addresses[i]];
-        }
+    function addOperator(address manager, string calldata name, uint256 serviceFeeBps, uint256 validatorFeeBps) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        Operator memory operator = Operator(name, true, manager, address(0), 0, 0, 0, 0);
+        operators.push(operator);
     }
 
     /** Funds state chain accounts 
@@ -76,8 +99,12 @@ contract OutputV1 is Initializable, Ownership {
      */
     function fundValidators(bytes32[] calldata addresses, uint256[] calldata amounts) external onlyRole(MANAGER_ROLE) {
         require(addresses.length == amounts.length, "lengths must match");
+
+        Validator memory validator;
         for (uint i = 0; i < addresses.length; i++) {
-            require(validators[addresses[i]] == true, "Output: address not added");
+            validator = validators[addresses[i]];
+            require(validator.whitelisted == true, "Output: validator not whitelisted");
+            operators[validator.operatorId].staked += amounts[i];
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
     }
@@ -88,17 +115,19 @@ contract OutputV1 is Initializable, Ownership {
      * on the Chainflip side
      */
     function redeemValidators(bytes32[] calldata addresses) external onlyRole(MANAGER_ROLE) {
+        uint256 amount;
         for (uint i = 0; i < addresses.length; i++) {
-            stateChainGateway.executeRedemption(addresses[i]);
+            
+            amount = stateChainGateway.executeRedemption(addresses[i]);
+
+            operators[validators[addresses[i]].operatorId].unstaked += amount;
+
         }
     }
 
+    function getOperatorCount() external view returns (uint256) {
+        return operators.length;
+    }
+
 }
-
-
-
-
-
-
-
 
