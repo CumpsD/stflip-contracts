@@ -45,20 +45,10 @@ contract RebaserV1 is Initializable, Ownership {
     struct Operator {
         uint256 rewards;
         uint256 pendingFee;
+        uint256 slashCounter;
     }
 
-    Operator[] public operators;
-
-    struct OutputOperator {
-        string name;
-        bool whitelisted;
-        address manager;
-        address feeRecipient;
-        uint256 staked;
-        uint256 unstaked;
-        uint256 serviceFeeBps;
-        uint256 validatorFeeBps;
-    }
+    mapping(uint256 => Operator) public operators;
 
     event FeeClaim(address feeRecipient, uint256 amount, bool receivedFlip, uint256 operatorId);
     event RebaserRebase(uint256 apr, uint256 feeIncrement, uint256 previousSupply, uint256 newSupply);
@@ -151,24 +141,13 @@ contract RebaserV1 is Initializable, Ownership {
         require(timeElapsed >= rebaseInterval, "Rebaser: rebase too soon");
         require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        uint256 stateChainBalance = _updateOperator(validatorBalances, addresses, takeFee);
-
+        uint256 stateChainBalance = _updateOperators(validatorBalances, addresses, takeFee);
         uint256 currentSupply = stflip.totalSupply();
 
         uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy));
         uint256 newSupply = stateChainBalance + onchainBalance - wrappedBurnerProxy.totalPendingBurns() - servicePendingFee - totalOperatorPendingFee;
-
-        uint256 apr;
+        uint256 apr = _validateSupplyChange(timeElapsed, currentSupply, newSupply);
         uint256 feeIncrement;
-
-        if (newSupply > currentSupply){
-            apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
-
-            require(apr + 1 < aprThresholdBps, "Rebaser: apr too high");
-        } else {
-
-            require(10000 - (newSupply * 10000 / currentSupply) < slashThresholdBps, "Rebaser: supply decrease too high");
-        }
         
         // uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
         stflip.setRebase(epoch, newSupply * stflip.internalDecimals() / stflip.initSupply());
@@ -180,38 +159,71 @@ contract RebaserV1 is Initializable, Ownership {
     function _updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) internal returns (uint256) {
         uint256 stateChainBalance;
         uint256 operatorId;
+
+        uint256[] memory operatorBalances = new uint256[](wrappedOutputProxy.getOperatorCount());
+        
+        require(keccak256(abi.encodePacked(addresses)) == wrappedOutputProxy.validatorAddressHash(), "Rebaser: validator addresses do not match");
+        require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
+
+        for (uint i = 0; i < validatorBalances.length; i++) {            
+            (operatorId, ) = wrappedOutputProxy.validators(addresses[i]);
+            require(operatorId != 0, "Rebaser: validator not added");
+            operatorBalances[operatorId] += validatorBalances[i];
+        }
+
+        for (operatorId = 1; operatorId < wrappedOutputProxy.getOperatorCount(); operatorId++) {
+            stateChainBalance += _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
+        }
+
+        return stateChainBalance;
+    }
+
+    function _updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) internal returns (uint256) {
         uint256 rewardIncrement;
         uint256 staked;
         uint256 unstaked;
         uint256 serviceFeeBps;
         uint256 validatorFeeBps;
+        uint256 previousBalance;
 
-        uint256[] memory operatorBalances;
+        (staked,unstaked,serviceFeeBps, validatorFeeBps,,,,) = wrappedOutputProxy.operators(operatorId);
 
-        for (uint i = 0; i < validatorBalances.length; i++) {            
-            (operatorId, ) = wrappedOutputProxy.validators(addresses[i]);
-            operatorBalances[operatorId] += validatorBalances[i];
-        }
+        // previousBalance = (staked - (unstaked - operators[operatorId].rewards)) - operators[operatorId].slashCounter;
+        previousBalance = staked + operators[operatorId].rewards - unstaked - operators[operatorId].slashCounter;
+        if (operatorBalance >= previousBalance) {
+            rewardIncrement = operatorBalance - previousBalance; // is rewards + or - ?
 
-        for (operatorId = 1; operatorId < wrappedOutputProxy.getOperatorCount(); operatorId++) {
-
-            (,,,,staked,unstaked,serviceFeeBps, validatorFeeBps) = wrappedOutputProxy.operators(operatorId);
-
-            stateChainBalance += operatorBalances[operatorId];
-
-            rewardIncrement = operatorBalances[operatorId] - (staked - (unstaked - operators[operatorId].rewards)); // is rewards + or - ?
-// TODO, add slashing here. add another item in the struct and add that into rewardIncrement calculation. If reward increment < 0 then increment slash instead.
-// rewards earned during a rebase interval in which there was a slashing will not reward the operator. if we do want to make operator earn rewards to cover their slashings, then we have rewardincrement decremetn slashcounter until it is zero
-            operators[operatorId].rewards += rewardIncrement;
-
-            if (takeFee == true) {
-                operators[operatorId].pendingFee += rewardIncrement * validatorFeeBps  / 10000;
-                servicePendingFee += rewardIncrement * serviceFeeBps / 10000;
-                totalOperatorPendingFee += rewardIncrement * validatorFeeBps / 10000;
+            if (rewardIncrement > operators[operatorId].slashCounter) {
+                if (operators[operatorId].slashCounter != 0) {
+                    rewardIncrement -= operators[operatorId].slashCounter;
+                    operators[operatorId].slashCounter = 0; //consider combining this with the block above. is double writing zero to slashCounter gas efficinet
+                }
+                operators[operatorId].rewards += rewardIncrement;
+                if (takeFee == true) {
+                    operators[operatorId].pendingFee += rewardIncrement * validatorFeeBps  / 10000;
+                    servicePendingFee += rewardIncrement * serviceFeeBps / 10000;
+                    totalOperatorPendingFee += rewardIncrement * validatorFeeBps / 10000;
+                }
+            } else {
+                operators[operatorId].slashCounter -= rewardIncrement;
             }
+        } else {
+            operators[operatorId].slashCounter += previousBalance - operatorBalance;
+        }
+        return operatorBalance;
+    }
+
+    function _validateSupplyChange(uint256 timeElapsed, uint256 currentSupply, uint256 newSupply) internal view returns (uint256) {
+        uint256 apr;
+        if (newSupply > currentSupply){
+            apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
+            // increase precision
+            require(apr + 1 < aprThresholdBps, "Rebaser: apr too high");
+        } else {
+            require(10000 - (newSupply * 10000 / currentSupply) < slashThresholdBps, "Rebaser: supply decrease too high");
         }
 
-        return stateChainBalance;
+        return apr;
     }
 
     /** 
@@ -229,7 +241,7 @@ contract RebaserV1 is Initializable, Ownership {
         address manager;
         address feeRecipient;
         uint256 pendingFee = operators[operatorId].pendingFee;
-        (,,manager,feeRecipient,,,,) = wrappedOutputProxy.operators(operatorId);
+        (,,,,,,manager,feeRecipient) = wrappedOutputProxy.operators(operatorId);
         
         require(max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
         require(msg.sender == feeRecipient || msg.sender == manager, "Rebaser: not fee recipient or manager");

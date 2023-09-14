@@ -34,6 +34,34 @@ contract TestStaker {
   }
 }
 
+contract Harness_RebaserV1 is RebaserV1 {
+  function Harness_updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) external returns (uint256) {
+    return _updateOperators(validatorBalances, addresses, takeFee);
+  }
+
+  function Harness_updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) external returns (uint256) {
+    return _updateOperator(operatorBalance, operatorId, takeFee);
+  }
+
+  function Harness_validateSupplyChange(uint256 elapsedTime, uint256 currentSupply, uint256 newSupply) external returns (uint256) {
+    return _validateSupplyChange(elapsedTime, currentSupply, newSupply);
+  }
+
+  function Harness_setOperator(uint256 rewards, uint256 slashCounter, uint256 pendingFee, uint256 operatorId) external {
+    operators[operatorId].rewards = rewards;
+    operators[operatorId].slashCounter = slashCounter;
+    operators[operatorId].pendingFee = pendingFee;
+  }
+}
+
+contract Harness_OutputV1 is OutputV1 {
+  function Harness_setOperator(uint256 staked, uint256 unstaked, uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 operatorId) external {
+    operators[operatorId].staked = staked;
+    operators[operatorId].unstaked = unstaked;
+    operators[operatorId].serviceFeeBps = serviceFeeBps;
+    operators[operatorId].validatorFeeBps = validatorFeeBps;
+  }
+}
 contract MainMigration is Test {
 
     IStableSwap public canonicalPool;
@@ -65,12 +93,12 @@ contract MainMigration is Test {
     AggregatorV1 public wrappedAggregatorProxy;
 
     TransparentUpgradeableProxy public output;
-    OutputV1 public outputV1;
-    OutputV1 public wrappedOutputProxy;
+    Harness_OutputV1 public outputV1;
+    Harness_OutputV1 public wrappedOutputProxy;
 
     TransparentUpgradeableProxy public rebaser;
-    RebaserV1 public rebaserV1;
-    RebaserV1 public wrappedRebaserProxy;
+    Harness_RebaserV1 public rebaserV1;
+    Harness_RebaserV1 public wrappedRebaserProxy;
 
     StateChainGateway public stateChainGateway;
 
@@ -118,14 +146,14 @@ contract MainMigration is Test {
         wrappedMinterProxy = MinterV1(address(minter));
         
         // creating output contract
-        outputV1 = new OutputV1();
+        outputV1 = new Harness_OutputV1();
         output = new TransparentUpgradeableProxy(address(outputV1), address(admin), "");
-        wrappedOutputProxy = OutputV1(address(output));
+        wrappedOutputProxy = Harness_OutputV1(address(output));
 
         // creating rebaser
-        rebaserV1 = new RebaserV1();
+        rebaserV1 = new Harness_RebaserV1();
         rebaser = new TransparentUpgradeableProxy(address(rebaserV1), address(admin), "");
-        wrappedRebaserProxy = RebaserV1(address(rebaser));
+        wrappedRebaserProxy = Harness_RebaserV1(address(rebaser));
         wrappedRebaserProxy.initialize( [
                                           address(flip),
                                           address(burner), 

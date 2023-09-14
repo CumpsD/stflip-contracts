@@ -15,9 +15,10 @@ contract StateChainGateway  {
         flip.transferFrom(msg.sender, address(this), amount);
     }
 
-    function executeRedemption(bytes32 nodeID) external {
+    function executeRedemption(bytes32 nodeID) external returns (uint256) {
         bytes32 hash = keccak256(abi.encodePacked(block.timestamp, nodeID));
         uint256 amount = uint256(hash) % 1_000_000*10**18;
         flip.transfer(msg.sender, amount);
+        return amount;
     }
 }

@@ -14,7 +14,7 @@ import "../mock/StateChainGateway.sol";
 import "../utils/Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-
+import "forge-std/console.sol";
 /**
  * @title Output contract for stFLIP
  * @notice Will hold all unstaked FLIP. Can stake/unstake to
@@ -32,17 +32,19 @@ contract OutputV1 is Initializable, Ownership {
     }
 
     struct Operator {
-        string name;
-        bool whitelisted;
-        address manager;
-        address feeRecipient;
         uint256 staked;
         uint256 unstaked;
         uint256 serviceFeeBps;
         uint256 validatorFeeBps;
+        string name;
+        bool whitelisted;
+        address manager;
+        address feeRecipient;
     }
 
     mapping (bytes32 => Validator) public validators;
+    bytes32[] public validatorAddresses;
+    bytes32 public validatorAddressHash;
     Operator[] public operators;
 
     constructor () {
@@ -62,7 +64,8 @@ contract OutputV1 is Initializable, Ownership {
         flip.approve(address(rebaser_), 2**256-1);
         flip.approve(address(wrappedBurnerProxy), 2**256 - 1);
         flip.approve(address(stateChainGateway), 2**256 - 1);
-
+        Operator memory operator = Operator(0, 0, 0, 0,"null", false, gov_, gov_);
+        operators.push(operator);
     }
 
     /** Adds validators so that they can be staked to
@@ -74,11 +77,15 @@ contract OutputV1 is Initializable, Ownership {
     function addValidators(bytes32[] calldata addresses, uint256 operatorId) external {
         require(operators[operatorId].manager == msg.sender, "Output: not manager of operator");
         require(operators[operatorId].whitelisted == true, "Output: operator not whitelisted");
-
+        require(operatorId != 0, "Output: cannot add to null operator");
         for (uint256 i = 0; i < addresses.length; i++) {
+            require(validators[addresses[i]].operatorId == 0, "Output: validator already added");
             validators[addresses[i]].operatorId = operatorId;
-            validators[addresses[i]].whitelisted = true;
-        } 
+            validators[addresses[i]].whitelisted = false;
+            validatorAddresses.push(addresses[i]);
+        }
+
+        validatorAddressHash = keccak256(abi.encodePacked(validatorAddresses));
     }
 
     function setValidatorsWhitelist(bytes32[] calldata addresses, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -88,7 +95,8 @@ contract OutputV1 is Initializable, Ownership {
     }
 
     function addOperator(address manager, string calldata name, uint256 serviceFeeBps, uint256 validatorFeeBps) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        Operator memory operator = Operator(name, true, manager, address(0), 0, 0, 0, 0);
+        require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
+        Operator memory operator = Operator(0, 0, serviceFeeBps, validatorFeeBps,name, true, manager, manager);
         operators.push(operator);
     }
 
@@ -117,12 +125,17 @@ contract OutputV1 is Initializable, Ownership {
     function redeemValidators(bytes32[] calldata addresses) external onlyRole(MANAGER_ROLE) {
         uint256 amount;
         for (uint i = 0; i < addresses.length; i++) {
-            
             amount = stateChainGateway.executeRedemption(addresses[i]);
-
             operators[validators[addresses[i]].operatorId].unstaked += amount;
-
         }
+    }
+
+    function getValidators() external view returns (bytes32[] memory) {
+        return validatorAddresses;
+    }
+
+    function computeValidatorHash(bytes32[] calldata addresses) external pure returns (bytes32) {
+        return keccak256(abi.encodePacked(addresses));
     }
 
     function getOperatorCount() external view returns (uint256) {

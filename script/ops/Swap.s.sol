@@ -33,7 +33,7 @@ contract Swap is Script {
              IERC20(addy).approve(addy, 2**256 - 1);
 
            tenderSwap.swap(IERC20(vm.envAddress("STFLIP")),
-                            10000*10**18,
+                            25000*10**18,
                             0,
                             9999999999);
 
