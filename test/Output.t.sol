@@ -71,101 +71,51 @@ contract OutputTest is MainMigration {
         (operator.staked, operator.unstaked, operator.serviceFeeBps, operator.validatorFeeBps, operator.name, operator.whitelisted, operator.manager, operator.feeRecipient) = wrappedOutputProxy.operators(id);
         return operator;
     }
-    // function testFuzz_FundValidators(address[10] calldata managers, string[10] calldata names, uint256[2][10] calldata fees,
-    //                                     bytes32[50] calldata addresses, uint256[2][50] calldata amountsAndOrder) external {
-    //     uint256[] memory serviceFeeBps = new uint256[](10);
-    //     uint256[] memory validatorFeeBps = new uint256[](10);
-    //     uint256[] memory order = new uint256[](50);
-    //     uint256[] memory amounts = new uint256[](50);
-    //     uint256 total;
-    //     console.log("here1");
-    //     console.log("fee length", fees.length);
-    //     for (uint i = 0; i < 10; i++) {
-    //         serviceFeeBps[i] = bound(fees[i][0], 0, 10000);
-    //         validatorFeeBps[i] = bound(fees[i][1], 0, 10000 - serviceFeeBps[i]);
-    //         console.log(serviceFeeBps[i], validatorFeeBps[i], i);
-    //     }
-    //     console.log("here2");
 
-    //     for (uint i = 0; i < 50; i++) {
-    //         order[i] = bound(amountsAndOrder[i][1], 1, 9);
-    //         amounts[i] = bound(amountsAndOrder[i][0], 0, 150_000*10**18);
-    //         total += amounts[i];
-    //     }
+    
+    function testFuzz_FundValidators(bytes32[50] calldata addresses_, uint256[50] calldata amounts_, uint256[50] calldata order_) external {
 
+        uint256[] memory amounts = new uint256[](50);
+        uint256[] memory order = new uint256[](50);
+        uint256[11] memory operatorBalances;
+        bytes32[] memory addresses = new bytes32[](50);
+        uint256 staked;
+        uint256 total;
+        bytes32[] memory inp = new bytes32[](1);
+        for (uint i = 0; i < 50; i++) {
+            amounts[i] = bound(amounts_[i], 0, 150_000*10**18);
+            order[i] = bound(order_[i], 1, 9);
+            addresses[i] = keccak256(abi.encodePacked(addresses[i],i));
 
-    //     console.log("here3");
+            operatorBalances[order[i]] += amounts[i];
+            total += amounts[i];
+        }
         
-    //     vm.startPrank(owner);
-    //         flip.mint(owner,total);
-    //         wrappedMinterProxy.mint(owner, total);
+        vm.startPrank(owner);
+            for (uint i = 1; i < 10; i++) {
+                wrappedOutputProxy.addOperator(address(uint160(i)), vm.toString(i), 0, 0);
+            }
+
+            flip.mint(owner, total);
+            wrappedMinterProxy.mint(owner, total);
+        vm.stopPrank();
+
+        for (uint i = 0; i < 50; i++) {
+            vm.prank(address(uint160(order[i])));
+                inp[0] = addresses[i];
+                wrappedOutputProxy.addValidators(inp, order[i]);
+        }
+
+        vm.startPrank(owner);
+            wrappedOutputProxy.setValidatorsWhitelist(addresses,true);
+            wrappedOutputProxy.fundValidators(addresses, amounts);
+        vm.stopPrank();
+
+        for (uint i = 1; i < 10; i++) {
+            require(_getOperator(i).staked == operatorBalances[i], "testFuzz_FundValidators: staked not updated correctly");
+        }
         
-    //         uint256 initialBalance = flip.balanceOf(address(wrappedOutputProxy));
-
-    //         for (uint i = 1; i < 10; i++) {
-    //             wrappedOutputProxy.addOperator(managers[i], names[i], serviceFeeBps[i], validatorFeeBps[i]);
-    //         }
-    //     vm.stopPrank();
-    //     uint256[] memory expectedStakedAmounts = new uint256[](10);
-        
-    //     {
-    //         bytes32[] memory inp = new bytes32[](1);
-    //         for (uint i = 0; i < 50; i++) {
-    //             inp[0] = addresses[i];
-    //             // console.log(managers[order[i]], order[i], )
-    //             vm.prank(managers[order[i]]);
-    //                 wrappedOutputProxy.addValidators(inp, order[i]);
-    //         }
-
-    //     console.log("here4");
-
-    //         uint256[] memory inp1 = new uint256[](1);
-    //         vm.startPrank(owner);
-    //             {
-    //                 bytes32[] memory addy = new bytes32[](50);
-    //                 for (uint i = 0; i < 50; i++) {
-    //                     addy[i] = addresses[i];
-    //                 }
-    //                 wrappedOutputProxy.setValidatorsWhitelist(addy, true);
-                    
-    //             }
-    //             uint256 four =0;
-
-    //             for (uint i = 0; i < 50; i++) {
-    //                 inp[0] = addresses[i];
-    //                 inp1[0] = amounts[i];
-    //                 wrappedOutputProxy.fundValidators(inp, inp1);
-    //                 console.log("oa",order[i], amounts[i]);
-    //                 if (order[i] ==3) {
-    //                     four += amounts[i];
-    //                 }
-    //                 expectedStakedAmounts[order[i]] += amounts[i];
-    //             }
-    //         vm.stopPrank();
-    //     console.log("here5");
-    //     console.log("four", four);
-    //     }
-
-    //     require(flip.balanceOf(address(wrappedOutputProxy)) == initialBalance - total, "testFuzz_FundValidators: output balance not decreased correctly");
-
-        
-    //     for (uint i = 1; i < 10; i++) {
-    //         (, , , , uint256 staked, uint256 unstaked , , ) = wrappedOutputProxy.operators(i);
-    //         console.log(staked, expectedStakedAmounts[i], i);
-    //         console.log(staked > expectedStakedAmounts[i] ? staked - expectedStakedAmounts[i] : expectedStakedAmounts[i] - staked);
-    //         require(staked == expectedStakedAmounts[i], "testFuzz_FundValidators: staked not updated correctly");
-    //         require(unstaked == 0, "testFuzz_FundValidators: unstaked not updated correctly");
-    //     }
-        
-
-        
-
-
-
-    //     // revert();
-
-
-    // }
+    }
 
     // /**u
     //  * @notice Fuzz function to test adding validators
