@@ -32,13 +32,13 @@ contract OutputTest is MainMigration {
         uint256[] memory serviceFeeBpsList = new uint256[](count);
         uint256[] memory validatorFeeBpsList = new uint256[](count);
 
-        for (uint i = 0; i < 50; i++) {
+        for (uint i = 0; i < count; i++) {
             serviceFeeBpsList[i] = bound(serviceFeeBps_[i], 0, 10000);
             validatorFeeBpsList[i] = bound(validatorFeeBps_[i], 0, 10000 - serviceFeeBpsList[i]);
         }
 
         vm.startPrank(owner);
-        for (uint i = 0; i < count; i++) {
+        for (uint i = 1; i < count; i++) {
             wrappedOutputProxy.addOperator(managers[i], names[i], serviceFeeBpsList[i], validatorFeeBpsList[i]);
         }
 
@@ -55,6 +55,7 @@ contract OutputTest is MainMigration {
 
         for (uint i = 1; i < count; i++) {
             operator = _getOperator(i);
+            console.log(operator.name, names[i]);
             require(keccak256(abi.encodePacked(operator.name)) == keccak256(abi.encodePacked(names[i])), "testFuzz_AddOperator: name not imported correctly");
             require(operator.whitelisted == true, "testFuzz_AddOperator: whitelisted not imported correctly");
             require(operator.manager == managers[i], "testFuzz_AddOperator: manager not imported correctly");
@@ -77,16 +78,16 @@ contract OutputTest is MainMigration {
 
         uint256[] memory amounts = new uint256[](50);
         uint256[] memory order = new uint256[](50);
-        uint256[11] memory operatorBalances;
+        uint256[12] memory operatorBalances;
         bytes32[] memory addresses = new bytes32[](50);
         uint256 staked;
         uint256 total;
         bytes32[] memory inp = new bytes32[](1);
         for (uint i = 0; i < 50; i++) {
             amounts[i] = bound(amounts_[i], 0, 150_000*10**18);
+            
             order[i] = bound(order_[i], 1, 9);
             addresses[i] = keccak256(abi.encodePacked(addresses[i],i));
-
             operatorBalances[order[i]] += amounts[i];
             total += amounts[i];
         }
