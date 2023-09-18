@@ -443,6 +443,32 @@
   },
   {
     "inputs": [],
+    "name": "canonicalPool",
+    "outputs": [
+      {
+        "internalType": "contract IStableSwap",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "curveDeployer",
+    "outputs": [
+      {
+        "internalType": "contract ICurveDeployer",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "decimals",
     "outputs": [
       {
@@ -547,10 +573,23 @@
   },
   {
     "inputs": [],
-    "name": "liquidityPoolToken",
+    "name": "flipProxy",
     "outputs": [
       {
-        "internalType": "contract LiquidityPoolToken",
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "flipV1",
+    "outputs": [
+      {
+        "internalType": "contract stFlip",
         "name": "",
         "type": "address"
       }
@@ -615,7 +654,7 @@
     "name": "outputV1",
     "outputs": [
       {
-        "internalType": "contract OutputV1",
+        "internalType": "contract Harness_OutputV1",
         "name": "",
         "type": "address"
       }
@@ -654,7 +693,7 @@
     "name": "rebaserV1",
     "outputs": [
       {
-        "internalType": "contract RebaserV1",
+        "internalType": "contract Harness_RebaserV1",
         "name": "",
         "type": "address"
       }
@@ -710,10 +749,23 @@
   },
   {
     "inputs": [],
-    "name": "sweeper",
+    "name": "stflipProxy",
     "outputs": [
       {
-        "internalType": "contract Sweeper",
+        "internalType": "contract TransparentUpgradeableProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stflipV1",
+    "outputs": [
+      {
+        "internalType": "contract stFlip",
         "name": "",
         "type": "address"
       }
@@ -812,15 +864,27 @@
   },
   {
     "inputs": [],
-    "name": "tenderSwap",
-    "outputs": [
+    "name": "testFork_Calculate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
-        "internalType": "contract TenderSwap",
-        "name": "",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "lpAmount1_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lpAmount2_",
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "name": "testFuzz_CalculatePurchasable",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -841,35 +905,7 @@
         "type": "uint256"
       }
     ],
-    "name": "testFuzz_Aggregate",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "lpAmount1_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lpAmount2_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "targetPrice_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "targetError_",
-        "type": "uint256"
-      }
-    ],
-    "name": "testFuzz_Calculate",
+    "name": "testFuzz_StakeAggregate",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -951,7 +987,7 @@
     "name": "wrappedOutputProxy",
     "outputs": [
       {
-        "internalType": "contract OutputV1",
+        "internalType": "contract Harness_OutputV1",
         "name": "",
         "type": "address"
       }
@@ -964,7 +1000,7 @@
     "name": "wrappedRebaserProxy",
     "outputs": [
       {
-        "internalType": "contract RebaserV1",
+        "internalType": "contract Harness_RebaserV1",
         "name": "",
         "type": "address"
       }
