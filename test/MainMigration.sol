@@ -52,6 +52,11 @@ contract Harness_RebaserV1 is RebaserV1 {
     operators[operatorId].slashCounter = slashCounter;
     operators[operatorId].pendingFee = pendingFee;
   }
+
+  function Harness_setPendingFee(uint256 servicePendingFee_, uint256 totalOperatorPendingFee_) external {
+    servicePendingFee = servicePendingFee_;
+    totalOperatorPendingFee = totalOperatorPendingFee_;
+  }
 }
 
 contract Harness_OutputV1 is OutputV1 {
@@ -220,5 +225,26 @@ contract MainMigration is Test {
 
     
     }
+
+    uint private checkpointGasLeft;
+    function _gas() internal virtual {
+      vm.pauseGasMetering();
+      checkpointGasLeft = gasleft();
+      vm.resumeGasMetering();
+    }
+
+  /* stop measuring gas and report */
+    function gas_() internal virtual {
+      vm.pauseGasMetering();
+      uint checkpointGasLeft2 = gasleft();
+
+      uint gasDelta = checkpointGasLeft - checkpointGasLeft2;
+      console.log("Gas used: %s", gasDelta);
+
+      vm.resumeGasMetering();
+
+      // emit log_named_uint("Gas used", gasDelta);
+    }
+
 
 }

@@ -228,6 +228,7 @@ contract RebaserTest is MainMigration {
         (rebaserOperator.rewards, rebaserOperator.pendingFee, rebaserOperator.slashCounter) = wrappedRebaserProxy.operators(1);
         (outputOperator.staked, outputOperator.unstaked, outputOperator.serviceFeeBps, outputOperator.validatorFeeBps, outputOperator.name, outputOperator.whitelisted, outputOperator.manager, outputOperator.feeRecipient) = wrappedOutputProxy.operators(1);
         p.initialTotalOperatorPendingFee = wrappedRebaserProxy.totalOperatorPendingFee();
+
         wrappedRebaserProxy.Harness_updateOperator(p.operatorBalance, 1, takeFee);
         (rewards, pendingFee,slashCounter) = wrappedRebaserProxy.operators(1); 
         if (p.operatorBalance >= p.initialBalance) {

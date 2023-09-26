@@ -51,6 +51,7 @@ contract OutputV1 is Initializable, Ownership {
         _disableInitializers();
     }
 
+
     function initialize(address flip_, address burnerProxy_, address gov_,  address manager_, address stateChainGateway_,address rebaser_) initializer public {
         flip = IERC20(flip_);
         wrappedBurnerProxy = BurnerV1(burnerProxy_);

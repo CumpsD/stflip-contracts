@@ -159,8 +159,8 @@ contract RebaserV1 is Initializable, Ownership {
     function _updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) internal returns (uint256) {
         uint256 stateChainBalance;
         uint256 operatorId;
-
-        uint256[] memory operatorBalances = new uint256[](wrappedOutputProxy.getOperatorCount());
+        uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
+        uint256[] memory operatorBalances = new uint256[](operatorCount);
         
         require(keccak256(abi.encodePacked(addresses)) == wrappedOutputProxy.validatorAddressHash(), "Rebaser: validator addresses do not match");
         require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
@@ -171,7 +171,7 @@ contract RebaserV1 is Initializable, Ownership {
             operatorBalances[operatorId] += validatorBalances[i];
         }
 
-        for (operatorId = 1; operatorId < wrappedOutputProxy.getOperatorCount(); operatorId++) {
+        for (operatorId = 1; operatorId < operatorCount; operatorId++) {
             stateChainBalance += _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
         }
 
@@ -192,22 +192,26 @@ contract RebaserV1 is Initializable, Ownership {
         previousBalance = staked + operators[operatorId].rewards - unstaked - operators[operatorId].slashCounter;
         if (operatorBalance >= previousBalance) {
             rewardIncrement = operatorBalance - previousBalance; // is rewards + or - ?
-
             if (rewardIncrement > operators[operatorId].slashCounter) {
+                
                 if (operators[operatorId].slashCounter != 0) {
+
                     rewardIncrement -= operators[operatorId].slashCounter;
                     operators[operatorId].slashCounter = 0; //consider combining this with the block above. is double writing zero to slashCounter gas efficinet
                 }
                 operators[operatorId].rewards += rewardIncrement;
                 if (takeFee == true) {
+
                     operators[operatorId].pendingFee += rewardIncrement * validatorFeeBps  / 10000;
                     servicePendingFee += rewardIncrement * serviceFeeBps / 10000;
-                    totalOperatorPendingFee += rewardIncrement * validatorFeeBps / 10000;
+                    totalOperatorPendingFee += rewardIncrement * validatorFeeBps / 10000;                    
                 }
             } else {
+
                 operators[operatorId].slashCounter -= rewardIncrement;
             }
         } else {
+
             operators[operatorId].slashCounter += previousBalance - operatorBalance;
         }
         return operatorBalance;
@@ -218,6 +222,7 @@ contract RebaserV1 is Initializable, Ownership {
         if (newSupply > currentSupply){
             apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
             // increase precision
+
             require(apr + 1 < aprThresholdBps, "Rebaser: apr too high");
         } else {
             require(10000 - (newSupply * 10000 / currentSupply) < slashThresholdBps, "Rebaser: supply decrease too high");
