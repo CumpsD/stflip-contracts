@@ -7,9 +7,11 @@ import "./tStorage.sol";
 import "../utils/Ownership.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+// import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/utils/VotesUpgradeable.sol";
 
 
-contract stFlip is Initializable, Ownership, TokenStorage {
+contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
 
     constructor() {
@@ -49,7 +51,7 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         require(frozen==false, "frozen");
         _;
     }
-
+    
     /**
     * @notice Initializes the contract name, symbol, and decimals
     * @dev Limited to onlyGov modifier
@@ -64,14 +66,14 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         totalSupply = initialSupply_;
         _yamBalances[gov_] = initSupply;
 
-        DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                3,
-                address(this)
-            )
-        );
+        // DOMAIN_SEPARATOR = keccak256(
+        //     abi.encode(
+        //         DOMAIN_TYPEHASH,
+        //         keccak256(bytes(name)),
+        //         3,
+        //         address(this)
+        //     )
+        // );
 
         __AccessControlDefaultAdminRules_init(0, gov_);
         _grantRole(REBASER_ROLE, gov_);
@@ -129,6 +131,8 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         // add delegates to the minter
         emit Mint(to, amount);
         emit Transfer(address(0), to, amount);
+
+        _afterTokenTransfer(address(0), to, yamValue);
     }
 
     /* - ERC20 functionality - */
@@ -155,6 +159,7 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         _yamBalances[to] = _yamBalances[to] + yamValue;
         emit Transfer(msg.sender, to, value);
 
+        _afterTokenTransfer(msg.sender, to, yamValue);
         return true;
     }
 
@@ -164,28 +169,29 @@ contract stFlip is Initializable, Ownership, TokenStorage {
     }
 
     function _burn(uint256 value, address refundee) internal {
-      // underlying balance is stored in yams, so divide by current scaling factor
+        // underlying balance is stored in yams, so divide by current scaling factor
 
-      // note, this means as scaling factor grows, dust will be untransferrable.
-      // minimum transfer value == yamsScalingFactor / 1e24;
+        // note, this means as scaling factor grows, dust will be untransferrable.
+        // minimum transfer value == yamsScalingFactor / 1e24;
 
-      // get amount in underlying
-      totalSupply = totalSupply - value;
+        // get amount in underlying
+        totalSupply = totalSupply - value;
 
-      uint256 yamValue = _fragmentToYam(value);
+        uint256 yamValue = _fragmentToYam(value);
 
-      initSupply = initSupply - yamValue;
+        initSupply = initSupply - yamValue;
 
-      // sub from balance of sender
+        // sub from balance of sender
 
-      require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
+        require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
-      _yamBalances[refundee] = _yamBalances[refundee] - yamValue;
+        _yamBalances[refundee] = _yamBalances[refundee] - yamValue;
 
-      // add to balance of receiver
-      emit Burn(msg.sender, value, refundee);
-      emit Transfer(refundee, address(0), value);
+        // add to balance of receiver
+        emit Burn(msg.sender, value, refundee);
+        emit Transfer(refundee, address(0), value);
 
+        _afterTokenTransfer(refundee, address(0), yamValue);
     }
     /**
     * @dev Transfer tokens from one address to another.
@@ -204,7 +210,10 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         // sub from from
         _yamBalances[from] = _yamBalances[from] - yamValue;
         _yamBalances[to] = _yamBalances[to] + yamValue;
+
         emit Transfer(from, to, value);
+
+        _afterTokenTransfer(from, to, yamValue);
 
         return true;
     }
@@ -215,6 +224,10 @@ contract stFlip is Initializable, Ownership, TokenStorage {
     * @return The balance of the specified address.
     */
     function balanceOf(address who) external view returns (uint256) {
+        return _balanceOf(who);
+    }
+
+    function _balanceOf(address who) internal view returns (uint256) {
         return _yamToFragment(_yamBalances[who]);
     }
 
@@ -292,14 +305,14 @@ contract stFlip is Initializable, Ownership, TokenStorage {
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
-                    DOMAIN_SEPARATOR,
+                    _domainSeparatorV4(),
                     keccak256(
                         abi.encode(
                             PERMIT_TYPEHASH,
                             owner,
                             spender,
                             value,
-                            nonces[owner]++,
+                            _useNonce(owner),
                             deadline
                         )
                     )
@@ -374,6 +387,30 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         SafeERC20.safeTransfer(IERC20(token), to, amount);
         return true;
     }
+
+    function delegate(address delegatee) public override {
+        revert("stFlip: delegation not allowed");
+    }
+
+    function _getVotingUnits(address account) internal view override returns (uint256) {
+        return _balanceOf(account);
+    }
+    
+    // https://forum.openzeppelin.com/t/self-delegation-in-erc20votes/17501/17
+    // https://github.com/aragon/osx/blob/a52bbae69f78e74d6a17647370ccfa2f2ea9bbf0/packages/contracts/src/token/ERC20/governance/GovernanceERC20.sol#L113
+    function _afterTokenTransfer(address from, address to, uint256 yam) internal {
+        if (to != address(0) && delegates(to) == address(0) && !unallowedVoter[to]) {
+            _delegate(to, to);
+        }
+
+        _transferVotingUnits(from, to, yam);
+    }
+
+    function setVoterStatus(address voter, bool unallowed) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        unallowedVoter[voter] = unallowed;
+    }
+
+
 }
 
 // contract stFlip is StakedFLIP {

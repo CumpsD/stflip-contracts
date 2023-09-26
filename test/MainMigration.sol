@@ -6,7 +6,7 @@ import "forge-std/console.sol";
 import "../src/tenderswap/TenderSwap.sol";
 import "../src/tenderswap/LiquidityPoolToken.sol";
 import "../src/token/stFlip.sol";
-import "../src/token/stFlip.sol";
+import "../src/mock/Flip.sol";
 import "../src/utils/AggregatorV1.sol";
 import "../src/utils/MinterV1.sol";
 import "../src/utils/BurnerV1.sol";
@@ -73,9 +73,8 @@ contract MainMigration is Test {
     ICurveDeployer public curveDeployer = ICurveDeployer(0xB9fC157394Af804a3578134A6585C0dc9cc990d4);
 
     // TODO change flip to be a normal erc20 token
-    TransparentUpgradeableProxy public flipProxy;
-    stFlip public flipV1;
-    stFlip public flip;
+
+    Flip public flip;
 
     TransparentUpgradeableProxy public stflipProxy;
     stFlip public stflipV1;
@@ -126,11 +125,11 @@ contract MainMigration is Test {
         stflip = stFlip(address(stflipProxy));
         stflip.initialize("StakedFlip", "stFLIP", decimals, owner, 0);
 
-        flipV1 = new stFlip();
-        flipProxy = new TransparentUpgradeableProxy(address(flipV1), address(admin), "");
-        flip = stFlip(address(flipProxy));
-        flip.initialize("Chainflip", "FLIP", decimals, owner, 1000000*10**decimals);
-        flip.grantRole(flip.MINTER_ROLE(), owner);
+        flip = new Flip(1000000*10**decimals);
+        // flipProxy = new TransparentUpgradeableProxy(address(flipV1), address(admin), "");
+        // flip = stFlip(address(flipProxy));
+        // flip.initialize("Chainflip", "FLIP", decimals, owner, 1000000*10**decimals);
+        // flip.grantRole(flip.MINTER_ROLE(), owner);
         
         // creating state chain gateway mock
         stateChainGateway = new StateChainGateway(address(flip));
@@ -192,8 +191,7 @@ contract MainMigration is Test {
         wrappedBurnerProxy.initialize(address(stflip), owner, address(flip), address(output));
 
         //creating storage slot for lower gas usage.
-        flip.mint(address(aggregator),1);
-        stflip.mint(address(aggregator),1);
+
 
         // creating liquidity pool. 
         // https://github.com/curvefi/curve-factory/blob/99300cbfd75f6c8c4e36be8e5a3a1c850d668025/contracts/Factory.vy#L505
@@ -204,12 +202,22 @@ contract MainMigration is Test {
         wrappedAggregatorProxy = AggregatorV1(address(aggregator));
         wrappedAggregatorProxy.initialize(address(minter),address(burner), address(canonicalPool), address(stflip), address(flip), owner);
 
+        flip.mint(address(aggregator),1);
+        stflip.mint(address(aggregator),1);
+        
         stflip.approve(address(aggregator), 2**100-1);
         flip.approve(address(aggregator), 2**100-1);
         flip.approve(address(minter), 2**100-1);
         flip.approve(address(burner), 2**100-1);
 
         wrappedMinterProxy.mint(owner, 10**18);
+
+
+        stflip.setVoterStatus(address(minter), true);
+        stflip.setVoterStatus(address(burner), true);
+        stflip.setVoterStatus(address(aggregator), true);
+        stflip.setVoterStatus(address(output), true);
+        stflip.setVoterStatus(address(rebaser), true);
 
         vm.stopPrank();
 

@@ -43,7 +43,10 @@ contract AggregatorV1 is Initializable, Ownership {
         stflip = IERC20(stflip_);
 
         // giving infinite approvals to the curve pool and the minter
-        flip.approve(address(liquidityPool_), 2**256-1);
+        
+        if (liquidityPool_ != address(0)) {
+            flip.approve(address(liquidityPool_), 2**256-1);
+        }
         flip.approve(address(minter), 2**256-1);
         stflip.approve(address(burner), 2**256-1);
         stflip.approve(address(liquidityPool_), 2**256-1);
@@ -190,9 +193,12 @@ contract AggregatorV1 is Initializable, Ownership {
      * @param pool_ Address of the new pool
      */
     function setPool(address pool_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        flip.approve(address(canonicalPool), 0);
-        stflip.approve(address(canonicalPool), 0);
-        
+
+        if (address(canonicalPool) != address(0)) {
+            flip.approve(address(canonicalPool), 0);
+            stflip.approve(address(canonicalPool), 0);
+        }
+
         canonicalPool = IStableSwap(pool_);
 
         flip.approve(address(canonicalPool), 2**256 - 1);

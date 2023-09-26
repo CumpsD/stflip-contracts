@@ -65,8 +65,7 @@ contract AggregatorTest is MainMigration {
 
 
     function _makePersistent() internal {
-        vm.makePersistent(address(flipProxy));
-        vm.makePersistent(address(flipV1));
+        vm.makePersistent(address(flip));
 
         vm.makePersistent(address(stflipProxy));
         vm.makePersistent(address(stflipV1));
