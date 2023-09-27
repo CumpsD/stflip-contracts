@@ -375,6 +375,15 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     function _getVotingUnits(address account) internal view override returns (uint256) {
         return _yamBalances[account];
     }
+
+    function clock() public view override returns (uint48) {
+        return uint48(block.timestamp);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function CLOCK_MODE() public pure override returns (string memory) {
+        return "mode=timestamp";
+    }
     
     // https://forum.openzeppelin.com/t/self-delegation-in-erc20votes/17501/17
     // https://github.com/aragon/osx/blob/a52bbae69f78e74d6a17647370ccfa2f2ea9bbf0/packages/contracts/src/token/ERC20/governance/GovernanceERC20.sol#L113
