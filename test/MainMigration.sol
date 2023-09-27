@@ -212,13 +212,6 @@ contract MainMigration is Test {
 
         wrappedMinterProxy.mint(owner, 10**18);
 
-
-        stflip.setVoterStatus(address(minter), true);
-        stflip.setVoterStatus(address(burner), true);
-        stflip.setVoterStatus(address(aggregator), true);
-        stflip.setVoterStatus(address(output), true);
-        stflip.setVoterStatus(address(rebaser), true);
-
         vm.stopPrank();
 
         vm.label(address(stflip), "stFLIP");
