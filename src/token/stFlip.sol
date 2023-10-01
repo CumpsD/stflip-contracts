@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 // import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/utils/VotesUpgradeable.sol";
-import "forge-std/console.sol";
 
 contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
@@ -62,10 +61,8 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         decimals = decimals_;
 
         yamsScalingFactor = BASE;
-        initSupply = _fragmentToYam(initialSupply_);
         totalSupply = initialSupply_;
-        _transferVotingUnits(address(0), gov_, initSupply);
-
+        _transferVotingUnits(address(0), gov_, _fragmentToYam(initialSupply_));
         __AccessControlDefaultAdminRules_init(0, gov_);
         _grantRole(REBASER_ROLE, gov_);
         _grantRole(MINTER_ROLE, gov_);
@@ -82,7 +79,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     function _maxScalingFactor() internal view returns (uint256) {
         // scaling factor can only go up to 2**256-1 = initSupply * yamsScalingFactor
         // this is used to check if yamsScalingFactor will be too high to compute balances when rebasing.
-        return type(uint).max / initSupply;
+        return type(uint).max / _getTotalSupply();
     }
 
     /**
@@ -111,13 +108,12 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         uint256 yamValue = _fragmentToYam(amount);
 
         // increase initSupply
-        initSupply = initSupply + yamValue;
+        _transferVotingUnits(address(0), to, yamValue);
 
         // make sure the mint didnt push maxScalingFactor too low
         require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
         // add balance
-        _transferVotingUnits(address(0), to, yamValue);
 
         // add delegates to the minter
         emit Mint(to, amount);
@@ -165,13 +161,11 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
         uint256 yamValue = _fragmentToYam(value);
 
-        initSupply = initSupply - yamValue;
-
         // sub from balance of sender
+        _transferVotingUnits(refundee, address(0), yamValue);
 
         require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
-        _transferVotingUnits(refundee, address(0), yamValue);
 
 
         // add to balance of receiver
@@ -188,7 +182,6 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     function transferFrom(address from, address to, uint256 value) external notFrozen returns (bool) {
         // decrease allowance
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender] - value;
-
 
         // get value in yams
         uint256 yamValue = _fragmentToYam(value);
@@ -251,64 +244,6 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return true;
     }
 
-    /**
-     * @dev Increase the amount of tokens that an owner has allowed to a spender.
-     * This method should be used instead of approve() to avoid the double approval vulnerability
-     * described above.
-     * @param spender The address which will spend the funds.
-     * @param addedValue The amount of tokens to increase the allowance by.
-     */
-    function increaseAllowance(address spender, uint256 addedValue) external notFrozen returns (bool) {
-        _allowedFragments[msg.sender][spender] = _allowedFragments[msg.sender][spender] + addedValue;
-        emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
-        return true;
-    }
-
-    /**
-     * @dev Decrease the amount of tokens that an owner has allowed to a spender.
-     *
-     * @param spender The address which will spend the funds.
-     * @param subtractedValue The amount of tokens to decrease the allowance by.
-     */
-    function decreaseAllowance(address spender, uint256 subtractedValue) external notFrozen returns (bool) {
-        uint256 oldValue = _allowedFragments[msg.sender][spender];
-        if (subtractedValue >= oldValue) {
-            _allowedFragments[msg.sender][spender] = 0;
-        } else {
-            _allowedFragments[msg.sender][spender] = oldValue - subtractedValue;
-        }
-        emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
-        return true;
-    }
-    
-        // --- Approve by signature ---
-    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) notFrozen external {
-        require(block.timestamp <= deadline, "stFlip: permit-expired");
-
-        bytes32 digest =
-            keccak256(
-                abi.encodePacked(
-                    "\x19\x01",
-                    _domainSeparatorV4(),
-                    keccak256(
-                        abi.encode(
-                            PERMIT_TYPEHASH,
-                            owner,
-                            spender,
-                            value,
-                            _useNonce(owner),
-                            deadline
-                        )
-                    )
-                )
-            );
-
-        require(owner != address(0), "stFlip: invalid-address-0");
-        require(owner == ecrecover(digest, v, r, s), "stFlip: invalid-permit");
-        _allowedFragments[owner][spender] = value;
-        emit Approval(owner, spender, value);
-    }
-
     /* - Governance Functions - */
 
     /** @notice sets the rebaser
@@ -343,7 +278,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         }
 
         // update total supply, correctly
-        totalSupply = _yamToFragment(initSupply);
+        totalSupply = _yamToFragment(_getTotalSupply());
 
         emit Rebase(epoch, prevYamsScalingFactor, yamsScalingFactor);
         return totalSupply;
@@ -357,6 +292,11 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return _fragmentToYam(value);
     }
 
+    function initSupply() external view returns (uint256) {
+        return _getTotalSupply();
+    }
+
+    
     function _yamToFragment(uint256 yam) internal view returns (uint256) {
         return yam * yamsScalingFactor / internalDecimals;
     }
@@ -370,10 +310,6 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         // transfer to
         SafeERC20.safeTransfer(IERC20(token), to, amount);
         return true;
-    }
-
-    function _getVotingUnits(address account) internal view override returns (uint256) {
-        return _yamBalances[account];
     }
 
     function clock() public view override returns (uint48) {

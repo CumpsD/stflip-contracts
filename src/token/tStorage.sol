@@ -10,15 +10,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // Storage for a YAM token
 contract TokenStorage {
 
-
-    // mapping (address => uint) public nonces;
-
-
-    /**
-     * @dev Guard variable for re-entrancy checks. Not currently used
-     */
-    bool internal _notEntered;
-
     /**
      * @notice EIP-20 token name for this token
      */
@@ -54,13 +45,7 @@ contract TokenStorage {
      */
     uint256 public yamsScalingFactor = BASE;
 
-    mapping (address => uint256) internal _yamBalances;
-
     mapping (address => mapping (address => uint256)) internal _allowedFragments;
-
-    mapping (address => bool) public unallowedVoter;
-
-    uint256 public initSupply;
 
     /**
      * @notice Whether the contract is frozen
