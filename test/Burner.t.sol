@@ -114,6 +114,9 @@ contract BurnerTest is MainMigration {
         // creating random order to claim the burnIds
         for (uint i = 1; i < 50; i++) {
             claimOrder[i] = i;
+            if (users[i] == address(0)) {
+                users[i] = address(uint160(i));
+            }
         }
        
         for (uint i = 50 - 1; i > 0; i--) {
@@ -156,7 +159,7 @@ contract BurnerTest is MainMigration {
         }
 
         vm.startPrank(address(output));
-            flip.transfer(address(0), flip.balanceOf(address(output)));
+            flip.transfer(address(uint160(6969)), flip.balanceOf(address(output)));
         vm.stopPrank();
 
         vm.prank(owner);

@@ -7,9 +7,10 @@ import "./tStorage.sol";
 import "../utils/Ownership.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+// import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/governance/utils/VotesUpgradeable.sol";
 
-
-contract stFlip is Initializable, Ownership, TokenStorage {
+contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
 
     constructor() {
@@ -49,7 +50,7 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         require(frozen==false, "frozen");
         _;
     }
-
+    
     /**
     * @notice Initializes the contract name, symbol, and decimals
     * @dev Limited to onlyGov modifier
@@ -60,19 +61,8 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         decimals = decimals_;
 
         yamsScalingFactor = BASE;
-        initSupply = _fragmentToYam(initialSupply_);
         totalSupply = initialSupply_;
-        _yamBalances[gov_] = initSupply;
-
-        DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                3,
-                address(this)
-            )
-        );
-
+        _transferVotingUnits(address(0), gov_, _fragmentToYam(initialSupply_));
         __AccessControlDefaultAdminRules_init(0, gov_);
         _grantRole(REBASER_ROLE, gov_);
         _grantRole(MINTER_ROLE, gov_);
@@ -89,7 +79,7 @@ contract stFlip is Initializable, Ownership, TokenStorage {
     function _maxScalingFactor() internal view returns (uint256) {
         // scaling factor can only go up to 2**256-1 = initSupply * yamsScalingFactor
         // this is used to check if yamsScalingFactor will be too high to compute balances when rebasing.
-        return type(uint).max / initSupply;
+        return type(uint).max / _getTotalSupply();
     }
 
     /**
@@ -118,17 +108,17 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         uint256 yamValue = _fragmentToYam(amount);
 
         // increase initSupply
-        initSupply = initSupply + yamValue;
+        _transferVotingUnits(address(0), to, yamValue);
 
         // make sure the mint didnt push maxScalingFactor too low
         require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
         // add balance
-        _yamBalances[to] = _yamBalances[to] + yamValue;
 
         // add delegates to the minter
         emit Mint(to, amount);
         emit Transfer(address(0), to, amount);
+
     }
 
     /* - ERC20 functionality - */
@@ -148,11 +138,8 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         // get amount in underlying
         uint256 yamValue = _fragmentToYam(value);
 
-        // sub from balance of sender
-        _yamBalances[msg.sender] = _yamBalances[msg.sender] - yamValue;
+        _transferVotingUnits(msg.sender, to, yamValue);
 
-        // add to balance of receiver
-        _yamBalances[to] = _yamBalances[to] + yamValue;
         emit Transfer(msg.sender, to, value);
 
         return true;
@@ -164,27 +151,26 @@ contract stFlip is Initializable, Ownership, TokenStorage {
     }
 
     function _burn(uint256 value, address refundee) internal {
-      // underlying balance is stored in yams, so divide by current scaling factor
+        // underlying balance is stored in yams, so divide by current scaling factor
 
-      // note, this means as scaling factor grows, dust will be untransferrable.
-      // minimum transfer value == yamsScalingFactor / 1e24;
+        // note, this means as scaling factor grows, dust will be untransferrable.
+        // minimum transfer value == yamsScalingFactor / 1e24;
 
-      // get amount in underlying
-      totalSupply = totalSupply - value;
+        // get amount in underlying
+        totalSupply = totalSupply - value;
 
-      uint256 yamValue = _fragmentToYam(value);
+        uint256 yamValue = _fragmentToYam(value);
 
-      initSupply = initSupply - yamValue;
+        // sub from balance of sender
+        _transferVotingUnits(refundee, address(0), yamValue);
 
-      // sub from balance of sender
+        require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
-      require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
-      _yamBalances[refundee] = _yamBalances[refundee] - yamValue;
 
-      // add to balance of receiver
-      emit Burn(msg.sender, value, refundee);
-      emit Transfer(refundee, address(0), value);
+        // add to balance of receiver
+        emit Burn(msg.sender, value, refundee);
+        emit Transfer(refundee, address(0), value);
 
     }
     /**
@@ -197,13 +183,13 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         // decrease allowance
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender] - value;
 
-
         // get value in yams
         uint256 yamValue = _fragmentToYam(value);
 
         // sub from from
-        _yamBalances[from] = _yamBalances[from] - yamValue;
-        _yamBalances[to] = _yamBalances[to] + yamValue;
+        _transferVotingUnits(from, to, yamValue);
+
+
         emit Transfer(from, to, value);
 
         return true;
@@ -215,7 +201,11 @@ contract stFlip is Initializable, Ownership, TokenStorage {
     * @return The balance of the specified address.
     */
     function balanceOf(address who) external view returns (uint256) {
-        return _yamToFragment(_yamBalances[who]);
+        return _balanceOf(who);
+    }
+
+    function _balanceOf(address who) internal view returns (uint256) {
+        return _yamToFragment(super.getVotes(who));
     }
 
     /** @notice Currently returns the internal storage amount
@@ -223,7 +213,7 @@ contract stFlip is Initializable, Ownership, TokenStorage {
     * @return The underlying balance of the specified address.
     */
     function balanceOfUnderlying(address who) external view returns (uint256) {
-        return _yamBalances[who];
+        return super.getVotes(who);
     }
     
 
@@ -252,64 +242,6 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         _allowedFragments[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
         return true;
-    }
-
-    /**
-     * @dev Increase the amount of tokens that an owner has allowed to a spender.
-     * This method should be used instead of approve() to avoid the double approval vulnerability
-     * described above.
-     * @param spender The address which will spend the funds.
-     * @param addedValue The amount of tokens to increase the allowance by.
-     */
-    function increaseAllowance(address spender, uint256 addedValue) external notFrozen returns (bool) {
-        _allowedFragments[msg.sender][spender] = _allowedFragments[msg.sender][spender] + addedValue;
-        emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
-        return true;
-    }
-
-    /**
-     * @dev Decrease the amount of tokens that an owner has allowed to a spender.
-     *
-     * @param spender The address which will spend the funds.
-     * @param subtractedValue The amount of tokens to decrease the allowance by.
-     */
-    function decreaseAllowance(address spender, uint256 subtractedValue) external notFrozen returns (bool) {
-        uint256 oldValue = _allowedFragments[msg.sender][spender];
-        if (subtractedValue >= oldValue) {
-            _allowedFragments[msg.sender][spender] = 0;
-        } else {
-            _allowedFragments[msg.sender][spender] = oldValue - subtractedValue;
-        }
-        emit Approval(msg.sender, spender, _allowedFragments[msg.sender][spender]);
-        return true;
-    }
-    
-        // --- Approve by signature ---
-    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) notFrozen external {
-        require(block.timestamp <= deadline, "stFlip: permit-expired");
-
-        bytes32 digest =
-            keccak256(
-                abi.encodePacked(
-                    "\x19\x01",
-                    DOMAIN_SEPARATOR,
-                    keccak256(
-                        abi.encode(
-                            PERMIT_TYPEHASH,
-                            owner,
-                            spender,
-                            value,
-                            nonces[owner]++,
-                            deadline
-                        )
-                    )
-                )
-            );
-
-        require(owner != address(0), "stFlip: invalid-address-0");
-        require(owner == ecrecover(digest, v, r, s), "stFlip: invalid-permit");
-        _allowedFragments[owner][spender] = value;
-        emit Approval(owner, spender, value);
     }
 
     /* - Governance Functions - */
@@ -346,7 +278,7 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         }
 
         // update total supply, correctly
-        totalSupply = _yamToFragment(initSupply);
+        totalSupply = _yamToFragment(_getTotalSupply());
 
         emit Rebase(epoch, prevYamsScalingFactor, yamsScalingFactor);
         return totalSupply;
@@ -360,6 +292,11 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         return _fragmentToYam(value);
     }
 
+    function initSupply() external view returns (uint256) {
+        return _getTotalSupply();
+    }
+
+    
     function _yamToFragment(uint256 yam) internal view returns (uint256) {
         return yam * yamsScalingFactor / internalDecimals;
     }
@@ -374,29 +311,17 @@ contract stFlip is Initializable, Ownership, TokenStorage {
         SafeERC20.safeTransfer(IERC20(token), to, amount);
         return true;
     }
+
+    function clock() public view override returns (uint48) {
+        return uint48(block.timestamp);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function CLOCK_MODE() public pure override returns (string memory) {
+        return "mode=timestamp";
+    }
+    
+    // https://forum.openzeppelin.com/t/self-delegation-in-erc20votes/17501/17
+    // https://github.com/aragon/osx/blob/a52bbae69f78e74d6a17647370ccfa2f2ea9bbf0/packages/contracts/src/token/ERC20/governance/GovernanceERC20.sol#L113
+
 }
-
-// contract stFlip is StakedFLIP {
-//     /**
-//      * @notice Initialize the new money market
-//      * @param name_ ERC-20 name of this token
-//      * @param symbol_ ERC-20 symbol of this token
-//      * @param decimals_ ERC-20 decimal precision of this token
-//      */
-//     function initialize(string memory name_, string memory symbol_, uint8 decimals_, address initial_owner, uint256 initTotalSupply_) onlyGov public {
-//         super.initialize(name_, symbol_, decimals_);
-
-//         yamsScalingFactor = BASE;
-//         initSupply = _fragmentToYam(initTotalSupply_);
-//         totalSupply = initTotalSupply_;
-//         _yamBalances[initial_owner] = initSupply;
-//         DOMAIN_SEPARATOR = keccak256(
-//             abi.encode(
-//                 DOMAIN_TYPEHASH,
-//                 keccak256(bytes(name)),
-//                 3,
-//                 address(this)
-//             )
-//         );
-//     }
-// }
