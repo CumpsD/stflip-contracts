@@ -13,6 +13,7 @@ import "forge-std/console.sol";
 import "./Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /**
  * @title Burner contract for stFLIP
@@ -22,15 +23,12 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
  */
 contract BurnerV1 is Initializable, Ownership {
 
-    address public gov;
-    address public pendingGov;
     address public output;
-
-    uint256 public balance = 0;
-    uint256 public redeemed = 0;
+    uint256 public redeemed;
+    
     struct burn_ {
+        uint88 amount;
         address user;
-        uint256 amount;
         bool completed;
     }
     burn_[] public burns;
@@ -47,7 +45,7 @@ contract BurnerV1 is Initializable, Ownership {
         stflip = stFlip(stflip_);
         __AccessControlDefaultAdminRules_init(0, gov_);
         flip = IERC20(flip_);
-        burns.push(burn_(address(0), 0, true));
+        burns.push(burn_(0, address(0), true));
         sums.push(0);
         output = output_;
     }
@@ -62,7 +60,7 @@ contract BurnerV1 is Initializable, Ownership {
      */
     function burn(address to, uint256 amount) external returns (uint256) {
         stflip.burn(amount, msg.sender);
-        burns.push(burn_(to, amount, false));
+        burns.push(burn_(SafeCast.toUint88(amount), to,  false));
         sums.push(amount + sums[sums.length - 1]);
 
         emit Burn(amount, burns.length - 1);
@@ -81,7 +79,6 @@ contract BurnerV1 is Initializable, Ownership {
         burns[burnId].completed = true;
         redeemed = redeemed + burns[burnId].amount;
     }
-
     /**
      * @notice the sum of all unredeemed burns in the contract
      */
@@ -149,7 +146,6 @@ contract BurnerV1 is Initializable, Ownership {
         uint256 difference = sums[burnId] < redeemed ? 0 : sums[burnId] - redeemed;
         return burns[burnId].completed == false && difference <= flip.balanceOf(address(output));
     }
-
 
     /**
     * @notice Public getter for redeemable
