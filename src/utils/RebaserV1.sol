@@ -77,8 +77,8 @@ contract RebaserV1 is Initializable, Ownership {
         stflip = stFlip(addresses[5]);
         wrappedOutputProxy = OutputV1(addresses[6]);
         wrappedMinterProxy = MinterV1(addresses[7]);
-        
-        feeBps = feeBps_;      
+
+        feeBps = feeBps_;
         slashThresholdBps = slashThresholdBps_;
         aprThresholdBps = aprThresholdBps_ ;
         rebaseInterval = rebaseInterval_;
