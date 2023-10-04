@@ -76,7 +76,7 @@ contract RebaserV1 is Initializable, Ownership {
         stflip = stFlip(addresses[5]);
         wrappedOutputProxy = OutputV1(addresses[6]);
         wrappedMinterProxy = MinterV1(addresses[7]);
-        
+
         slashThresholdBps = SafeCast.toUint16(slashThresholdBps_);
         aprThresholdBps = SafeCast.toUint16(aprThresholdBps_);
         rebaseInterval = SafeCast.toUint32(rebaseInterval_);
@@ -160,63 +160,50 @@ contract RebaserV1 is Initializable, Ownership {
         for (uint i = 0; i < validatorBalances.length; i++) {            
             (operatorId, ) = wrappedOutputProxy.validators(addresses[i]);
             operatorBalances[operatorId] += validatorBalances[i];
+            stateChainBalance += validatorBalances[i];
         }
 
-        {
-            uint256 feeIncrement;
-            uint256 balanceIncrement;
             
-            for (operatorId = 1; operatorId < operatorCount; operatorId++) {
-                (balanceIncrement, feeIncrement) = _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
-                stateChainBalance += balanceIncrement;
-                totalOperatorPendingFee_ += feeIncrement;
-            }   
-        }
-
+        for (operatorId = 1; operatorId < operatorCount; operatorId++) {
+            totalOperatorPendingFee_ += _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
+        }  
 
         return (stateChainBalance, totalOperatorPendingFee_);
     }
 
-    function _updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) internal returns (uint256, uint256) {
+    function _updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) internal returns (uint256) {
         uint256 rewardIncrement;
         uint96 staked;
         uint96 unstaked;
         uint16 serviceFeeBps;
         uint16 validatorFeeBps;
         uint256 previousBalance;
-        (staked,unstaked,serviceFeeBps, validatorFeeBps,,,,) = wrappedOutputProxy.operators(operatorId);
-        return (staked, unstaked);
+        (staked,unstaked,serviceFeeBps, validatorFeeBps) = wrappedOutputProxy.getOperatorInfo(operatorId);
+
+        uint256 slashCounter_ = operators[operatorId].slashCounter;
         // previousBalance = (staked - (unstaked - operators[operatorId].rewards)) - operators[operatorId].slashCounter;
-        previousBalance = staked + operators[operatorId].rewards - unstaked - operators[operatorId].slashCounter;
+        previousBalance = staked + operators[operatorId].rewards - unstaked - slashCounter_;
+
         if (operatorBalance >= previousBalance) {
             rewardIncrement = operatorBalance - previousBalance; // is rewards + or - ?
-            if (rewardIncrement > operators[operatorId].slashCounter) {
+            if (rewardIncrement > slashCounter_) {
                 
-                if (operators[operatorId].slashCounter != 0) {
-                    rewardIncrement -= operators[operatorId].slashCounter;
+                if (slashCounter_ != 0) {
+                    rewardIncrement -= slashCounter_;
                     operators[operatorId].slashCounter = 0; //consider combining this with the block above. is double writing zero to slashCounter gas efficinet
                 }
-                console.log("1");
                 operators[operatorId].rewards += SafeCast.toUint80(rewardIncrement);
                 if (takeFee == true) {
-                console.log("2");
-
                     operators[operatorId].pendingFee += SafeCast.toUint80(rewardIncrement * validatorFeeBps  / 10000);
-                console.log("3");
-
                     servicePendingFee += SafeCast.toUint80(rewardIncrement * serviceFeeBps / 10000);
                 }
             } else {
-                console.log("4");
-
                 operators[operatorId].slashCounter -= SafeCast.toUint88(rewardIncrement);
             }
         } else {
-                console.log("5");
-
             operators[operatorId].slashCounter += SafeCast.toUint88(previousBalance - operatorBalance);
         }
-        return (operatorBalance, operators[operatorId].pendingFee);
+        return operators[operatorId].pendingFee;
     }
 
     function _validateSupplyChange(uint256 timeElapsed, uint256 currentSupply, uint256 newSupply) internal view returns (uint256) {

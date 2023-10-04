@@ -144,5 +144,9 @@ contract OutputV1 is Initializable, Ownership {
         return operators.length;
     }
 
+    function getOperatorInfo(uint256 id) external view returns (uint96, uint96, uint16, uint16) {
+        return (operators[id].staked, operators[id].unstaked, operators[id].serviceFeeBps, operators[id].validatorFeeBps);
+    }
+
 }
 

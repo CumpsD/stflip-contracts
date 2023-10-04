@@ -40,9 +40,13 @@ contract Harness_RebaserV1 is RebaserV1 {
     return _updateOperators(validatorBalances, addresses, takeFee);
   }
 
-  function Harness_updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) external returns (uint256, uint256) {
+  function Harness_updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) external returns (uint256) {
     return _updateOperator(operatorBalance, operatorId, takeFee);
   }
+
+  // function Harness_updateOperator2(uint256 operatorBalance, uint256 operatorId, bool takeFee) external returns (uint256, uint256) {
+  //   return _updateOperator2(operatorBalance, operatorId, takeFee);
+  // }
 
   function Harness_validateSupplyChange(uint256 elapsedTime, uint256 currentSupply, uint256 newSupply) external returns (uint256) {
     return _validateSupplyChange(elapsedTime, currentSupply, newSupply);
