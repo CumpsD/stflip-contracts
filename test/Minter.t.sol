@@ -26,7 +26,8 @@ contract MinterTest is MainMigration {
 
         vm.startPrank(owner);
             flip.mint(user1, amountToMint);
-            stflip.setRebase(0, rebaseFactor);
+            stflip.mint(owner, 1);
+            stflip.setRebase(0, rebaseFactor, 0);
         vm.stopPrank();
 
         uint256 initialFlipSupply = flip.totalSupply();
@@ -40,13 +41,14 @@ contract MinterTest is MainMigration {
         vm.stopPrank();
         
         console.log("amount to mint",amountToMint);
+        console.log("initial stflip supply",initialStflipSupply / 10**15);
         console.log("expected v. actual flip supply",initialFlipSupply,flip.totalSupply());
         console.log("expected v. actual stflip supply",initialStflipSupply + amountToMint,stflip.totalSupply());
-        console.log("expected v. actual stflip balance",initialStflipBalance + amountToMint,stflip.balanceOf(user1));
+        console.log("expected v. actual stflip balance",initialStflipBalance + amountToMint,stflip.balanceOf(user1), stflip.getVotes(user1));
         console.log("expected v. actual flip balance",initialFlipBalance - amountToMint,flip.balanceOf(user1));
 
         require(initialFlipSupply == flip.totalSupply(), "flip supply change");
-        require(initialStflipSupply + amountToMint == stflip.totalSupply(), "unexpected stflip supply change");
+        require(initialStflipSupply + amountToMint == stflip.totalSupply() || initialStflipSupply + amountToMint -1 == stflip.totalSupply(), "unexpected stflip supply change");
         require(initialFlipBalance - amountToMint == flip.balanceOf(user1), "unexpected flip balance change");
         // rebase token rounding :/
         require(initialStflipBalance + amountToMint == stflip.balanceOf(user1) || initialStflipBalance + amountToMint - 1 == stflip.balanceOf(user1), "unexpected stflip balance change");

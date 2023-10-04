@@ -150,7 +150,7 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 feeIncrement;
         
         // uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
-        stflip.setRebase(epoch, newSupply * stflip.internalDecimals() / stflip.initSupply());
+        stflip.setRebase(epoch, newSupply * stflip.internalDecimals() / stflip.initSupply(), rebaseInterval);
         lastRebaseTime = block.timestamp;
 
         emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);

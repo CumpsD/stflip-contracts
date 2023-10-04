@@ -202,15 +202,15 @@ contract MainMigration is Test {
         wrappedAggregatorProxy = AggregatorV1(address(aggregator));
         wrappedAggregatorProxy.initialize(address(minter),address(burner), address(canonicalPool), address(stflip), address(flip), owner);
 
-        flip.mint(address(aggregator),1);
-        stflip.mint(address(aggregator),1);
+        // flip.mint(address(aggregator),1);
+        // stflip.mint(address(aggregator),1);
         
         stflip.approve(address(aggregator), 2**100-1);
         flip.approve(address(aggregator), 2**100-1);
         flip.approve(address(minter), 2**100-1);
         flip.approve(address(burner), 2**100-1);
 
-        wrappedMinterProxy.mint(owner, 10**18);
+        // wrappedMinterProxy.mint(owner, 10**18);
 
         vm.stopPrank();
 

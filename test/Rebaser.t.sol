@@ -345,9 +345,14 @@ contract RebaserTest is MainMigration {
             wrappedRebaserProxy.rebase(1,validatorBalances, addresses,false);
         vm.stopPrank();
 
+        require(stflip.totalSupply() == initialSupply + initialMint, "testFuzz_SuccessfulPositiveRebase: supply changed immediately");
+        vm.warp(block.timestamp + wrappedRebaserProxy.rebaseInterval() * 2);
+
         uint256 expectedSupply = initialMint + rewards + initialSupply;
         uint256 actualSupply = stflip.totalSupply();
-
+        
+        console.log("expectedSupply v. actualSupply", expectedSupply, actualSupply);
+        console.log("scaling factor", stflip.yamsScalingFactor());
         require( _relativelyEq(expectedSupply,actualSupply), "testFuzz_SuccessfulPositiveRebase: supply increase != expected");
     }
 
@@ -377,8 +382,12 @@ contract RebaserTest is MainMigration {
             wrappedRebaserProxy.rebase(1,validatorBalances, addresses,false);
 
         uint256 expectedSupply = startSupply - slash + initialSupply;
+        vm.warp(block.timestamp + wrappedRebaserProxy.rebaseInterval() * 2);
+
         uint256 actualSupply = stflip.totalSupply();
 
+        console.log("expectedSupply v. actualSupply", expectedSupply, actualSupply);
+        console.log("scaling factor", stflip.yamsScalingFactor());
         require( _relativelyEq(expectedSupply,actualSupply), "testFuzz_SuccessfulNegativeRebase: supply increase != expected");
     }
 

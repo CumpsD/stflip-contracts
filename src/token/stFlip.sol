@@ -2,16 +2,14 @@
 
 pragma solidity ^0.8.7;
 
-/* import "./YAMTokenInterface.sol"; */
 import "./tStorage.sol";
 import "../utils/Ownership.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-// import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/utils/VotesUpgradeable.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
-
 
     constructor() {
         _disableInitializers();
@@ -20,7 +18,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     /**
      * @notice Event emitted when tokens are rebased
      */
-    event Rebase(uint256 epoch, uint256 prevYamsScalingFactor, uint256 newYamsScalingFactor);
+    event Rebase(uint256 epoch, uint256 prevYamsScalingFactor, uint256 newYamsScalingFactor, uint256 rebaseInterval);
 
     /* - ERC20 Events - */
 
@@ -60,8 +58,11 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         symbol = symbol_;
         decimals = decimals_;
 
-        yamsScalingFactor = BASE;
-        totalSupply = initialSupply_;
+        previousYamScalingFactor = SafeCast.toUint96(BASE);
+        nextYamScalingFactor = SafeCast.toUint96(BASE);
+        rebaseIntervalEnd = SafeCast.toUint32(block.timestamp);
+        lastRebaseTimestamp = SafeCast.toUint32(block.timestamp);
+
         _transferVotingUnits(address(0), gov_, _fragmentToYam(initialSupply_));
         __AccessControlDefaultAdminRules_init(0, gov_);
         _grantRole(REBASER_ROLE, gov_);
@@ -101,21 +102,16 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     }
 
     function _mint(address to, uint256 amount) internal {
-        // increase totalSupply
-        totalSupply = totalSupply + amount;
 
         // get underlying value
         uint256 yamValue = _fragmentToYam(amount);
 
-        // increase initSupply
+        // increase underlying total supply and increase user balance
         _transferVotingUnits(address(0), to, yamValue);
 
         // make sure the mint didnt push maxScalingFactor too low
-        require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
+        require(nextYamScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
-        // add balance
-
-        // add delegates to the minter
         emit Mint(to, amount);
         emit Transfer(address(0), to, amount);
 
@@ -156,17 +152,12 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         // note, this means as scaling factor grows, dust will be untransferrable.
         // minimum transfer value == yamsScalingFactor / 1e24;
 
-        // get amount in underlying
-        totalSupply = totalSupply - value;
-
         uint256 yamValue = _fragmentToYam(value);
 
         // sub from balance of sender
         _transferVotingUnits(refundee, address(0), yamValue);
 
-        require(yamsScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
-
-
+        require(nextYamScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
         // add to balance of receiver
         emit Burn(msg.sender, value, refundee);
@@ -188,7 +179,6 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
         // sub from from
         _transferVotingUnits(from, to, yamValue);
-
 
         emit Transfer(from, to, value);
 
@@ -244,44 +234,21 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return true;
     }
 
-    /* - Governance Functions - */
-
-    /** @notice sets the rebaser
-     * @param rebaser_ The address of the rebaser contract to use for authentication.
-     */
     /* - Extras - */
 
-    /**
-    * @notice Initiates a new rebase operation, provided the minimum time period has elapsed.
-    *
-    * @dev The supply adjustment equals (totalSupply * DeviationFromTargetRate) / rebaseLag
-    *      Where DeviationFromTargetRate is (MarketOracleRate - targetRate) / targetRate
-    *      and targetRate is CpiOracleRate / baseCpi
-    */
-  
-    function setRebase(uint256 epoch, uint256 value) external onlyRole(REBASER_ROLE) returns (uint256) {
-        // no change
-        if (value == yamsScalingFactor) {
-          emit Rebase(epoch, yamsScalingFactor, yamsScalingFactor);
-          return totalSupply;
-        }
+    function setRebase(uint256 epoch, uint256 value, uint256 rebaseInterval) external onlyRole(REBASER_ROLE) returns (bool) {
+        require(value < _maxScalingFactor(), "stFLIP: rebaseFactor too large");
 
-        // for events
-        uint256 prevYamsScalingFactor = yamsScalingFactor;
+        uint96 previousYamScalingFactor_ = SafeCast.toUint96(_yamsScalingFactor());
 
-        // positive reabse, increase scaling factor
-        uint256 newScalingFactor = value;
-        if (newScalingFactor < _maxScalingFactor()) {
-            yamsScalingFactor = value;
-        } else {
-            yamsScalingFactor = _maxScalingFactor();
-        }
+        // 1 sstore
+        nextYamScalingFactor = SafeCast.toUint96(value);
+        previousYamScalingFactor = previousYamScalingFactor_;
+        lastRebaseTimestamp = SafeCast.toUint32(block.timestamp);
+        rebaseIntervalEnd = SafeCast.toUint32(block.timestamp + rebaseInterval);
 
-        // update total supply, correctly
-        totalSupply = _yamToFragment(_getTotalSupply());
-
-        emit Rebase(epoch, prevYamsScalingFactor, yamsScalingFactor);
-        return totalSupply;
+        emit Rebase(epoch, previousYamScalingFactor_, value, rebaseInterval);
+        return true;
     }
 
     function yamToFragment(uint256 yam) external view returns (uint256) {
@@ -295,14 +262,13 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     function initSupply() external view returns (uint256) {
         return _getTotalSupply();
     }
-
     
     function _yamToFragment(uint256 yam) internal view returns (uint256) {
-        return yam * yamsScalingFactor / internalDecimals;
+        return yam * _yamsScalingFactor() / internalDecimals;
     }
 
     function _fragmentToYam(uint256 value) internal view returns (uint256) {
-        return value * internalDecimals / yamsScalingFactor;
+        return value * internalDecimals / _yamsScalingFactor();
     }
 
     // Rescue tokens
@@ -312,6 +278,43 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return true;
     }
 
+    function _yamsScalingFactor() internal view returns (uint256) {
+        uint32 blockTimestamp = SafeCast.toUint32(block.timestamp);
+        uint32 rebaseIntervalEnd_ = rebaseIntervalEnd;
+        uint32 lastRebaseTimestamp_ = lastRebaseTimestamp;
+        if (blockTimestamp >= rebaseIntervalEnd_) {
+            return nextYamScalingFactor;
+        }
+
+        if (blockTimestamp == lastRebaseTimestamp_) {
+            return previousYamScalingFactor;
+        }
+
+        uint96 previousYamScalingFactor_ = previousYamScalingFactor;
+        uint96 nextYamScalingFactor_ = nextYamScalingFactor;
+        uint256 ratioComplete = (blockTimestamp - lastRebaseTimestamp_) * internalDecimals / (rebaseIntervalEnd_ - lastRebaseTimestamp_);
+        uint256 difference;
+
+        if (nextYamScalingFactor_ > previousYamScalingFactor_) { // rewards, so factor increases
+            difference = nextYamScalingFactor_ - previousYamScalingFactor_;
+            return uint256(previousYamScalingFactor_ + difference * ratioComplete / internalDecimals);
+        } else { // slash, so factor decreases
+            difference = previousYamScalingFactor_ - nextYamScalingFactor_;
+            return uint256(previousYamScalingFactor_ - difference * ratioComplete / internalDecimals);
+        }
+    }
+
+    function yamsScalingFactor() external view returns (uint256) {
+        return _yamsScalingFactor();
+    }
+
+    function _totalSupply() internal view returns (uint256) {
+        return _getTotalSupply() * _yamsScalingFactor() / internalDecimals;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply();
+    }
     function clock() public view override returns (uint48) {
         return uint48(block.timestamp);
     }
@@ -325,3 +328,8 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     // https://github.com/aragon/osx/blob/a52bbae69f78e74d6a17647370ccfa2f2ea9bbf0/packages/contracts/src/token/ERC20/governance/GovernanceERC20.sol#L113
 
 }
+
+
+
+
+
