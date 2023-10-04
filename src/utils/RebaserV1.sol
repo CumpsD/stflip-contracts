@@ -151,19 +151,17 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 totalOperatorPendingFee_;
         uint256 operatorId;
 
-        uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
+        (uint256[] memory validatorOperatorIds, uint256 operatorCount, bytes32 addressHash) = wrappedOutputProxy.getValidatorInfo(addresses);
         uint256[] memory operatorBalances = new uint256[](operatorCount);
         
-        require(keccak256(abi.encodePacked(addresses)) == wrappedOutputProxy.validatorAddressHash(), "Rebaser: validator addresses do not match");
+        require(keccak256(abi.encodePacked(addresses)) == addressHash, "Rebaser: validator addresses do not match");
         require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        for (uint i = 0; i < validatorBalances.length; i++) {            
-            (operatorId, ) = wrappedOutputProxy.validators(addresses[i]);
-            operatorBalances[operatorId] += validatorBalances[i];
+        for (uint i = 0; i < validatorOperatorIds.length; i++) {            
+            operatorBalances[validatorOperatorIds[i]] += validatorBalances[i];
             stateChainBalance += validatorBalances[i];
         }
-
-            
+        
         for (operatorId = 1; operatorId < operatorCount; operatorId++) {
             totalOperatorPendingFee_ += _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
         }  

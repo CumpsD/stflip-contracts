@@ -148,5 +148,13 @@ contract OutputV1 is Initializable, Ownership {
         return (operators[id].staked, operators[id].unstaked, operators[id].serviceFeeBps, operators[id].validatorFeeBps);
     }
 
+    function getValidatorInfo(bytes32[] calldata addresses) external view returns (uint256[] memory, uint256, bytes32) {
+        uint256[] memory ids = new uint256[](addresses.length);
+        for (uint256 i = 0; i < addresses.length; i++) {
+            ids[i] = validators[addresses[i]].operatorId;
+        }
+        return (ids, operators.length, validatorAddressHash);
+    }
+
 }
 

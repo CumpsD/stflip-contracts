@@ -92,6 +92,8 @@ contract RebaserGasTest is MainMigration {
 
     }
 
+   
+
     function testGas_Rebase() public {
         uint256 amount = 5;
         bytes32[] memory addresses = new bytes32[]((amount - 1) * 5);
