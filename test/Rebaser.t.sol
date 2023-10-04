@@ -289,9 +289,10 @@ contract RebaserTest is MainMigration {
                 wrappedOutputProxy.addValidators(inp, operatorIds[i]);
             }
         vm.stopPrank();
-        uint256 stateChainBalance = wrappedRebaserProxy.Harness_updateOperators(amounts, addresses, true);
+        (uint256 stateChainBalance, uint256 totalOperatorPendingFee) = wrappedRebaserProxy.Harness_updateOperators(amounts, addresses, true);
 
         require(stateChainBalance == total, "testFuzz_UpdateOperators: stateChainBalance != total");
+        require(totalOperatorPendingFee == wrappedRebaserProxy.totalOperatorPendingFee());
     }
     /**
      * @notice Ensure that `pendingFee` changes as it should

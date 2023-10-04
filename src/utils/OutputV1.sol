@@ -32,10 +32,10 @@ contract OutputV1 is Initializable, Ownership {
     }
 
     struct Operator {
-        uint256 staked;
-        uint256 unstaked;
-        uint256 serviceFeeBps;
-        uint256 validatorFeeBps;
+        uint256 staked;          // uint88 sufficient
+        uint256 unstaked;        // uint88 sufficient
+        uint256 serviceFeeBps;   // uint16 sufficient
+        uint256 validatorFeeBps; // uint16 sufficient
         string name;
         bool whitelisted;
         address manager;

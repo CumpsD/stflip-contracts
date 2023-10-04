@@ -35,11 +35,11 @@ contract TestStaker {
 }
 
 contract Harness_RebaserV1 is RebaserV1 {
-  function Harness_updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) external returns (uint256) {
+  function Harness_updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) external returns (uint256,uint256 ) {
     return _updateOperators(validatorBalances, addresses, takeFee);
   }
 
-  function Harness_updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) external returns (uint256) {
+  function Harness_updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) external returns (uint256, uint256) {
     return _updateOperator(operatorBalance, operatorId, takeFee);
   }
 
@@ -53,9 +53,8 @@ contract Harness_RebaserV1 is RebaserV1 {
     operators[operatorId].pendingFee = pendingFee;
   }
 
-  function Harness_setPendingFee(uint256 servicePendingFee_, uint256 totalOperatorPendingFee_) external {
+  function Harness_setPendingFee(uint256 servicePendingFee_) external {
     servicePendingFee = servicePendingFee_;
-    totalOperatorPendingFee = totalOperatorPendingFee_;
   }
 }
 

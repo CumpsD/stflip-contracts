@@ -26,14 +26,13 @@ import "forge-std/console.sol";
  */
 contract RebaserV1 is Initializable, Ownership {
 
-    uint256 public feeBps;
-    uint256 public aprThresholdBps;
-    uint256 public lastRebaseTime;
-    uint256 public slashThresholdBps;
     uint256 constant TIME_IN_YEAR = 31536000;
-    uint256 public rebaseInterval;
-    uint256 public servicePendingFee;
-    uint256 public totalOperatorPendingFee;
+
+    uint256 public aprThresholdBps;         // uint16 sufficient
+    uint256 public lastRebaseTime;          // uint32 sufficient
+    uint256 public slashThresholdBps;       // uint16 sufficient
+    uint256 public rebaseInterval;          // uint32 sufficient
+    uint256 public servicePendingFee;       // uint80-88 sufficient
 
     BurnerV1 public wrappedBurnerProxy;
     OutputV1 public wrappedOutputProxy;
@@ -43,9 +42,9 @@ contract RebaserV1 is Initializable, Ownership {
     stFlip public stflip;
 
     struct Operator {
-        uint256 rewards;
-        uint256 pendingFee;
-        uint256 slashCounter;
+        uint256 rewards;            // uint88 sufficient 
+        uint256 pendingFee;         // uint80 sufficient
+        uint256 slashCounter;       // uint88 sufficient
     }
 
     mapping(uint256 => Operator) public operators;
@@ -86,13 +85,6 @@ contract RebaserV1 is Initializable, Ownership {
 
         lastRebaseTime = block.timestamp;
 
-    }
-
-    /** Sets reward fee in bps, the percentage of rebase that will go to `pendingFee`
-     * @param feeBps_ The amount of bps to set the fee to
-     */
-    function setFeeBps(uint256 feeBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        feeBps = feeBps_;
     }
 
     /** Sets the APR threshold in bps
@@ -141,11 +133,10 @@ contract RebaserV1 is Initializable, Ownership {
         require(timeElapsed >= rebaseInterval, "Rebaser: rebase too soon");
         require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        uint256 stateChainBalance = _updateOperators(validatorBalances, addresses, takeFee);
+        (uint256 stateChainBalance, uint256 totalOperatorPendingFee) = _updateOperators(validatorBalances, addresses, takeFee);
         uint256 currentSupply = stflip.totalSupply();
 
-        uint256 onchainBalance = flip.balanceOf(address(wrappedOutputProxy));
-        uint256 newSupply = stateChainBalance + onchainBalance - wrappedBurnerProxy.totalPendingBurns() - servicePendingFee - totalOperatorPendingFee;
+        uint256 newSupply = stateChainBalance + flip.balanceOf(address(wrappedOutputProxy)) - wrappedBurnerProxy.totalPendingBurns() - servicePendingFee - totalOperatorPendingFee;
         uint256 apr = _validateSupplyChange(timeElapsed, currentSupply, newSupply);
         uint256 feeIncrement;
         
@@ -156,9 +147,11 @@ contract RebaserV1 is Initializable, Ownership {
         emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);
     }
 
-    function _updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) internal returns (uint256) {
+    function _updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) internal returns (uint256, uint256) {
         uint256 stateChainBalance;
+        uint256 totalOperatorPendingFee;
         uint256 operatorId;
+
         uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
         uint256[] memory operatorBalances = new uint256[](operatorCount);
         
@@ -167,25 +160,31 @@ contract RebaserV1 is Initializable, Ownership {
 
         for (uint i = 0; i < validatorBalances.length; i++) {            
             (operatorId, ) = wrappedOutputProxy.validators(addresses[i]);
-            require(operatorId != 0, "Rebaser: validator not added");
             operatorBalances[operatorId] += validatorBalances[i];
         }
 
-        for (operatorId = 1; operatorId < operatorCount; operatorId++) {
-            stateChainBalance += _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
+        {
+            uint256 feeIncrement;
+            uint256 balanceIncrement;
+            
+            for (operatorId = 1; operatorId < operatorCount; operatorId++) {
+                (balanceIncrement, feeIncrement) = _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
+                stateChainBalance += balanceIncrement;
+                totalOperatorPendingFee += feeIncrement;
+            }   
         }
 
-        return stateChainBalance;
+
+        return (stateChainBalance, totalOperatorPendingFee);
     }
 
-    function _updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) internal returns (uint256) {
+    function _updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) internal returns (uint256, uint256) {
         uint256 rewardIncrement;
         uint256 staked;
         uint256 unstaked;
         uint256 serviceFeeBps;
         uint256 validatorFeeBps;
         uint256 previousBalance;
-
         (staked,unstaked,serviceFeeBps, validatorFeeBps,,,,) = wrappedOutputProxy.operators(operatorId);
 
         // previousBalance = (staked - (unstaked - operators[operatorId].rewards)) - operators[operatorId].slashCounter;
@@ -201,10 +200,8 @@ contract RebaserV1 is Initializable, Ownership {
                 }
                 operators[operatorId].rewards += rewardIncrement;
                 if (takeFee == true) {
-
                     operators[operatorId].pendingFee += rewardIncrement * validatorFeeBps  / 10000;
                     servicePendingFee += rewardIncrement * serviceFeeBps / 10000;
-                    totalOperatorPendingFee += rewardIncrement * validatorFeeBps / 10000;                    
                 }
             } else {
 
@@ -214,7 +211,7 @@ contract RebaserV1 is Initializable, Ownership {
 
             operators[operatorId].slashCounter += previousBalance - operatorBalance;
         }
-        return operatorBalance;
+        return (operatorBalance, operators[operatorId].pendingFee);
     }
 
     function _validateSupplyChange(uint256 timeElapsed, uint256 currentSupply, uint256 newSupply) internal view returns (uint256) {
@@ -260,7 +257,6 @@ contract RebaserV1 is Initializable, Ownership {
         }
 
         operators[operatorId].pendingFee -= amountToClaim;
-        totalOperatorPendingFee -= amountToClaim;
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, operatorId);
     }
@@ -279,6 +275,17 @@ contract RebaserV1 is Initializable, Ownership {
         servicePendingFee -= amountToClaim;
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, 0); // consider putting service Fee under operator id zero. consider implications though since all validators will have operator id of zero by default. 
+    }
+
+    function totalOperatorPendingFee() external view returns (uint256) {
+
+        uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
+        uint256 totalOperatorPendingFee;
+        for (uint256 operatorId = 1; operatorId < operatorCount; operatorId++) {
+            totalOperatorPendingFee += operators[operatorId].pendingFee;
+        }
+
+        return totalOperatorPendingFee;
     }
 
 

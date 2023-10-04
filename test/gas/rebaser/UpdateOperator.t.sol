@@ -50,7 +50,7 @@ contract RebaserTest is MainMigration {
 
             wrappedOutputProxy.Harness_setOperator(p.staked, p.unstaked, p.serviceFeeBps, p.validatorFeeBps, i);
             wrappedRebaserProxy.Harness_setOperator(p.rewards, p.slashCounter, 1, i);
-            wrappedRebaserProxy.Harness_setPendingFee(1,1);
+            wrappedRebaserProxy.Harness_setPendingFee(1);
             // console.log(p.staked, p.unstaked, p.rewards, p.slashCounter);
 
             // uint256 initialBalance = (staked - (unstaked - rewards)) - slashCounter;
