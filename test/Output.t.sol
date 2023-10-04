@@ -16,14 +16,14 @@ contract OutputTest is MainMigration {
     }
     
     struct Operator {
-        uint256 staked;
-        uint256 unstaked;
-        uint256 serviceFeeBps;
-        uint256 validatorFeeBps;
-        string name;
+        uint96 staked;         
+        uint96 unstaked;      
+        uint16 serviceFeeBps;  
+        uint16 validatorFeeBps;
         bool whitelisted;
         address manager;
         address feeRecipient;
+        string name;
     }
 
 
@@ -69,7 +69,7 @@ contract OutputTest is MainMigration {
 
     function _getOperator (uint256 id) internal returns (Operator memory) {
         Operator memory operator;
-        (operator.staked, operator.unstaked, operator.serviceFeeBps, operator.validatorFeeBps, operator.name, operator.whitelisted, operator.manager, operator.feeRecipient) = wrappedOutputProxy.operators(id);
+        (operator.staked, operator.unstaked, operator.serviceFeeBps, operator.validatorFeeBps, operator.whitelisted, operator.manager, operator.feeRecipient, operator.name) = wrappedOutputProxy.operators(id);
         return operator;
     }
 

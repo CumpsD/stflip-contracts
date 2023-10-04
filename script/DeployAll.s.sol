@@ -113,7 +113,6 @@ contract DeployAll is Script {
                                                 address(output),
                                                 address(minter)
                                                 ],
-                                                3000, 
                                                 2000,
                                                 30,
                                                 20 hours

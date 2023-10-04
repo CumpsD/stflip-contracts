@@ -16,7 +16,7 @@ import "../mock/StateChainGateway.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "forge-std/console.sol";
-
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /**
  * @title Rebaser contract for stFLIP
@@ -28,11 +28,11 @@ contract RebaserV1 is Initializable, Ownership {
 
     uint256 constant TIME_IN_YEAR = 31536000;
 
-    uint256 public aprThresholdBps;         // uint16 sufficient
-    uint256 public lastRebaseTime;          // uint32 sufficient
-    uint256 public slashThresholdBps;       // uint16 sufficient
-    uint256 public rebaseInterval;          // uint32 sufficient
-    uint256 public servicePendingFee;       // uint80-88 sufficient
+    uint16 public aprThresholdBps;         // uint16 sufficient
+    uint16 public slashThresholdBps;       // uint16 sufficient
+    uint32 public lastRebaseTime;          // uint32 sufficient
+    uint32 public rebaseInterval;          // uint32 sufficient
+    uint80 public servicePendingFee;       // uint80-88 sufficient
 
     BurnerV1 public wrappedBurnerProxy;
     OutputV1 public wrappedOutputProxy;
@@ -42,9 +42,9 @@ contract RebaserV1 is Initializable, Ownership {
     stFlip public stflip;
 
     struct Operator {
-        uint256 rewards;            // uint88 sufficient 
-        uint256 pendingFee;         // uint80 sufficient
-        uint256 slashCounter;       // uint88 sufficient
+        uint88 rewards;            // uint88 sufficient 
+        uint80 pendingFee;         // uint80 sufficient
+        uint88 slashCounter;       // uint88 sufficient
     }
 
     mapping(uint256 => Operator) public operators;
@@ -61,11 +61,10 @@ contract RebaserV1 is Initializable, Ownership {
     /**
      * @notice Initializes the contract
      * @param addresses The addresses of the contracts to use: flip, burnerProxy, gov, feeRecipient, manager, stflip, outputProxy
-     * @param feeBps_ The amount of bps to set the fee to
      * @param aprThresholdBps_ The amount of bps to set apr threshold to
      * @param rebaseInterval_ The amount of time in seconds between rebases
      */
-    function initialize(address[8] calldata addresses, uint256 feeBps_, uint256 aprThresholdBps_, uint256 slashThresholdBps_, uint256 rebaseInterval_) initializer public {
+    function initialize(address[8] calldata addresses, uint256 aprThresholdBps_, uint256 slashThresholdBps_, uint256 rebaseInterval_) initializer public {
         flip = IERC20(addresses[0]);
         wrappedBurnerProxy = BurnerV1(addresses[1]);
         
@@ -77,13 +76,13 @@ contract RebaserV1 is Initializable, Ownership {
         stflip = stFlip(addresses[5]);
         wrappedOutputProxy = OutputV1(addresses[6]);
         wrappedMinterProxy = MinterV1(addresses[7]);
+        
+        slashThresholdBps = SafeCast.toUint16(slashThresholdBps_);
+        aprThresholdBps = SafeCast.toUint16(aprThresholdBps_);
+        rebaseInterval = SafeCast.toUint32(rebaseInterval_);
 
-        feeBps = feeBps_;
-        slashThresholdBps = slashThresholdBps_;
-        aprThresholdBps = aprThresholdBps_ ;
-        rebaseInterval = rebaseInterval_;
 
-        lastRebaseTime = block.timestamp;
+        lastRebaseTime = SafeCast.toUint32(block.timestamp);
 
     }
 
@@ -92,7 +91,7 @@ contract RebaserV1 is Initializable, Ownership {
      * @dev If the rebase exceeds this APR, then the rebase will revert
      */
     function setAprThresholdBps(uint256 aprThresholdBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        aprThresholdBps = aprThresholdBps_;
+        aprThresholdBps = SafeCast.toUint16(aprThresholdBps_);
     }
 
     /** Sets slash threshold in bps
@@ -101,7 +100,7 @@ contract RebaserV1 is Initializable, Ownership {
      * @dev This is different from APR threshold because slashes would be much more serious
      */
     function setSlashThresholdBps(uint256 slashThresholdBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        slashThresholdBps = slashThresholdBps_;
+        slashThresholdBps = SafeCast.toUint16(slashThresholdBps_);
     }
 
     /** Sets minimum rebase interval
@@ -109,7 +108,7 @@ contract RebaserV1 is Initializable, Ownership {
      * @dev If a rebase occurs before this interval elapses, it will revert
      */
     function setRebaseInterval(uint256 rebaseInterval_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        rebaseInterval = rebaseInterval_;
+        rebaseInterval = SafeCast.toUint32(rebaseInterval_);
     }
 
     /** Calculates the new rebase factor based on the stateChainBalance and whether 
@@ -133,23 +132,23 @@ contract RebaserV1 is Initializable, Ownership {
         require(timeElapsed >= rebaseInterval, "Rebaser: rebase too soon");
         require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        (uint256 stateChainBalance, uint256 totalOperatorPendingFee) = _updateOperators(validatorBalances, addresses, takeFee);
+        (uint256 stateChainBalance, uint256 totalOperatorPendingFee_) = _updateOperators(validatorBalances, addresses, takeFee);
         uint256 currentSupply = stflip.totalSupply();
 
-        uint256 newSupply = stateChainBalance + flip.balanceOf(address(wrappedOutputProxy)) - wrappedBurnerProxy.totalPendingBurns() - servicePendingFee - totalOperatorPendingFee;
+        uint256 newSupply = stateChainBalance + flip.balanceOf(address(wrappedOutputProxy)) - wrappedBurnerProxy.totalPendingBurns() - servicePendingFee - totalOperatorPendingFee_;
         uint256 apr = _validateSupplyChange(timeElapsed, currentSupply, newSupply);
         uint256 feeIncrement;
         
         // uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
         stflip.setRebase(epoch, newSupply * stflip.internalDecimals() / stflip.initSupply(), rebaseInterval);
-        lastRebaseTime = block.timestamp;
+        lastRebaseTime = SafeCast.toUint32(block.timestamp);
 
         emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);
     }
 
     function _updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) internal returns (uint256, uint256) {
         uint256 stateChainBalance;
-        uint256 totalOperatorPendingFee;
+        uint256 totalOperatorPendingFee_;
         uint256 operatorId;
 
         uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
@@ -170,23 +169,23 @@ contract RebaserV1 is Initializable, Ownership {
             for (operatorId = 1; operatorId < operatorCount; operatorId++) {
                 (balanceIncrement, feeIncrement) = _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
                 stateChainBalance += balanceIncrement;
-                totalOperatorPendingFee += feeIncrement;
+                totalOperatorPendingFee_ += feeIncrement;
             }   
         }
 
 
-        return (stateChainBalance, totalOperatorPendingFee);
+        return (stateChainBalance, totalOperatorPendingFee_);
     }
 
     function _updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) internal returns (uint256, uint256) {
         uint256 rewardIncrement;
-        uint256 staked;
-        uint256 unstaked;
-        uint256 serviceFeeBps;
-        uint256 validatorFeeBps;
+        uint96 staked;
+        uint96 unstaked;
+        uint16 serviceFeeBps;
+        uint16 validatorFeeBps;
         uint256 previousBalance;
         (staked,unstaked,serviceFeeBps, validatorFeeBps,,,,) = wrappedOutputProxy.operators(operatorId);
-
+        return (staked, unstaked);
         // previousBalance = (staked - (unstaked - operators[operatorId].rewards)) - operators[operatorId].slashCounter;
         previousBalance = staked + operators[operatorId].rewards - unstaked - operators[operatorId].slashCounter;
         if (operatorBalance >= previousBalance) {
@@ -194,22 +193,28 @@ contract RebaserV1 is Initializable, Ownership {
             if (rewardIncrement > operators[operatorId].slashCounter) {
                 
                 if (operators[operatorId].slashCounter != 0) {
-
                     rewardIncrement -= operators[operatorId].slashCounter;
                     operators[operatorId].slashCounter = 0; //consider combining this with the block above. is double writing zero to slashCounter gas efficinet
                 }
-                operators[operatorId].rewards += rewardIncrement;
+                console.log("1");
+                operators[operatorId].rewards += SafeCast.toUint80(rewardIncrement);
                 if (takeFee == true) {
-                    operators[operatorId].pendingFee += rewardIncrement * validatorFeeBps  / 10000;
-                    servicePendingFee += rewardIncrement * serviceFeeBps / 10000;
+                console.log("2");
+
+                    operators[operatorId].pendingFee += SafeCast.toUint80(rewardIncrement * validatorFeeBps  / 10000);
+                console.log("3");
+
+                    servicePendingFee += SafeCast.toUint80(rewardIncrement * serviceFeeBps / 10000);
                 }
             } else {
+                console.log("4");
 
-                operators[operatorId].slashCounter -= rewardIncrement;
+                operators[operatorId].slashCounter -= SafeCast.toUint88(rewardIncrement);
             }
         } else {
+                console.log("5");
 
-            operators[operatorId].slashCounter += previousBalance - operatorBalance;
+            operators[operatorId].slashCounter += SafeCast.toUint88(previousBalance - operatorBalance);
         }
         return (operatorBalance, operators[operatorId].pendingFee);
     }
@@ -243,7 +248,7 @@ contract RebaserV1 is Initializable, Ownership {
         address manager;
         address feeRecipient;
         uint256 pendingFee = operators[operatorId].pendingFee;
-        (,,,,,,manager,feeRecipient) = wrappedOutputProxy.operators(operatorId);
+        (,,,,,manager,feeRecipient,) = wrappedOutputProxy.operators(operatorId);
         
         require(max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
         require(msg.sender == feeRecipient || msg.sender == manager, "Rebaser: not fee recipient or manager");
@@ -256,7 +261,7 @@ contract RebaserV1 is Initializable, Ownership {
             wrappedMinterProxy.mintStflipFee(msg.sender, amountToClaim);
         }
 
-        operators[operatorId].pendingFee -= amountToClaim;
+        operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, operatorId);
     }
@@ -272,7 +277,7 @@ contract RebaserV1 is Initializable, Ownership {
             wrappedMinterProxy.mintStflipFee(msg.sender, amountToClaim);
         }
 
-        servicePendingFee -= amountToClaim;
+        servicePendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, 0); // consider putting service Fee under operator id zero. consider implications though since all validators will have operator id of zero by default. 
     }
@@ -280,12 +285,12 @@ contract RebaserV1 is Initializable, Ownership {
     function totalOperatorPendingFee() external view returns (uint256) {
 
         uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
-        uint256 totalOperatorPendingFee;
+        uint256 totalOperatorPendingFee_;
         for (uint256 operatorId = 1; operatorId < operatorCount; operatorId++) {
-            totalOperatorPendingFee += operators[operatorId].pendingFee;
+            totalOperatorPendingFee_ += operators[operatorId].pendingFee;
         }
 
-        return totalOperatorPendingFee;
+        return totalOperatorPendingFee_;
     }
 
 

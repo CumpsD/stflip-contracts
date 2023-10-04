@@ -94,7 +94,6 @@ contract DeployV1 {
                                           address(output),
                                           address(minter)
                                         ],
-                                        3000, 
                                         2000,
                                         30,
                                         20 hours

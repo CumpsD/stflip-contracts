@@ -14,7 +14,8 @@ import "../mock/StateChainGateway.sol";
 import "../utils/Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import "forge-std/console.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
 /**
  * @title Output contract for stFLIP
  * @notice Will hold all unstaked FLIP. Can stake/unstake to
@@ -27,19 +28,19 @@ contract OutputV1 is Initializable, Ownership {
     IERC20 public flip;
 
     struct Validator {
-        uint256 operatorId;
+        uint8 operatorId;
         bool whitelisted;
     }
 
     struct Operator {
-        uint256 staked;          // uint88 sufficient
-        uint256 unstaked;        // uint88 sufficient
-        uint256 serviceFeeBps;   // uint16 sufficient
-        uint256 validatorFeeBps; // uint16 sufficient
-        string name;
+        uint96 staked;          // uint88 sufficient
+        uint96 unstaked;        // uint88 sufficient
+        uint16 serviceFeeBps;   // uint16 sufficient
+        uint16 validatorFeeBps; // uint16 sufficient
         bool whitelisted;
         address manager;
         address feeRecipient;
+        string name;
     }
 
     mapping (bytes32 => Validator) public validators;
@@ -65,7 +66,7 @@ contract OutputV1 is Initializable, Ownership {
         flip.approve(address(rebaser_), 2**256-1);
         flip.approve(address(wrappedBurnerProxy), 2**256 - 1);
         flip.approve(address(stateChainGateway), 2**256 - 1);
-        Operator memory operator = Operator(0, 0, 0, 0,"null", false, gov_, gov_);
+        Operator memory operator = Operator(0, 0, 0, 0,false, gov_, gov_,"null");
         operators.push(operator);
     }
 
@@ -81,7 +82,7 @@ contract OutputV1 is Initializable, Ownership {
         require(operatorId != 0, "Output: cannot add to null operator");
         for (uint256 i = 0; i < addresses.length; i++) {
             require(validators[addresses[i]].operatorId == 0, "Output: validator already added");
-            validators[addresses[i]].operatorId = operatorId;
+            validators[addresses[i]].operatorId = SafeCast.toUint8(operatorId);
             validators[addresses[i]].whitelisted = false;
             validatorAddresses.push(addresses[i]);
         }
@@ -97,7 +98,7 @@ contract OutputV1 is Initializable, Ownership {
 
     function addOperator(address manager, string calldata name, uint256 serviceFeeBps, uint256 validatorFeeBps) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
-        Operator memory operator = Operator(0, 0, serviceFeeBps, validatorFeeBps,name, true, manager, manager);
+        Operator memory operator = Operator(0, 0, SafeCast.toUint16(serviceFeeBps), SafeCast.toUint16(validatorFeeBps),true, manager, manager,name);
         operators.push(operator);
     }
 
@@ -113,7 +114,7 @@ contract OutputV1 is Initializable, Ownership {
         for (uint i = 0; i < addresses.length; i++) {
             validator = validators[addresses[i]];
             require(validator.whitelisted == true, "Output: validator not whitelisted");
-            operators[validator.operatorId].staked += amounts[i];
+            operators[validator.operatorId].staked += SafeCast.toUint96(amounts[i]);
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
     }
@@ -127,7 +128,7 @@ contract OutputV1 is Initializable, Ownership {
         uint256 amount;
         for (uint i = 0; i < addresses.length; i++) {
             amount = stateChainGateway.executeRedemption(addresses[i]);
-            operators[validators[addresses[i]].operatorId].unstaked += amount;
+            operators[validators[addresses[i]].operatorId].unstaked += SafeCast.toUint96(amount);
         }
     }
 

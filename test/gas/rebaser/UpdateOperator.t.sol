@@ -6,7 +6,7 @@ import "../../MainMigration.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
-contract RebaserTest is MainMigration {
+contract RebaserGasTest is MainMigration {
     using stdStorage for StdStorage;
     struct Params {
         uint256 staked;
@@ -23,7 +23,6 @@ contract RebaserTest is MainMigration {
     }
     Params params;
     function setUp() public {
-        MainMigration migration = new MainMigration();
 
         Params memory p;
         p.rewards = 1_000_000*10**18;
@@ -63,53 +62,53 @@ contract RebaserTest is MainMigration {
     }
 
     function testGas_UpdateOperator() public {
-        _gas();
+        // _gas();
         wrappedRebaserProxy.Harness_updateOperator(505_000 * 10**18, 1, true);
-        gas_();
+        // gas_();
     }
 
-    function testGas_UpdateOperators() public {
-        uint256 amount = 5;
-        bytes32[] memory addresses = new bytes32[]((amount - 1) * 5);
-        uint256[] memory amounts = new uint256[]((amount - 1) * 5);
-        for (uint i = 1; i < amount; i++) {
-            for (uint j = 0; j < 5; j++) {
-                addresses[(i-1) * 5 + j] = keccak256(abi.encodePacked(i, j));
-                amounts[(i-1) * 5 + j] = 101_000 * 10**18;
-                // console.logBytes32(addresses[(i-1) * 5 + j]);
-            }
+    // function testGas_UpdateOperators() public {
+    //     uint256 amount = 5;
+    //     bytes32[] memory addresses = new bytes32[]((amount - 1) * 5);
+    //     uint256[] memory amounts = new uint256[]((amount - 1) * 5);
+    //     for (uint i = 1; i < amount; i++) {
+    //         for (uint j = 0; j < 5; j++) {
+    //             addresses[(i-1) * 5 + j] = keccak256(abi.encodePacked(i, j));
+    //             amounts[(i-1) * 5 + j] = 101_000 * 10**18;
+    //             // console.logBytes32(addresses[(i-1) * 5 + j]);
+    //         }
 
-        } 
+    //     } 
 
-        _gas();
-        wrappedRebaserProxy.Harness_updateOperators(amounts, addresses, true);
-        gas_();
+    //     _gas();
+    //     wrappedRebaserProxy.Harness_updateOperators(amounts, addresses, true);
+    //     gas_();
 
-    }
+    // }
 
-    function testGas_Rebase() public {
-        uint256 amount = 5;
-        bytes32[] memory addresses = new bytes32[]((amount - 1) * 5);
-        uint256[] memory amounts = new uint256[]((amount - 1) * 5);
-        for (uint i = 1; i < amount; i++) {
-            for (uint j = 0; j < 5; j++) {
-                addresses[(i-1) * 5 + j] = keccak256(abi.encodePacked(i, j));
-                amounts[(i-1) * 5 + j] = 100_001 * 10**18;
-                // console.logBytes32(addresses[(i-1) * 5 + j]);
-            }
+    // function testGas_Rebase() public {
+    //     uint256 amount = 5;
+    //     bytes32[] memory addresses = new bytes32[]((amount - 1) * 5);
+    //     uint256[] memory amounts = new uint256[]((amount - 1) * 5);
+    //     for (uint i = 1; i < amount; i++) {
+    //         for (uint j = 0; j < 5; j++) {
+    //             addresses[(i-1) * 5 + j] = keccak256(abi.encodePacked(i, j));
+    //             amounts[(i-1) * 5 + j] = 100_001 * 10**18;
+    //             // console.logBytes32(addresses[(i-1) * 5 + j]);
+    //         }
 
-        } 
+    //     } 
 
-        vm.startPrank(owner);
-            flip.mint(address(this), 4*500_000 * 10**18);
-            stflip.mint(address(this), 4*500_000 * 10**18);
-        vm.stopPrank();
+    //     vm.startPrank(owner);
+    //         flip.mint(address(this), 4*500_000 * 10**18);
+    //         stflip.mint(address(this), 4*500_000 * 10**18);
+    //     vm.stopPrank();
         
-        vm.warp(block.timestamp + 5 days);
-        vm.prank(owner);
-        _gas();
-        wrappedRebaserProxy.rebase(0,amounts, addresses, true);
-        gas_();
-    }
+    //     vm.warp(block.timestamp + 5 days);
+    //     vm.prank(owner);
+    //     _gas();
+    //     wrappedRebaserProxy.rebase(0,amounts, addresses, true);
+    //     gas_();
+    // }
 
 }

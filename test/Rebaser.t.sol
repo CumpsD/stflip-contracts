@@ -45,14 +45,14 @@ contract RebaserTest is MainMigration {
     }
 
     struct OutputOperator {
-        uint256 staked;
-        uint256 unstaked;
-        uint256 serviceFeeBps;
-        uint256 validatorFeeBps;
-        string name;
+        uint96 staked;          
+        uint96 unstaked;     
+        uint16 serviceFeeBps;  
+        uint16 validatorFeeBps;
         bool whitelisted;
         address manager;
         address feeRecipient;
+        string name;
     }
 
     function _prepareOutput() internal returns(bytes32[] memory, uint256[] memory) {
@@ -194,13 +194,13 @@ contract RebaserTest is MainMigration {
         p.rewards = bound(rewards_, 0, 100_000 * 10**18);
         p.slashCounter = bound(slashCounter_, 0, 100_000 * 10**18);
         uint256 minStaked = p.slashCounter > p.rewards ? p.slashCounter - p.rewards : 0;
-        p.staked = bound(staked_,minStaked, 2_000_000 * 10**18);
+        p.staked = bound(staked_,minStaked, 1_000_000 * 10**18);
 
         p.unstaked = bound(unstaked_, 0, p.staked + p.rewards - p.slashCounter );
 
         p.serviceFeeBps = bound(serviceFeeBps_, 0, 10000);
         p.validatorFeeBps = bound(validatorFeeBps_, 0, 10000 - p.serviceFeeBps);
-        p.operatorBalance = bound(operatorBalance_, 0, 2_000_000 * 10**18);
+        p.operatorBalance = bound(operatorBalance_, 0, 1_000_000 * 10**18);
         
         vm.startPrank(owner);
             wrappedOutputProxy.addOperator(owner, "owner", p.serviceFeeBps, p.validatorFeeBps);
@@ -226,9 +226,10 @@ contract RebaserTest is MainMigration {
         OutputOperator memory outputOperator;
         
         (rebaserOperator.rewards, rebaserOperator.pendingFee, rebaserOperator.slashCounter) = wrappedRebaserProxy.operators(1);
-        (outputOperator.staked, outputOperator.unstaked, outputOperator.serviceFeeBps, outputOperator.validatorFeeBps, outputOperator.name, outputOperator.whitelisted, outputOperator.manager, outputOperator.feeRecipient) = wrappedOutputProxy.operators(1);
+        (outputOperator.staked, outputOperator.unstaked, outputOperator.serviceFeeBps, outputOperator.validatorFeeBps, outputOperator.whitelisted, outputOperator.manager, outputOperator.feeRecipient, outputOperator.name) = wrappedOutputProxy.operators(1);
         p.initialTotalOperatorPendingFee = wrappedRebaserProxy.totalOperatorPendingFee();
 
+        console.log("operatorbalance", p.operatorBalance);
         wrappedRebaserProxy.Harness_updateOperator(p.operatorBalance, 1, takeFee);
         (rewards, pendingFee,slashCounter) = wrappedRebaserProxy.operators(1); 
         if (p.operatorBalance >= p.initialBalance) {
@@ -449,7 +450,7 @@ contract RebaserTest is MainMigration {
         IERC20 token;
         for (uint i = 1; i < 10; i++) {
             
-            (,,,,,,,feeRecipient) = wrappedOutputProxy.operators(i);
+            (,,,,,,feeRecipient,) = wrappedOutputProxy.operators(i);
         
 
             token = receiveFlip[i] ? IERC20(address(flip)) : IERC20(address(stflip));

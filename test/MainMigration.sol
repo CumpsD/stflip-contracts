@@ -19,6 +19,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract TestStaker {
   uint256 public a;
@@ -48,22 +49,22 @@ contract Harness_RebaserV1 is RebaserV1 {
   }
 
   function Harness_setOperator(uint256 rewards, uint256 slashCounter, uint256 pendingFee, uint256 operatorId) external {
-    operators[operatorId].rewards = rewards;
-    operators[operatorId].slashCounter = slashCounter;
-    operators[operatorId].pendingFee = pendingFee;
+    operators[operatorId].rewards = SafeCast.toUint88(rewards);
+    operators[operatorId].slashCounter = SafeCast.toUint88(slashCounter);
+    operators[operatorId].pendingFee = SafeCast.toUint80(pendingFee);
   }
 
   function Harness_setPendingFee(uint256 servicePendingFee_) external {
-    servicePendingFee = servicePendingFee_;
+    servicePendingFee = SafeCast.toUint80(servicePendingFee_);
   }
 }
 
 contract Harness_OutputV1 is OutputV1 {
   function Harness_setOperator(uint256 staked, uint256 unstaked, uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 operatorId) external {
-    operators[operatorId].staked = staked;
-    operators[operatorId].unstaked = unstaked;
-    operators[operatorId].serviceFeeBps = serviceFeeBps;
-    operators[operatorId].validatorFeeBps = validatorFeeBps;
+    operators[operatorId].staked = SafeCast.toUint96(staked);
+    operators[operatorId].unstaked = SafeCast.toUint96(unstaked);
+    operators[operatorId].serviceFeeBps = SafeCast.toUint16(serviceFeeBps);
+    operators[operatorId].validatorFeeBps = SafeCast.toUint16(validatorFeeBps);
   }
 }
 contract MainMigration is Test {
@@ -167,7 +168,6 @@ contract MainMigration is Test {
                                           address(output),
                                           address(minter)
                                         ],
-                                        3000, 
                                         2000,
                                         30,
                                         20 hours
