@@ -190,7 +190,7 @@ contract OutputV1 is Initializable, Ownership {
 
     /**
      * Returns relevant operator information
-     * @param ID of relevant operator
+     * @param id ID of relevant operator
      * @return Operator staked counter
      * @return Operator unstaked counter
      * @return Operator service fee 
