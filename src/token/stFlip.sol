@@ -103,20 +103,22 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
     function _mint(address to, uint256 amount) internal {
 
-        // get underlying value
-        uint256 yamValue = _fragmentToYam(amount);
-
-        // increase underlying total supply and increase user balance
-        _transferVotingUnits(address(0), to, yamValue);
-
+        _transfer(address(0), to, amount);
         // make sure the mint didnt push maxScalingFactor too low
         require(nextYamScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
         emit Mint(to, amount);
-        emit Transfer(address(0), to, amount);
-
     }
 
+    function _transfer(address from, address to, uint256 amount) internal {
+        // underlying balance is stored in yams, so divide by current scaling factor
+        uint256 yamValue = _fragmentToYam(amount);
+
+        // decrease from
+        _transferVotingUnits(from, to, yamValue);
+
+        emit Transfer(from, to, amount);
+    }
     /* - ERC20 functionality - */
 
     /**
@@ -152,16 +154,12 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         // note, this means as scaling factor grows, dust will be untransferrable.
         // minimum transfer value == yamsScalingFactor / 1e24;
 
-        uint256 yamValue = _fragmentToYam(value);
-
-        // sub from balance of sender
-        _transferVotingUnits(refundee, address(0), yamValue);
+        _transfer(refundee, address(0), value);
 
         require(nextYamScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
 
         // add to balance of receiver
         emit Burn(msg.sender, value, refundee);
-        emit Transfer(refundee, address(0), value);
 
     }
     /**
@@ -174,13 +172,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         // decrease allowance
         _allowedFragments[from][msg.sender] = _allowedFragments[from][msg.sender] - value;
 
-        // get value in yams
-        uint256 yamValue = _fragmentToYam(value);
-
-        // sub from from
-        _transferVotingUnits(from, to, yamValue);
-
-        emit Transfer(from, to, value);
+        _transfer(from, to, value);
 
         return true;
     }
