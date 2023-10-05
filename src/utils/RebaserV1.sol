@@ -83,7 +83,6 @@ contract RebaserV1 is Initializable, Ownership {
 
 
         lastRebaseTime = SafeCast.toUint32(block.timestamp);
-
     }
 
     /** Sets the APR threshold in bps
@@ -111,19 +110,17 @@ contract RebaserV1 is Initializable, Ownership {
         rebaseInterval = SafeCast.toUint32(rebaseInterval_);
     }
 
-    /** Calculates the new rebase factor based on the stateChainBalance and whether 
-     * or not fee will be claimed
+    /** Calculates the new rebase factor based on the state chain validator balance
+     * and whether or not a fee will be taken
      * @param epoch The epoch number of the rebase
      * @param validatorBalances The balances of the state chain validators
      * @param addresses The addresses of the state chain validators
      * @param takeFee Whether or not to claim fee
-     * @dev Ideally we could have an oracle report the `stateChainBalance` to the contract
-     * but Chainlink and larger oracle networks do not support Chainflip yet. Its also
-     * very expensive and still very centralized. So we instead rely on the manager which is 
-     * an EOA to perform oracle reports. Manager will call this function with the `stateChainBalance`
-     * and the following function will calculate what the new rebase factor will be including the onchain
-     * balances in the output addess. If the supply change exceeds the APR or slash threshold, then the
-     * rebase will revert, limiting the possible damage the EOA could commmit. We might disable `takeFee`
+     * @dev There is no oracle support for Chainflip yet so we must run the oracle. We have an offchain service that
+     * queries the countable validators on the Output address and submits the addresses along with their balances to this 
+     * address. There is `aprThresholdBps` and `slashThresholdBps` to ensure that the oracle report is within reasonable bounds.
+     * `_updateOperators` calls `_updateOperator` for each operator which changes the `rewards`, `slashCounter`, and `pendingFee`
+     * in accordance with the balance report. We might disable `takeFee`
      * if there is a slash we need to make up for. Its also worth noting how `pendingFee` is a piece of the pool,
      * in the same way that pending burns are. 
      */
@@ -146,6 +143,17 @@ contract RebaserV1 is Initializable, Ownership {
         emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);
     }
 
+    /**
+     * Internal function to loop through all operators and update them
+     * @param validatorBalances the balances of all the state chain validators
+     * @param addresses the addresses of all the state chain validators
+     * @param takeFee whether or not `pendingFee` should increment for these operators
+     * @return stateChainBalance the sum of all the countable validator balances
+     * @return totalOperatorPendingFee_ the sum of all the operators pendingFees
+     * @dev This function is called by `rebase`. It iterates through all the validators and their balances
+     * to create a map of operators and their balances. This information is used to call `updateOperator`. 
+     * We check the hash of the addresses to ensure that the oracle included all the necessary addresses.
+     */
     function _updateOperators(uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) internal returns (uint256, uint256) {
         uint256 stateChainBalance;
         uint256 totalOperatorPendingFee_;
@@ -169,6 +177,19 @@ contract RebaserV1 is Initializable, Ownership {
         return (stateChainBalance, totalOperatorPendingFee_);
     }
 
+    /**
+     * Updates individual operators. Performs meat of the rebase logic
+     * @param operatorBalance The actual balance of the operator
+     * @param operatorId The ID of the operator
+     * @param takeFee Whether or not pendingFee should increment
+     * @dev Calculates previous balance as total amount staked + total rewards - total unstaked - current slashCounter.
+     * If the actual balance is greater than the current balance this means that there are rewards. The reward increment is 
+     * the difference of these two values. We then check that the reward increment is greater than the slashCounter because
+     * an operator should not be paid until they earn back a slash. We decrement the slashCounter until its zero and then
+     * we increment the pendingFees by a specified percentage of the reward increase. If slashCounter is bigger than reward
+     * increment then we just decrement slashCounter to reduce the deficit and if previousBalance is greater than the
+     * actual operator balance then we increment slashCounter as there has been a slash. 
+     */
     function _updateOperator(uint256 operatorBalance, uint256 operatorId, bool takeFee) internal returns (uint256) {
         uint256 rewardIncrement;
         uint96 staked;
@@ -179,16 +200,15 @@ contract RebaserV1 is Initializable, Ownership {
         (staked,unstaked,serviceFeeBps, validatorFeeBps) = wrappedOutputProxy.getOperatorInfo(operatorId);
 
         uint256 slashCounter_ = operators[operatorId].slashCounter;
-        // previousBalance = (staked - (unstaked - operators[operatorId].rewards)) - operators[operatorId].slashCounter;
         previousBalance = staked + operators[operatorId].rewards - unstaked - slashCounter_;
 
         if (operatorBalance >= previousBalance) {
-            rewardIncrement = operatorBalance - previousBalance; // is rewards + or - ?
+            rewardIncrement = operatorBalance - previousBalance; 
             if (rewardIncrement > slashCounter_) {
                 
                 if (slashCounter_ != 0) {
                     rewardIncrement -= slashCounter_;
-                    operators[operatorId].slashCounter = 0; //consider combining this with the block above. is double writing zero to slashCounter gas efficinet
+                    operators[operatorId].slashCounter = 0; 
                 }
                 operators[operatorId].rewards += SafeCast.toUint80(rewardIncrement);
                 if (takeFee == true) {
@@ -204,12 +224,16 @@ contract RebaserV1 is Initializable, Ownership {
         return operators[operatorId].pendingFee;
     }
 
+    /**
+     * Ensures that the APR of the possible supply change is within reasonable bounds
+     * @param timeElapsed unix time since the last rebase
+     * @param currentSupply the current supply of stflip
+     * @param newSupply the new supply that would be increased to
+     */
     function _validateSupplyChange(uint256 timeElapsed, uint256 currentSupply, uint256 newSupply) internal view returns (uint256) {
         uint256 apr;
         if (newSupply > currentSupply){
             apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
-            // increase precision
-
             require(apr + 1 < aprThresholdBps, "Rebaser: apr too high");
         } else {
             require(10000 - (newSupply * 10000 / currentSupply) < slashThresholdBps, "Rebaser: supply decrease too high");
@@ -228,6 +252,7 @@ contract RebaserV1 is Initializable, Ownership {
      *  @param amount Amount of tokens to burn
      *  @param max Whether or not to claim all pending fees
      *  @param receiveFlip Whether or not to receive the fee in flip or stflip
+     *  @param operatorId the operator's ID that is claiming their fee
      */
     function claimFee (uint256 amount, bool max, bool receiveFlip, uint256 operatorId) external {
         address manager;
@@ -251,6 +276,12 @@ contract RebaserV1 is Initializable, Ownership {
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, operatorId);
     }
 
+    /**
+     * Claims the service's pendingFees
+     * @param amount Amount of fee to claim
+     * @param max Whether or not to claim all pending fees
+     * @param receiveFlip Whether to receive the fee in flip or stflip
+     */
     function claimServiceFee(uint256 amount, bool max, bool receiveFlip) external onlyRole(FEE_RECIPIENT_ROLE) {
         require(max == true || amount <= servicePendingFee, "Rebaser: fee claim requested exceeds pending fees");
 
@@ -267,17 +298,30 @@ contract RebaserV1 is Initializable, Ownership {
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, 0); // consider putting service Fee under operator id zero. consider implications though since all validators will have operator id of zero by default. 
     }
 
+    /**
+     * @notice Returns the total amount of pending fees for all operators
+     */
     function totalOperatorPendingFee() external view returns (uint256) {
-
         uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
         uint256 totalOperatorPendingFee_;
         for (uint256 operatorId = 1; operatorId < operatorCount; operatorId++) {
             totalOperatorPendingFee_ += operators[operatorId].pendingFee;
         }
-
         return totalOperatorPendingFee_;
     }
 
+    /**
+     * @notice Returns all operators
+     */
+    function getOperators() external view returns (Operator[] memory) {
+        uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
+        Operator[] memory ret = new Operator[](operatorCount);
+        for (uint256 operatorId; operatorId < operatorCount; operatorId++) {
+            ret[operatorId] = operators[operatorId];
+        }
+
+        return ret;
+    }
 
 
 }
