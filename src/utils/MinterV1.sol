@@ -26,8 +26,6 @@ contract MinterV1 is Initializable, Ownership {
     stFlip public stflip;
     IERC20 public flip;
 
-    event Mint(address to, uint256 amount);
-
     constructor() {
         _disableInitializers();
     }
@@ -68,6 +66,5 @@ contract MinterV1 is Initializable, Ownership {
      */
     function _mint(address to, uint256 amount) internal {
       stflip.mint(to, amount);
-      emit Mint(to, amount);
     }
 }

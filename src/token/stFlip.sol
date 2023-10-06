@@ -157,10 +157,6 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         _transfer(refundee, address(0), value);
 
         require(nextYamScalingFactor <= _maxScalingFactor(), "max scaling factor too low");
-
-        // add to balance of receiver
-        emit Burn(msg.sender, value, refundee);
-
     }
     /**
     * @dev Transfer tokens from one address to another.

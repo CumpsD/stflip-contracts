@@ -50,8 +50,7 @@ contract BurnerV1 is Initializable, Ownership {
         output = output_;
     }
 
-    /// @notice Tokens burned event
-    event Burn(uint256 amount, uint256 burnId);
+    event Burn(address burner, address recipient, uint256 amount, uint256 burnId); // emits the person who sent burn tx along with the recipient, amount and ID
 
     /**
      * @notice Burns stflip tokens, transfers FLIP tokens from msg.sender, adds entry to burns/sums list
@@ -63,7 +62,7 @@ contract BurnerV1 is Initializable, Ownership {
         burns.push(burn_(SafeCast.toUint88(amount), to,  false));
         sums.push(amount + sums[sums.length - 1]);
 
-        emit Burn(amount, burns.length - 1);
+        emit Burn(msg.sender, to, amount, burns.length - 1);
 
         return burns.length - 1;
     }
@@ -79,6 +78,7 @@ contract BurnerV1 is Initializable, Ownership {
         burns[burnId].completed = true;
         redeemed = redeemed + burns[burnId].amount;
     }
+
     /**
      * @notice the sum of all unredeemed burns in the contract
      */
@@ -86,8 +86,10 @@ contract BurnerV1 is Initializable, Ownership {
         return sums[burns.length - 1] - redeemed;
     }
 
-    /// @notice all the burn ids associated with an address
-    /// @param account The address of the user to check
+    /**
+     * Retrieve all the burn ids associated with an address
+     * @param account The address of the user to check
+     */
     function _getBurnIds(address account) internal view returns (uint256[] memory) {
 
         uint256[] memory burnIds = new uint256[](burns.length);
@@ -108,8 +110,10 @@ contract BurnerV1 is Initializable, Ownership {
         return filteredBurnIds;
     }
 
-    /// @notice public function to get all the burn ids associated with an address
-    /// @param account The address of the user to check
+    /**
+     * Public function to get all the burn ids associated with an address
+     * @param account The address of the user to check
+     */
     function getBurnIds(address account) external view returns (uint256[] memory) {
         return _getBurnIds(account);
     }
@@ -155,7 +159,9 @@ contract BurnerV1 is Initializable, Ownership {
         return _redeemable(burnId);
     }
 
-    /// @notice Public getter for the burns struct list
+    /**
+     * Public getter for the burns struct list.
+     */
     function getAllBurns() external view returns (burn_[] memory) {
         return burns;
     }
