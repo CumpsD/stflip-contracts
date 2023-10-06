@@ -21,6 +21,7 @@ contract OutputTest is MainMigration {
         uint16 serviceFeeBps;  
         uint16 validatorFeeBps;
         bool whitelisted;
+        uint8 validatorAllowance;
         address manager;
         address feeRecipient;
         string name;
@@ -39,7 +40,7 @@ contract OutputTest is MainMigration {
 
         vm.startPrank(owner);
         for (uint i = 1; i < count; i++) {
-            wrappedOutputProxy.addOperator(managers[i], names[i], serviceFeeBpsList[i], validatorFeeBpsList[i]);
+            wrappedOutputProxy.addOperator(managers[i], names[i], serviceFeeBpsList[i], validatorFeeBpsList[i], 20);
         }
 
         // string memory name;
@@ -69,7 +70,7 @@ contract OutputTest is MainMigration {
 
     function _getOperator (uint256 id) internal returns (Operator memory) {
         Operator memory operator;
-        (operator.staked, operator.unstaked, operator.serviceFeeBps, operator.validatorFeeBps, operator.whitelisted, operator.manager, operator.feeRecipient, operator.name) = wrappedOutputProxy.operators(id);
+        (operator.staked, operator.unstaked, operator.serviceFeeBps, operator.validatorFeeBps, operator.whitelisted, , operator.manager, operator.feeRecipient, operator.name) = wrappedOutputProxy.operators(id);
         return operator;
     }
 
@@ -90,11 +91,14 @@ contract OutputTest is MainMigration {
             addresses[i] = keccak256(abi.encodePacked(addresses[i],i));
             operatorBalances[order[i]] += amounts[i];
             total += amounts[i];
+
+            console.log(order[i]);
+            console.logBytes32(addresses[i]);
         }
         
         vm.startPrank(owner);
             for (uint i = 1; i < 10; i++) {
-                wrappedOutputProxy.addOperator(address(uint160(i)), vm.toString(i), 0, 0);
+                wrappedOutputProxy.addOperator(address(uint160(i)), vm.toString(i), 0, 0, 20);
             }
 
             flip.mint(owner, total);
@@ -108,7 +112,7 @@ contract OutputTest is MainMigration {
         }
 
         vm.startPrank(owner);
-            wrappedOutputProxy.setValidatorsWhitelist(addresses,true);
+            wrappedOutputProxy.setValidatorsStatus(addresses,true, true);
             wrappedOutputProxy.fundValidators(addresses, amounts);
         vm.stopPrank();
 

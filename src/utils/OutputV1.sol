@@ -29,6 +29,12 @@ contract OutputV1 is Initializable, Ownership {
     struct Validator {
         uint8 operatorId;          // the operator id of this validator
         bool whitelisted;          // determines whether staking to this address is allowed
+        bool trackBalance;         // determines whether the rebaser should count this validator in balance calculations
+    }
+
+    struct ValidatorInfo {         // used for efficiency when rebaser queries validator info
+        uint8 operatorId;
+        bool trackBalance;
     }
 
     struct Operator {
@@ -37,6 +43,7 @@ contract OutputV1 is Initializable, Ownership {
         uint16 serviceFeeBps;      // percentage of rewards generated that go to the service
         uint16 validatorFeeBps;    // percentage of rewards generated that go to the operator
         bool whitelisted;          // whether or not this operator is whitelisted
+        uint8 validatorAllowance;  // the number of validators this operator can add
         address manager;           // the operator controlled address that can add validators
         address feeRecipient;      // the address that receives the validator fee. This can be the manager - it is just for additional granularity.
         string name;               // the operators name 
@@ -72,7 +79,7 @@ contract OutputV1 is Initializable, Ownership {
         flip.approve(address(rebaser_), 2**256-1);
         flip.approve(address(burnerProxy_), 2**256 - 1);
         flip.approve(address(stateChainGateway), 2**256 - 1);
-        Operator memory operator = Operator(0, 0, 0, 0,false, gov_, gov_,"null");
+        Operator memory operator = Operator(0, 0, 0, 0,false, 0, gov_, gov_,"null");
         operators.push(operator);
     }
 
@@ -86,6 +93,7 @@ contract OutputV1 is Initializable, Ownership {
         require(operators[operatorId].manager == msg.sender, "Output: not manager of operator");
         require(operators[operatorId].whitelisted == true, "Output: operator not whitelisted");
         require(operatorId != 0, "Output: cannot add to null operator");
+        operators[operatorId].validatorAllowance -= SafeCast.toUint8(addresses.length);
         for (uint256 i = 0; i < addresses.length; i++) {
             require(validators[addresses[i]].operatorId == 0, "Output: validator already added");
             validators[addresses[i]].operatorId = SafeCast.toUint8(operatorId);
@@ -99,15 +107,44 @@ contract OutputV1 is Initializable, Ownership {
     /**
      * Whitelists specified validator addresses
      * @param addresses The list of addresses to whitelist
-     * @param status The whitelist status to set
+     * @param whitelist The whitelist status to set
+     * @param trackBalance Whether or not to track the balance of the validator in rebase calculation
      * @dev We don't automatically whitelist validators when operators add
      * them. After they have been added, governance ensures that the withdrawal
      * address for those addresses has been locked to this output contract. Once
-     * that has been confirmed then they can be whitelisted. 
+     * that has been confirmed then they can be whitelisted. Both `whitelist`
+     * and `trackBalance` should be set to true for new validators. This function
+     * exists for the case those values are not true and granular control is needed.
+     * It is possible that a validator is no longer whitelisted but still has FLIP 
+     * that needs to be counted. 
      */
-    function setValidatorsWhitelist(bytes32[] calldata addresses, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setValidatorsStatus(bytes32[] calldata addresses, bool whitelist, bool trackBalance) external onlyRole(DEFAULT_ADMIN_ROLE) {
         for (uint256 i = 0; i < addresses.length; i++) {
-            validators[addresses[i]].whitelisted = status;
+            validators[addresses[i]].whitelisted = whitelist;
+            validators[addresses[i]].trackBalance = trackBalance;
+        }
+    }
+
+    /**
+     * Whitelists specified validator addresses
+     * @param addresses The list of addresses to whitelist
+     * @param whitelist The whitelist status to set
+     */
+    function setValidatorsWhitelist(bytes32[] calldata addresses, bool whitelist) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for (uint256 i = 0; i < addresses.length; i++) {
+            validators[addresses[i]].whitelisted = whitelist;
+        }
+    }
+
+    /**
+     * Sets whether or not to track the balance of the validator in rebase calculation
+     * @param addresses The list of addresses to set
+     * @param trackBalance Whether or not to track the balance of the validator in rebase calculation
+     * @dev We should never have to use this function.  
+     */
+    function setValidatorsTrackBalance(bytes32[] calldata addresses, bool trackBalance) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for (uint256 i = 0; i < addresses.length; i++) {
+            validators[addresses[i]].trackBalance = trackBalance;
         }
     }
 
@@ -117,14 +154,25 @@ contract OutputV1 is Initializable, Ownership {
      * @param name The operator name
      * @param serviceFeeBps The percentage of rewards generated that will go to the service
      * @param validatorFeeBps The percentage of the rewards generated that will go to the validator
+     * @param validatorAllowance The number of validators this operator can add
      * @dev Initially this will just be Thunderhead team-ran validators, after we get going we will
      * put other operators through an onboarding process similar to Lido's. After vetting and identifying
-     * the best operators governance can whitelist them. 
+     * the best operators governance can whitelist them. We have a validator allowance to ensure the 
+     * address list does not become bloated
      */
-    function addOperator(address manager, string calldata name, uint256 serviceFeeBps, uint256 validatorFeeBps) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function addOperator(address manager, string calldata name, uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 validatorAllowance) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
-        Operator memory operator = Operator(0, 0, SafeCast.toUint16(serviceFeeBps), SafeCast.toUint16(validatorFeeBps),true, manager, manager,name);
+        Operator memory operator = Operator(0, 0, SafeCast.toUint16(serviceFeeBps), SafeCast.toUint16(validatorFeeBps),true, SafeCast.toUint8(validatorAllowance), manager, manager,name);
         operators.push(operator);
+    }
+
+    /**
+     * Sets validator allowance
+     * @param allowance amount of validators to allow the operator to add
+     * @param operatorId id of relevant operator
+     */
+    function setOperatorValidatorAllowance(uint256 allowance, uint256 operatorId) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        operators[operatorId].validatorAllowance = SafeCast.toUint8(allowance);
     }
 
     /** Funds state chain accounts 
@@ -140,10 +188,13 @@ contract OutputV1 is Initializable, Ownership {
         require(addresses.length == amounts.length, "lengths must match");
 
         Validator memory validator;
+        uint8 operatorId_;
         for (uint i = 0; i < addresses.length; i++) {
             validator = validators[addresses[i]];
+            operatorId_ = validator.operatorId;
             require(validator.whitelisted == true, "Output: validator not whitelisted");
-            operators[validator.operatorId].staked += SafeCast.toUint96(amounts[i]);
+            require(operators[operatorId_].whitelisted == true, "Output: operator not whitelisted");
+            operators[operatorId_].staked += SafeCast.toUint96(amounts[i]);
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
     }
@@ -162,6 +213,18 @@ contract OutputV1 is Initializable, Ownership {
             amount = stateChainGateway.executeRedemption(addresses[i]);
             operators[validators[addresses[i]].operatorId].unstaked += SafeCast.toUint96(amount);
         }
+    }
+
+    /**
+     * Set operator fees
+     * @param serviceFeeBps reward fee to the service
+     * @param validatorFeeBps reward fee to the operator
+     */
+    function setOperatorFee(uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 operatorId) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
+
+        operators[operatorId].serviceFeeBps = SafeCast.toUint16(serviceFeeBps);
+        operators[operatorId].validatorFeeBps = SafeCast.toUint16(validatorFeeBps);
     }
 
     /**
@@ -200,6 +263,9 @@ contract OutputV1 is Initializable, Ownership {
         return (operators[id].staked, operators[id].unstaked, operators[id].serviceFeeBps, operators[id].validatorFeeBps);
     }
 
+    function getOperatorAddresses(uint256 id) external view returns (address, address) {
+        return (operators[id].manager, operators[id].feeRecipient);
+    }
 
     /**
      * Gets validator information
@@ -210,12 +276,41 @@ contract OutputV1 is Initializable, Ownership {
      * @dev Returns all this data in one call for gas efficiency
      * during the rebase calculation
      */
-    function getValidatorInfo(bytes32[] calldata addresses) external view returns (uint256[] memory, uint256, bytes32) {
-        uint256[] memory ids = new uint256[](addresses.length);
+    function getValidatorInfo(bytes32[] calldata addresses) external view returns (ValidatorInfo[] memory, uint256, bool) {
+        ValidatorInfo[] memory validatorInfo = new ValidatorInfo[](addresses.length);
         for (uint256 i = 0; i < addresses.length; i++) {
-            ids[i] = validators[addresses[i]].operatorId;
+            validatorInfo[i].operatorId = validators[addresses[i]].operatorId;
+            validatorInfo[i].trackBalance = validators[addresses[i]].trackBalance;
         }
-        return (ids, operators.length, validatorAddressHash);
+        
+        bool addressesEqual = validatorAddressHash == keccak256(abi.encodePacked(addresses));
+
+        return (validatorInfo, operators.length, addressesEqual);
+    }
+    
+    /**
+     * Retrieves all validators that have `trackBalance == true`
+     */
+    function getCountableValidators() external view returns (bytes32[] memory) {
+        bytes32 validatorToCheck;
+        uint256 length = validatorAddresses.length;
+        uint256 count;
+        bytes32[] memory countableAddresses_ = new bytes32[](length);
+
+        for (uint i = 0; i < length; i++) {
+            validatorToCheck = validatorAddresses[i];
+            if (validators[validatorToCheck].trackBalance == true) {
+                countableAddresses_[count++] = validatorToCheck;
+            }
+        }
+
+        bytes32[] memory countableAddresses = new bytes32[](count);
+
+        for (uint i = 0; i < count; i++) {
+            countableAddresses[i] = countableAddresses_[i];
+        }
+
+        return countableAddresses;
     }
 
 }

@@ -15,7 +15,6 @@ import "../utils/MinterV1.sol";
 import "../mock/StateChainGateway.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import "forge-std/console.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /**
@@ -156,15 +155,17 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 totalOperatorPendingFee_;
         uint256 operatorId;
 
-        (uint256[] memory validatorOperatorIds, uint256 operatorCount, bytes32 addressHash) = wrappedOutputProxy.getValidatorInfo(addresses);
+        (OutputV1.ValidatorInfo[] memory validatorInfo, uint256 operatorCount, bool addressesEqual) = wrappedOutputProxy.getValidatorInfo(addresses);
         uint256[] memory operatorBalances = new uint256[](operatorCount);
-        
-        require(keccak256(abi.encodePacked(addresses)) == addressHash, "Rebaser: validator addresses do not match");
+
+        require(addressesEqual, "Rebaser: validator addresses do not match");
         require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        for (uint i = 0; i < validatorOperatorIds.length; i++) {            
-            operatorBalances[validatorOperatorIds[i]] += validatorBalances[i];
-            stateChainBalance += validatorBalances[i];
+        for (uint i = 0; i < validatorInfo.length; i++) {
+            if (validatorInfo[i].trackBalance == true) {
+                operatorBalances[validatorInfo[i].operatorId] += validatorBalances[i];
+                stateChainBalance += validatorBalances[i];
+            }       
         }
         
         for (operatorId = 1; operatorId < operatorCount; operatorId++) {
@@ -255,7 +256,7 @@ contract RebaserV1 is Initializable, Ownership {
         address manager;
         address feeRecipient;
         uint256 pendingFee = operators[operatorId].pendingFee;
-        (,,,,,manager,feeRecipient,) = wrappedOutputProxy.operators(operatorId);
+        (manager,feeRecipient) = wrappedOutputProxy.getOperatorAddresses(operatorId);
         
         require(max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
         require(msg.sender == feeRecipient || msg.sender == manager, "Rebaser: not fee recipient or manager");
@@ -293,18 +294,6 @@ contract RebaserV1 is Initializable, Ownership {
         servicePendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, 0); // consider putting service Fee under operator id zero. consider implications though since all validators will have operator id of zero by default. 
-    }
-
-    /**
-     * @notice Returns the total amount of pending fees for all operators
-     */
-    function totalOperatorPendingFee() external view returns (uint256) {
-        uint256 operatorCount = wrappedOutputProxy.getOperatorCount();
-        uint256 totalOperatorPendingFee_;
-        for (uint256 operatorId = 1; operatorId < operatorCount; operatorId++) {
-            totalOperatorPendingFee_ += operators[operatorId].pendingFee;
-        }
-        return totalOperatorPendingFee_;
     }
 
     /**

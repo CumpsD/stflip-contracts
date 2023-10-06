@@ -60,8 +60,9 @@ contract RebaserTest is MainMigration {
         inp[0] = 0x626c756500000000000000000000000000000000000000000000000000000000;
 
         vm.startPrank(owner);
-            wrappedOutputProxy.addOperator(owner, "owner", 0, 0);
+            wrappedOutputProxy.addOperator(owner, "owner", 0, 0, 20);
             wrappedOutputProxy.addValidators(inp,uint256(1));
+            wrappedOutputProxy.setValidatorsStatus(inp, true, true);
         vm.stopPrank();
 
         uint256[] memory validatorBalances = new uint256[](1);
@@ -203,7 +204,7 @@ contract RebaserTest is MainMigration {
         p.operatorBalance = bound(operatorBalance_, 0, 1_000_000 * 10**18);
         
         vm.startPrank(owner);
-            wrappedOutputProxy.addOperator(owner, "owner", p.serviceFeeBps, p.validatorFeeBps);
+            wrappedOutputProxy.addOperator(owner, "owner", p.serviceFeeBps, p.validatorFeeBps, 20);
         vm.stopPrank();
 
         wrappedOutputProxy.Harness_setOperator(p.staked, p.unstaked, p.serviceFeeBps, p.validatorFeeBps, 1);
@@ -226,8 +227,8 @@ contract RebaserTest is MainMigration {
         OutputOperator memory outputOperator;
         
         (rebaserOperator.rewards, rebaserOperator.pendingFee, rebaserOperator.slashCounter) = wrappedRebaserProxy.operators(1);
-        (outputOperator.staked, outputOperator.unstaked, outputOperator.serviceFeeBps, outputOperator.validatorFeeBps, outputOperator.whitelisted, outputOperator.manager, outputOperator.feeRecipient, outputOperator.name) = wrappedOutputProxy.operators(1);
-        p.initialTotalOperatorPendingFee = wrappedRebaserProxy.totalOperatorPendingFee();
+        (outputOperator.staked, outputOperator.unstaked, outputOperator.serviceFeeBps, outputOperator.validatorFeeBps, outputOperator.whitelisted,, outputOperator.manager, outputOperator.feeRecipient, outputOperator.name) = wrappedOutputProxy.operators(1);
+        p.initialTotalOperatorPendingFee =  _totalOperatorPendingFee();
 
         console.log("operatorbalance", p.operatorBalance);
         wrappedRebaserProxy.Harness_updateOperator(p.operatorBalance, 1, takeFee);
@@ -242,12 +243,12 @@ contract RebaserTest is MainMigration {
                 
                 if (takeFee == true) {
                     require(rebaserOperator.pendingFee + increment * p.validatorFeeBps / 10000 == pendingFee, "testFuzz_UpdateOperator: pendingFee != expected");
-                    require(p.initialTotalOperatorPendingFee + increment * p.validatorFeeBps / 10000 == wrappedRebaserProxy.totalOperatorPendingFee(), "testFuzz_UpdateOperator: operatorPendingFee != expected" );
+                    require(p.initialTotalOperatorPendingFee + increment * p.validatorFeeBps / 10000 ==  _totalOperatorPendingFee(), "testFuzz_UpdateOperator: operatorPendingFee != expected" );
                     require(p.initialServicePendingFee + increment * p.serviceFeeBps / 10000 == wrappedRebaserProxy.servicePendingFee(), "testFuzz_UpdateOperator: servicePendingFee != expected");
                 } else {
                     console.log(rebaserOperator.pendingFee, pendingFee, "pendingfees");
                     require(rebaserOperator.pendingFee == pendingFee, "testFuzz_UpdateOperator: initialPendingFee != pendingFee");
-                    require(p.initialTotalOperatorPendingFee == wrappedRebaserProxy.totalOperatorPendingFee(), "testFuzz_UpdateOperator: operatorPendingFee != expected" );
+                    require(p.initialTotalOperatorPendingFee == _totalOperatorPendingFee(), "testFuzz_UpdateOperator: operatorPendingFee != expected" );
                     require(p.initialServicePendingFee == wrappedRebaserProxy.servicePendingFee(), "testFuzz_UpdateOperator: servicePendingFee != expected");
                 }
             } else {
@@ -264,6 +265,17 @@ contract RebaserTest is MainMigration {
 
     }
 
+    function _totalOperatorPendingFee() internal returns (uint256) {
+        RebaserV1.Operator[] memory ops = wrappedRebaserProxy.getOperators();
+        uint80 fee;
+
+        for (uint i = 0; i < ops.length; i++) {
+            fee += ops[i].pendingFee;
+        }
+
+
+        return fee;
+    }
 
     function testFuzz_UpdateOperators(bytes32[50] calldata addresses_, uint256[50] calldata amounts_, uint256[50] calldata operatorIds_) external{
         uint256[] memory amounts = new uint256[](50);
@@ -281,20 +293,21 @@ contract RebaserTest is MainMigration {
             }
 
             for (uint i = 1; i < 10; i++) {
-                wrappedOutputProxy.addOperator(owner, vm.toString(i),0, 0);
+                wrappedOutputProxy.addOperator(owner, vm.toString(i),0, 0, 20);
             }
 
             bytes32[] memory inp = new bytes32[](1);
             for (uint i = 0; i < 50; i++) {
                 inp[0] = addresses[i];
                 wrappedOutputProxy.addValidators(inp, operatorIds[i]);
+                wrappedOutputProxy.setValidatorsStatus(inp, true, true);
             }
         vm.stopPrank();
         (uint256 stateChainBalance, uint256 totalOperatorPendingFee) = wrappedRebaserProxy.Harness_updateOperators(amounts, addresses, true);
 
         console.log(stateChainBalance, total, "statechain v. total");
         require(stateChainBalance == total, "testFuzz_UpdateOperators: stateChainBalance != total");
-        require(totalOperatorPendingFee == wrappedRebaserProxy.totalOperatorPendingFee());
+        require(totalOperatorPendingFee ==  _totalOperatorPendingFee());
     }
     /**
      * @notice Ensure that `pendingFee` changes as it should
@@ -432,7 +445,7 @@ contract RebaserTest is MainMigration {
             for (uint i = 1; i < 10; i ++) {
                 initialPendingFee[i] = bound(initialPendingFee_[i], 0, 1_000_000*10**18);
                 amountToClaim[i] = bound(amountToClaim_[i], 0, initialPendingFee[i]);
-                wrappedOutputProxy.addOperator(address(uint160(i)), vm.toString(i),0, 10000);
+                wrappedOutputProxy.addOperator(address(uint160(i)), vm.toString(i),0, 10000, 20);
                 totalPendingFee += initialPendingFee[i];                
                 wrappedRebaserProxy.Harness_updateOperator(initialPendingFee[i], i, true);
             }
@@ -451,7 +464,7 @@ contract RebaserTest is MainMigration {
         IERC20 token;
         for (uint i = 1; i < 10; i++) {
             
-            (,,,,,,feeRecipient,) = wrappedOutputProxy.operators(i);
+            (,,,,,,,feeRecipient,) = wrappedOutputProxy.operators(i);
         
 
             token = receiveFlip[i] ? IERC20(address(flip)) : IERC20(address(stflip));

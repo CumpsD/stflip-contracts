@@ -39,12 +39,13 @@ contract RebaserGasTest is MainMigration {
 
         for (uint i = 1; i < 5; i++) {
             vm.startPrank(owner);
-                wrappedOutputProxy.addOperator(owner, "owner", p.serviceFeeBps, p.validatorFeeBps);
+                wrappedOutputProxy.addOperator(owner, "owner", p.serviceFeeBps, p.validatorFeeBps, 20);
                 for (uint j = 0; j < 5; j++) {
                     inp[j] = keccak256(abi.encodePacked(i, j));
                     // console.logBytes32(inp[j]);
                 }
                 wrappedOutputProxy.addValidators(inp, i);
+                wrappedOutputProxy.setValidatorsStatus(inp, true, true);
             vm.stopPrank();
 
             wrappedOutputProxy.Harness_setOperator(p.staked, p.unstaked, p.serviceFeeBps, p.validatorFeeBps, i);

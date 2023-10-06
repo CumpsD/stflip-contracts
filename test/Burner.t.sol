@@ -139,6 +139,8 @@ contract BurnerTest is MainMigration {
             vm.prank(owner);
                 flip.mint(users[i], amounts[i] );
 
+                console.log(owner);
+
             vm.startPrank(users[i]);
                 flip.approve(address(minter), 2**256 - 1);
                 stflip.approve(address(burner), 2**256 - 1);
