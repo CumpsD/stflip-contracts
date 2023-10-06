@@ -24,7 +24,6 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 contract OutputV1 is Initializable, Ownership {
 
     StateChainGateway public stateChainGateway; // StateChainGateway where FLIP goes for staking and comes from during unstaking
-    BurnerV1 public wrappedBurnerProxy;
     IERC20 public flip;
 
     struct Validator {
@@ -63,7 +62,6 @@ contract OutputV1 is Initializable, Ownership {
      */
     function initialize(address flip_, address burnerProxy_, address gov_,  address manager_, address stateChainGateway_,address rebaser_) initializer public {
         flip = IERC20(flip_);
-        wrappedBurnerProxy = BurnerV1(burnerProxy_);
 
         __AccessControlDefaultAdminRules_init(0, gov_);
         _grantRole(MANAGER_ROLE, gov_);
@@ -72,7 +70,7 @@ contract OutputV1 is Initializable, Ownership {
         stateChainGateway = StateChainGateway(stateChainGateway_);
         
         flip.approve(address(rebaser_), 2**256-1);
-        flip.approve(address(wrappedBurnerProxy), 2**256 - 1);
+        flip.approve(address(burnerProxy_), 2**256 - 1);
         flip.approve(address(stateChainGateway), 2**256 - 1);
         Operator memory operator = Operator(0, 0, 0, 0,false, gov_, gov_,"null");
         operators.push(operator);
