@@ -41,6 +41,11 @@ src
 # Repository Overview
 Chainflip is a cross-chain DEX for performing native cross-chain swaps (swapping ETH -> BTC trustlessly and without wrapping for example). They accomplish this by having a 150 validator network with a threshold signature scheme to control addresses on supported chains. Read more about their project [here](https://docs.chainflip.io/concepts/welcome), although the necessary information to understand StakedFLIP is below. This will start as a high level overview and then become more detailed. StakedFLIP is a liquid staking token for the Chainflip network. Users can stake or purchase (or a combination of the two via the Aggregator!) a greater amount of stFLIP than FLIP given. This FLIP will then be staked to validators. As validators accrue rewards, StakedFLIP will rebase to distribute protocol rewards to holders (stFLIP is always backed 1:1 by stFLIP). There are many similarities to Lido. 
 
+## Introductory Sketch
+This diagram gives a brief overview of how the system works to aid in the understanding of the more detailed description below.
+
+<img src="stflip-sketch-draft.png" width="600"/>
+
 # Contracts
 
 ## stFLIP Token Contract
