@@ -265,7 +265,7 @@ contract RebaserV1 is Initializable, Ownership {
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
-            wrappedMinterProxy.mintStflipFee(msg.sender, amountToClaim);
+            stflip.mint(msg.sender, amountToClaim);
         }
 
         operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
@@ -287,7 +287,7 @@ contract RebaserV1 is Initializable, Ownership {
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
-            wrappedMinterProxy.mintStflipFee(msg.sender, amountToClaim);
+            stflip.mint(msg.sender, amountToClaim);
         }
 
         servicePendingFee -= SafeCast.toUint80(amountToClaim);

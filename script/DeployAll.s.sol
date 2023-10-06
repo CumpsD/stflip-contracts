@@ -132,7 +132,7 @@ contract DeployAll is Script {
                 console.log("initialized output at", address(output));
 
             //initializing minter  
-                wrappedMinterProxy.initialize(address(stflip), address(output), gov, address(flip), address(rebaser));
+                wrappedMinterProxy.initialize(address(stflip), address(output), gov, address(flip));
                 console.log("initialized minter at", address(minter));
                 stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
                 console.log("set stflip minter to", address(minter));

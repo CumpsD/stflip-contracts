@@ -123,6 +123,11 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return true;
     }
 
+    /**
+     * Mint functions
+     * @param to Address to mint to
+     * @param amount Amount to mint
+     */
     function _mint(address to, uint256 amount) internal {
 
         _transfer(address(0), to, amount);
@@ -132,6 +137,17 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         emit Mint(to, amount);
     }
 
+    /**
+     * Internal function to handle transfers/mints/burns
+     * @param from address to decrease balance
+     * @param to address to increase balance
+     * @param amount balance delta
+     * @dev _transferVotingRights handles the checkpointing functionality
+     * within `VotesUpgradeable`. If the `to` or `from` address is zero address
+     * then the function will increment/decrement total supply depending on whether
+     * it is a mint or a burn. If it is just a normal transfer then it will append a new 
+     * checkpoint to the `from` address and the `to` address with their new balances
+     */
     function _transfer(address from, address to, uint256 amount) internal {
         uint256 yamValue = _fragmentToYam(amount);
 
@@ -139,7 +155,6 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
         emit Transfer(from, to, amount);
     }
-    /* - ERC20 functionality - */
 
     /**
     * @dev Transfer tokens to a specified address.
@@ -160,11 +175,22 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return true;
     }
 
+    /**
+     * Burn tokens
+     * @param value Amount to burn
+     * @param refundee Address to burn from
+     */
     function burn(uint256 value, address refundee) external notFrozen onlyRole(BURNER_ROLE) returns (bool) {
         _burn(value, refundee);
         return true;
-    }
+    } 
 
+    /**
+     * Burn tokens
+     * @param value Amount to burn
+     * @param refundee Address to burn from
+     * @dev Only the burner contract can burn tokens.
+     */
     function _burn(uint256 value, address refundee) internal {
         // note, this means as scaling factor grows, dust will be untransferrable.
         // minimum transfer value == yamsScalingFactor / 1e24;

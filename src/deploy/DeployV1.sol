@@ -110,7 +110,7 @@ contract DeployV1 {
                                         address(rebaser))
                                     ;
         //initializing minter  
-        wrappedMinterProxy.initialize(address(stflip), address(output), gov, address(flip), address(rebaser));
+        wrappedMinterProxy.initialize(address(stflip), address(output), gov, address(flip));
         stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
 
         //initializing burner

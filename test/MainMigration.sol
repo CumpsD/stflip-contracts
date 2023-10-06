@@ -185,8 +185,9 @@ contract MainMigration is Test {
                                     address(stateChainGateway),
                                     address(rebaser));
         //initializing minter
-        wrappedMinterProxy.initialize(address(stflip), address(output), owner, address(flip), address(rebaser));
+        wrappedMinterProxy.initialize(address(stflip), address(output), owner, address(flip));
         stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
+        stflip.grantRole(stflip.MINTER_ROLE(), address(rebaser));
 
         //initializing burner
         wrappedBurnerProxy.initialize(address(stflip), owner, address(flip), address(output));

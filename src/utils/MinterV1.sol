@@ -21,7 +21,6 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 contract MinterV1 is Initializable, Ownership {
 
     address public output;
-    address public rebaser;
     
     stFlip public stflip;
     IERC20 public flip;
@@ -30,13 +29,12 @@ contract MinterV1 is Initializable, Ownership {
         _disableInitializers();
     }
 
-    function initialize(address stflip_, address output_, address gov_, address flip_, address rebaser_) initializer public {
+    function initialize(address stflip_, address output_, address gov_, address flip_) initializer public {
         stflip = stFlip(stflip_);
         output = output_;
         __AccessControlDefaultAdminRules_init(0, gov_);
 
         flip = IERC20(flip_);
-        rebaser = rebaser_;
     }
 
     /** Public mint function. Takes FLIP from users and returns stFLIP 1:1
@@ -48,16 +46,6 @@ contract MinterV1 is Initializable, Ownership {
 
         _mint(to, amount);
         return true;
-    }
-
-    
-    /** Called by the rebaser to mint stflip fee
-     * @param to Address to mint stflip to
-     * @param amount Amount of stflip to mint
-     */
-    function mintStflipFee(address to, uint256 amount) external returns (bool) {
-        require(msg.sender == rebaser, "Minter: only rebaser can mint stflip fee");
-        _mint(to, amount);
     }
 
     /** Calls mint on stFLIP contract and emits event
