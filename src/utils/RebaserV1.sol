@@ -50,8 +50,7 @@ contract RebaserV1 is Initializable, Ownership {
     mapping(uint256 => Operator) public operators;
 
     event FeeClaim(address feeRecipient, uint256 amount, bool receivedFlip, uint256 operatorId);
-    event RebaserRebase(uint256 apr, uint256 feeIncrement, uint256 previousSupply, uint256 newSupply);
-    event GovRebase(uint256 apr, uint256 feeIncrement, uint256 previousSupply, uint256 newSupply);
+    event RebaserRebase(uint256 apr, uint256 stateChainBalance, uint256 previousSupply, uint256 newSupply);
 
     constructor () {
         _disableInitializers();
@@ -134,13 +133,11 @@ contract RebaserV1 is Initializable, Ownership {
 
         uint256 newSupply = stateChainBalance + flip.balanceOf(address(wrappedOutputProxy)) - wrappedBurnerProxy.totalPendingBurns() - servicePendingFee - totalOperatorPendingFee_;
         uint256 apr = _validateSupplyChange(timeElapsed, currentSupply, newSupply);
-        uint256 feeIncrement;
         
-        // uint256 newRebaseFactor = newSupply * stflip.internalDecimals() / stflip.initSupply();
         stflip.setRebase(epoch, newSupply * stflip.internalDecimals() / stflip.initSupply(), rebaseInterval);
         lastRebaseTime = SafeCast.toUint32(block.timestamp);
 
-        emit RebaserRebase(apr, feeIncrement, currentSupply, newSupply);
+        emit RebaserRebase(apr, stateChainBalance, currentSupply, newSupply);
     }
 
     /**
