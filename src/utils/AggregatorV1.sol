@@ -20,7 +20,10 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
  * @title Aggregator contract for stFLIP
  * @notice Allows users to stake/unstake optimally allotting users to add a swap 
  * component to their route or instant burn/ normal burn in one tx. Calls 
- * `BurnerV1` to burn, `MinterV1` to mint and `IStableSwap` to swap.
+ * `BurnerV1` to burn, `MinterV1` to mint and `IStableSwap` to swap. After speaking
+ * with the Curve team they have recommended we use the StableSwap pool that will 
+ * be released later this month. https://github.com/curvefi/stableswap-ng/pull/30
+ * This might change some of the function or interfaces with the pool.
  */
 contract AggregatorV1 is Initializable, Ownership {
 
@@ -117,6 +120,13 @@ contract AggregatorV1 is Initializable, Ownership {
     }
 
 
+    /**
+     * Public function for marginal cost
+     * @param pool_ The pool to calculate the marginal cost for. If 0, uses the canonical pool
+     * @param tokenIn The token index for the in token
+     * @param tokenOut Token index for the out token
+     * @param amount The unit to calculate at
+     */
     function marginalCost(address pool_, int128 tokenIn, int128 tokenOut, uint256 amount) external view returns (uint256) {
         address pool = (pool_ == address(0)) ? address(canonicalPool) : pool_;
         return _marginalCost(pool, tokenIn, tokenOut, amount);
