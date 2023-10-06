@@ -41,16 +41,33 @@ contract TokenStorage {
     uint256 public constant BASE = 10**18;
 
     /**
-     * @notice Scaling factor that adjusts everyone's balances
+     * @notice Map of token allowances
      */
-
     mapping (address => mapping (address => uint256)) internal _allowedFragments;
 
+    /**
+     * @notice The last timestamp that `setRebase` was called
+     * @dev Set to uint32 for scaling factor calculations to use 1 ssload
+     */
     uint32 public lastRebaseTimestamp;
+
+    /**
+     * @notice The end of the current rebase increase interval
+     * @dev Set to uint32 for scaling factor calculations to use 1 ssload
+     */
     uint32 public rebaseIntervalEnd;
+
+    /**
+     * @notice The scaling factor at the time of `lastRebaseTimestamp`
+     * @dev Set to uint96 for scaling factor calculations to use 1 ssload
+     */
     uint96 public previousYamScalingFactor;
+
+    /**
+     * @notice The scaling factor at `rebaseIntervalEnd`
+     * @dev Set to uint96 for scaling factor calculations to use 1 ssload
+     */
     uint96 public nextYamScalingFactor;
 
     uint256[45] private __gap;
-
 }
