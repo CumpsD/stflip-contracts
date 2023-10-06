@@ -210,7 +210,7 @@ contract OutputV1 is Initializable, Ownership {
     function redeemValidators(bytes32[] calldata addresses) external onlyRole(MANAGER_ROLE) {
         uint256 amount;
         for (uint i = 0; i < addresses.length; i++) {
-            amount = stateChainGateway.executeRedemption(addresses[i]);
+            (,amount) = stateChainGateway.executeRedemption(addresses[i]);
             operators[validators[addresses[i]].operatorId].unstaked += SafeCast.toUint96(amount);
         }
     }
