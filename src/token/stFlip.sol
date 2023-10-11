@@ -416,6 +416,19 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return "mode=timestamp";
     }
 
+    function balanceOf(address account, uint256 timepoint) external view returns (uint256) {
+        return getPastVotes(account, timepoint);
+    }
+
+    function getVotes(address account, uint256 timepoint) external view returns (uint256) {
+        return getPastVotes(account, timepoint);
+    }
+
+    function totalSupplyAt(uint256 timepoint) external view returns (uint256) {
+        return getPastTotalSupply(timepoint);
+    }
+
+    function delegate(address) external {}
 }
 
 
