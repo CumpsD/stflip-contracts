@@ -24,6 +24,7 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 contract OutputV1 is Initializable, Ownership {
 
     StateChainGateway public stateChainGateway; // StateChainGateway where FLIP goes for staking and comes from during unstaking
+    BurnerV1 public wrappedBurnerProxy;
     IERC20 public flip;
 
     struct Validator {
@@ -75,7 +76,8 @@ contract OutputV1 is Initializable, Ownership {
         _grantRole(MANAGER_ROLE, manager_);
 
         stateChainGateway = StateChainGateway(stateChainGateway_);
-        
+        wrappedBurnerProxy = BurnerV1(burnerProxy_);
+
         flip.approve(address(rebaser_), 2**256-1);
         flip.approve(address(burnerProxy_), 2**256 - 1);
         flip.approve(address(stateChainGateway), 2**256 - 1);
@@ -197,6 +199,8 @@ contract OutputV1 is Initializable, Ownership {
             operators[operatorId_].staked += SafeCast.toUint96(amounts[i]);
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
+
+        require(flip.balanceOf(address(this)) >= wrappedBurnerProxy.totalPendingBurns(), "Output: insufficient funds for burns");
     }
 
     /** Redeems funds from state chain accounts

@@ -122,6 +122,38 @@ contract OutputTest is MainMigration {
         
     }
 
+    function testFuzz_FundValidatorsEndingBalance(bytes32 validatorAddress, uint256 amountToBurn_, uint256 amountToMint_, uint256 amountToFund_ ) external {
+        uint256 amountToMint = bound(amountToMint_, 1, 500_000*10**18);
+        uint256 amountToBurn = bound(amountToBurn_, 0, amountToMint - 1);
+        uint256 amountToFund = bound(amountToFund_, 1, amountToMint);
+
+        uint256 initialFlipBalance = flip.balanceOf(address(wrappedOutputProxy));
+
+        vm.startPrank(owner);
+            flip.mint(owner, amountToMint);
+            wrappedMinterProxy.mint(owner, amountToMint);
+            wrappedBurnerProxy.burn(owner, amountToBurn);
+
+            wrappedOutputProxy.addOperator(owner, "1", 0, 0, 20);
+
+            bytes32[] memory addressInput = new bytes32[](1);
+            addressInput[0] = validatorAddress;
+            wrappedOutputProxy.addValidators(addressInput, 1);
+            wrappedOutputProxy.setValidatorsStatus(addressInput,true, true);
+
+            if (amountToFund > amountToMint + initialFlipBalance - amountToBurn) {
+                vm.expectRevert("Output: insufficient funds for burns");
+            }
+
+            uint256[] memory amountInput = new uint256[](1);
+            amountInput[0] = amountToFund;
+            wrappedOutputProxy.fundValidators(addressInput, amountInput);
+
+            require(flip.balanceOf(address(wrappedOutputProxy)) >= wrappedBurnerProxy.totalPendingBurns());
+        vm.stopPrank();
+
+    }
+
     // /**u
     //  * @notice Fuzz function to test adding validators
     //  * @param validators_ The validators to add
