@@ -228,6 +228,15 @@ contract OutputV1 is Initializable, Ownership {
     }
 
     /**
+     * Set operator whitelist status
+     * @param operatorId Operatorid of relevant operator
+     * @param whitelist Whitelist status to set
+     */
+    function setOperatorWhitelist(uint256 operatorId, bool whitelist) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        operators[operatorId].whitelisted = whitelist;
+    }
+
+    /**
      * Return all validator addresses
      */
     function getValidators() external view returns (bytes32[] memory) {
