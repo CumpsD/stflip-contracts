@@ -160,8 +160,8 @@ contract AggregatorV1 is Initializable, Ownership {
      */
     function calculatePurchasable(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool_, int128 tokenIn, int128 tokenOut) external view returns (uint256) {   
         address pool = pool_ == address(0) ? address(canonicalPool) : pool_;
-        uint256 first = 0;
-        uint256 mid = 0;
+        uint256 first;
+        uint256 mid;
         // this would be the absolute maximum of FLIP spendable, so we can start there
         uint256 last = IStableSwap(pool).balances(uint256(int256(tokenOut)));
         uint256 price;
