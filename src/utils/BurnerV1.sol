@@ -74,9 +74,10 @@ contract BurnerV1 is Initializable, Ownership {
     function redeem(uint256 burnId) external {
         require(_redeemable(burnId), "Burner: not redeemable. either already claimed or insufficient balance");
 
-        flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
         burns[burnId].completed = true;
         redeemed = redeemed + burns[burnId].amount;
+
+        flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
     }
 
     /**

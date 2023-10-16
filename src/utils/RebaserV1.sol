@@ -263,13 +263,13 @@ contract RebaserV1 is Initializable, Ownership {
 
         uint256 amountToClaim = max ? pendingFee : amount;
 
+        operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
+
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
             stflip.mint(msg.sender, amountToClaim);
         }
-
-        operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, operatorId);
     }
@@ -285,13 +285,13 @@ contract RebaserV1 is Initializable, Ownership {
 
         uint256 amountToClaim = max ? servicePendingFee : amount;
 
+        servicePendingFee -= SafeCast.toUint80(amountToClaim);
+
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
             stflip.mint(msg.sender, amountToClaim);
         }
-
-        servicePendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, 0); // consider putting service Fee under operator id zero. consider implications though since all validators will have operator id of zero by default. 
     }
