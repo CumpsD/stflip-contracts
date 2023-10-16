@@ -95,7 +95,7 @@ contract OutputV1 is Initializable, Ownership {
         require(operatorId != 0, "Output: cannot add to null operator");
         uint256 addressesLength = addresses.length;
         operators[operatorId].validatorAllowance -= SafeCast.toUint8(addressesLength);
-        for (uint256 i = 0; i < addressesLength; i++) {
+        for (uint256 i = 0; i < addressesLength; ++i) {
             require(validators[addresses[i]].operatorId == 0, "Output: validator already added");
             validators[addresses[i]].operatorId = SafeCast.toUint8(operatorId);
             validators[addresses[i]].whitelisted = false;
@@ -121,7 +121,7 @@ contract OutputV1 is Initializable, Ownership {
      */
     function setValidatorsStatus(bytes32[] calldata addresses, bool whitelist, bool trackBalance) external onlyRole(DEFAULT_ADMIN_ROLE) {
         uint256 addressesLength = addresses.length;
-        for (uint256 i = 0; i < addressesLength; i++) {
+        for (uint256 i = 0; i < addressesLength; ++i) {
             validators[addresses[i]].whitelisted = whitelist;
             validators[addresses[i]].trackBalance = trackBalance;
         }
@@ -134,7 +134,7 @@ contract OutputV1 is Initializable, Ownership {
      */
     function setValidatorsWhitelist(bytes32[] calldata addresses, bool whitelist) external onlyRole(DEFAULT_ADMIN_ROLE) {
         uint256 addressesLength = addresses.length;
-        for (uint256 i = 0; i < addressesLength; i++) {
+        for (uint256 i = 0; i < addressesLength; ++i) {
             validators[addresses[i]].whitelisted = whitelist;
         }
     }
@@ -147,7 +147,7 @@ contract OutputV1 is Initializable, Ownership {
      */
     function setValidatorsTrackBalance(bytes32[] calldata addresses, bool trackBalance) external onlyRole(DEFAULT_ADMIN_ROLE) {
         uint256 addressesLength = addresses.length;
-        for (uint256 i = 0; i < addressesLength; i++) {
+        for (uint256 i = 0; i < addressesLength; ++i) {
             validators[addresses[i]].trackBalance = trackBalance;
         }
     }
@@ -194,7 +194,7 @@ contract OutputV1 is Initializable, Ownership {
 
         Validator memory validator;
         uint8 operatorId_;
-        for (uint i = 0; i < addressesLength; i++) {
+        for (uint i = 0; i < addressesLength; ++i) {
             validator = validators[addresses[i]];
             operatorId_ = validator.operatorId;
             require(validator.whitelisted == true, "Output: validator not whitelisted");
@@ -215,7 +215,7 @@ contract OutputV1 is Initializable, Ownership {
     function redeemValidators(bytes32[] calldata addresses) external onlyRole(MANAGER_ROLE) {
         uint256 amount;
         uint256 addressesLength = addresses.length;
-        for (uint i = 0; i < addressesLength; i++) {
+        for (uint i = 0; i < addressesLength; ++i) {
             (,amount) = stateChainGateway.executeRedemption(addresses[i]);
             operators[validators[addresses[i]].operatorId].unstaked += SafeCast.toUint96(amount);
         }
@@ -285,7 +285,7 @@ contract OutputV1 is Initializable, Ownership {
     function getValidatorInfo(bytes32[] calldata addresses) external view returns (ValidatorInfo[] memory, uint256, bool) {
         uint256 addressesLength = addresses.length;
         ValidatorInfo[] memory validatorInfo = new ValidatorInfo[](addressesLength);
-        for (uint256 i = 0; i < addressesLength; i++) {
+        for (uint256 i = 0; i < addressesLength; ++i) {
             validatorInfo[i].operatorId = validators[addresses[i]].operatorId;
             validatorInfo[i].trackBalance = validators[addresses[i]].trackBalance;
         }
@@ -304,7 +304,7 @@ contract OutputV1 is Initializable, Ownership {
         uint256 count;
         bytes32[] memory countableAddresses_ = new bytes32[](length);
 
-        for (uint i = 0; i < length; i++) {
+        for (uint i = 0; i < length; ++i) {
             validatorToCheck = validatorAddresses[i];
             if (validators[validatorToCheck].trackBalance == true) {
                 countableAddresses_[count++] = validatorToCheck;
@@ -313,7 +313,7 @@ contract OutputV1 is Initializable, Ownership {
 
         bytes32[] memory countableAddresses = new bytes32[](count);
 
-        for (uint i = 0; i < count; i++) {
+        for (uint i = 0; i < count; ++i) {
             countableAddresses[i] = countableAddresses_[i];
         }
 

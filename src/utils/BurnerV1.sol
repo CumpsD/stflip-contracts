@@ -96,7 +96,7 @@ contract BurnerV1 is Initializable, Ownership {
         uint256 t = 0;
 
         uint256 burnsLength = burns.length;
-        for (uint256 i = 0; i < burnsLength; i++) {
+        for (uint256 i = 0; i < burnsLength; ++i) {
             if (burns[i].user == account) {
                 burnIds[t] = i;
                 t++;
@@ -104,7 +104,7 @@ contract BurnerV1 is Initializable, Ownership {
         }
 
         uint256[] memory filteredBurnIds = new uint256[](t);
-        for (uint256 i = 0; i < t; i++) {
+        for (uint256 i = 0; i < t; ++i) {
             filteredBurnIds[i] = burnIds[i];
         }
 
@@ -131,7 +131,7 @@ contract BurnerV1 is Initializable, Ownership {
         bool[] memory userRedeemables = new bool[](burnIds.length);
 
         uint256 burnsLength = burns.length;
-        for (uint256 i = 0; i < burnsLength; i++) {
+        for (uint256 i = 0; i < burnsLength; ++i) {
             userBurns[i] = burns[burnIds[i]];
             userRedeemables[i] = _redeemable(burnIds[i]);
         }
