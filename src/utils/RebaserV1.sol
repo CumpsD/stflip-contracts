@@ -181,7 +181,8 @@ contract RebaserV1 is Initializable, Ownership {
      * @param operatorId The ID of the operator
      * @param takeFee Whether or not pendingFee should increment
      * @dev Calculates previous balance as total amount staked + total rewards - total unstaked - current slashCounter.
-     * If the actual balance is greater than the current balance this means that there are rewards. The reward increment is 
+     * If the actual balance is greater than the current balance this means that there are rewards. We separate the current
+     * balance into the positive and negative components to account for a possible overflow. The reward increment is 
      * the difference of these two values. We then check that the reward increment is greater than the slashCounter because
      * an operator should not be paid until they earn back a slash. We decrement the slashCounter until its zero and then
      * we increment the pendingFees by a specified percentage of the reward increase. If slashCounter is bigger than reward
@@ -194,16 +195,28 @@ contract RebaserV1 is Initializable, Ownership {
         uint96 unstaked;
         uint16 serviceFeeBps;
         uint16 validatorFeeBps;
-        uint256 previousBalance;
         (staked,unstaked,serviceFeeBps, validatorFeeBps) = wrappedOutputProxy.getOperatorInfo(operatorId);
 
         uint256 slashCounter_ = operators[operatorId].slashCounter;
-        previousBalance = staked + operators[operatorId].rewards - unstaked - slashCounter_;
+        
+        // in actuality, previousBalance = positivePreviousBalanceComponent - negativePreviousBalanceComponent
+        // but, we separate them for the edge case where the negative component exceeds the positive component, which would cause an underflow
+        uint256 positivePreviousBalanceComponent = staked + operators[operatorId].rewards;
+        uint256 negativePreviousBalanceComponent = unstaked + slashCounter_;
 
-        if (operatorBalance >= previousBalance) {
-            rewardIncrement = operatorBalance - previousBalance; 
+        // mathematically equivalent to `if (operatorBalance >= previousBalance)` but we rearrange to account for the underflow possibility mentioned above:
+        // operatorBalance >= previousBalance
+        // operatorBalance >= positivePreviousBalanceComponent - negativePreviousBalanceComponent
+        // operatorBalance + negativePreviousBalanceComponent >= positivePreviousBalanceComponent
+        if (operatorBalance + negativePreviousBalanceComponent >= positivePreviousBalanceComponent) {
+            
+            if (positivePreviousBalanceComponent > negativePreviousBalanceComponent) {
+                rewardIncrement = operatorBalance - (positivePreviousBalanceComponent - negativePreviousBalanceComponent); // default path
+            } else {
+                rewardIncrement = operatorBalance + (negativePreviousBalanceComponent - positivePreviousBalanceComponent); // edge case if operator's entire balance is unstaked
+            }
+
             if (rewardIncrement > slashCounter_) {
-                
                 if (slashCounter_ != 0) {
                     rewardIncrement -= slashCounter_;
                     operators[operatorId].slashCounter = 0; 
@@ -217,11 +230,11 @@ contract RebaserV1 is Initializable, Ownership {
                 operators[operatorId].slashCounter -= SafeCast.toUint88(rewardIncrement);
             }
         } else {
-            operators[operatorId].slashCounter += SafeCast.toUint88(previousBalance - operatorBalance);
+            operators[operatorId].slashCounter += SafeCast.toUint88(positivePreviousBalanceComponent - negativePreviousBalanceComponent - operatorBalance);
         }
         return operators[operatorId].pendingFee;
     }
-
+    
     /**
      * Ensures that the APR of the possible supply change is within reasonable bounds
      * @param timeElapsed unix time since the last rebase
@@ -311,11 +324,3 @@ contract RebaserV1 is Initializable, Ownership {
 
 
 }
-
-
-
-
-
-
-
-
