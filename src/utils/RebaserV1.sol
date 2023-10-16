@@ -161,7 +161,8 @@ contract RebaserV1 is Initializable, Ownership {
         require(addressesEqual, "Rebaser: validator addresses do not match");
         require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        for (uint i = 0; i < validatorInfo.length; i++) {
+        uint256 validatorInfoLength = validatorInfo.length;
+        for (uint i = 0; i < validatorInfoLength; i++) {
             if (validatorInfo[i].trackBalance == true) {
                 operatorBalances[validatorInfo[i].operatorId] += validatorBalances[i];
                 stateChainBalance += validatorBalances[i];
