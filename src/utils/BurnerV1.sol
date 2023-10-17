@@ -50,7 +50,7 @@ contract BurnerV1 is Initializable, Ownership {
         output = output_;
     }
 
-    event Burn(address burner, address recipient, uint256 amount, uint256 burnId); // emits the person who sent burn tx along with the recipient, amount and ID
+    event Burn(address burner, address indexed recipient, uint256 indexed amount, uint256  indexed burnId); // emits the person who sent burn tx along with the recipient, amount and ID
 
     /**
      * @notice Burns stflip tokens, transfers FLIP tokens from msg.sender, adds entry to burns/sums list

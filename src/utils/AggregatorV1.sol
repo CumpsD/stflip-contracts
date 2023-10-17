@@ -59,7 +59,7 @@ contract AggregatorV1 is Initializable, Ownership {
 
     event StakeAggregation (address indexed sender, uint256 indexed swapReceived, uint256 indexed minted);
     event BurnAggregation (address sender, uint256 indexed amountInstantBurn, uint256 indexed amountBurn, uint256 indexed received);
-    event CanonicalPoolChanged(address pool);
+    event CanonicalPoolChanged(address indexed pool);
 
     /**
     * @notice Spends stFLIP for FLIP via swap, instant burn, and unstake request.
