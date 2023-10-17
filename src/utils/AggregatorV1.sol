@@ -77,16 +77,16 @@ contract AggregatorV1 is Initializable, Ownership {
 
         stflip.transferFrom(msg.sender, address(this), total);
         
-        if (amountInstantBurn > 0) {
+        if (amountInstantBurn != 0) {
             uint256 instantBurnId = burner.burn(msg.sender, amountInstantBurn);
             burner.redeem(instantBurnId); 
         }
 
-        if (amountBurn > 0) {
+        if (amountBurn != 0) {
             burner.burn(msg.sender, amountBurn);
         }
 
-        if (amountSwap > 0) {
+        if (amountSwap != 0) {
             swapReceived = canonicalPool.exchange(1, 0, amountSwap, minimumAmountSwapOut, msg.sender);
         }
 
@@ -108,11 +108,11 @@ contract AggregatorV1 is Initializable, Ownership {
         uint256 swapReceived;
         uint256 mintAmount = amountTotal - amountSwap;
 
-        if (amountSwap > 0){
+        if (amountSwap != 0){
             swapReceived = canonicalPool.exchange(0, 1, amountSwap, minimumAmountSwapOut, msg.sender);
         } 
 
-        if (mintAmount > 0) {
+        if (mintAmount != 0) {
             minter.mint(msg.sender, mintAmount);
         }
 
