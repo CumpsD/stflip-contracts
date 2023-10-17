@@ -76,9 +76,9 @@ contract OutputV1 is Initializable, Ownership {
 
         stateChainGateway = StateChainGateway(stateChainGateway_);
         
-        flip.approve(address(rebaser_), 2**256-1);
-        flip.approve(address(burnerProxy_), 2**256 - 1);
-        flip.approve(address(stateChainGateway), 2**256 - 1);
+        flip.approve(address(rebaser_), type(uint256).max);
+        flip.approve(address(burnerProxy_), type(uint256).max);
+        flip.approve(address(stateChainGateway), type(uint256).max);
         Operator memory operator = Operator(0, 0, 0, 0,false, 0, gov_, gov_,"null");
         operators.push(operator);
     }
