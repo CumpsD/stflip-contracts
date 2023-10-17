@@ -61,6 +61,8 @@ contract AggregatorV1 is Initializable, Ownership {
     event BurnAggregation (address sender, uint256 indexed amountInstantBurn, uint256 indexed amountBurn, uint256 indexed received);
     event CanonicalPoolChanged(address pool);
 
+    error NoAttemptsLeft();
+
     /**
     * @notice Spends stFLIP for FLIP via swap, instant burn, and unstake request.
     * @param amountInstantBurn The amount of stFLIP to instant burn
@@ -173,7 +175,7 @@ contract AggregatorV1 is Initializable, Ownership {
         }
 
         while (true) {
-            require(attempts > 0, "Aggregator: no attempts left");
+            if (attempts == 0) revert NoAttemptsLeft();
 
             mid = (last+first) / 2;
             price = _marginalCost(pool, tokenIn, tokenOut, mid);

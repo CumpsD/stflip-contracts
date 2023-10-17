@@ -58,6 +58,14 @@ contract OutputV1 is Initializable, Ownership {
         _disableInitializers();
     }
 
+    error NotManagerOfOperator();
+    error OperatorNotWhitelisted();
+    error CannotAddToNullOperator();
+    error ValidatorAlreadyAdded();
+    error ValidatorNotWhitelisted();
+    error FeesExceedMax();
+    error InputLengthsMustMatch();
+
     /**
      * 
      * @param flip_ The FLIP token address
@@ -90,13 +98,15 @@ contract OutputV1 is Initializable, Ownership {
      * from their manager address. These addresses will not be stakeable initially.
      */
     function addValidators(bytes32[] calldata addresses, uint256 operatorId) external {
-        require(operators[operatorId].manager == msg.sender, "Output: not manager of operator");
-        require(operators[operatorId].whitelisted == true, "Output: operator not whitelisted");
-        require(operatorId != 0, "Output: cannot add to null operator");
+        if (operators[operatorId].manager != msg.sender) revert NotManagerOfOperator();
+        if (operators[operatorId].whitelisted != true) revert OperatorNotWhitelisted();
+        if (operatorId == 0) revert CannotAddToNullOperator();
+
         uint256 addressesLength = addresses.length;
         operators[operatorId].validatorAllowance -= SafeCast.toUint8(addressesLength);
         for (uint256 i; i < addressesLength; ++i) {
-            require(validators[addresses[i]].operatorId == 0, "Output: validator already added");
+            if (validators[addresses[i]].operatorId != 0) revert ValidatorAlreadyAdded();
+
             validators[addresses[i]].operatorId = SafeCast.toUint8(operatorId);
             validators[addresses[i]].whitelisted = false;
             validatorAddresses.push(addresses[i]);
@@ -165,7 +175,8 @@ contract OutputV1 is Initializable, Ownership {
      * address list does not become bloated
      */
     function addOperator(address manager, string calldata name, uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 validatorAllowance) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
+        if (serviceFeeBps + validatorFeeBps > 10000) revert FeesExceedMax();
+
         Operator memory operator = Operator(0, 0, SafeCast.toUint16(serviceFeeBps), SafeCast.toUint16(validatorFeeBps),true, SafeCast.toUint8(validatorAllowance), manager, manager,name);
         operators.push(operator);
     }
@@ -190,15 +201,17 @@ contract OutputV1 is Initializable, Ownership {
      */
     function fundValidators(bytes32[] calldata addresses, uint256[] calldata amounts) external onlyRole(MANAGER_ROLE) {
         uint256 addressesLength = addresses.length;
-        require(addressesLength == amounts.length, "lengths must match");
+        if (addressesLength != amounts.length) revert InputLengthsMustMatch();
 
         Validator memory validator;
         uint8 operatorId_;
         for (uint i; i < addressesLength; ++i) {
             validator = validators[addresses[i]];
             operatorId_ = validator.operatorId;
-            require(validator.whitelisted == true, "Output: validator not whitelisted");
-            require(operators[operatorId_].whitelisted == true, "Output: operator not whitelisted");
+
+            if (validator.whitelisted != true) revert ValidatorNotWhitelisted();
+            if (operators[operatorId_].whitelisted != true) revert OperatorNotWhitelisted();
+
             operators[operatorId_].staked += SafeCast.toUint96(amounts[i]);
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
@@ -227,8 +240,8 @@ contract OutputV1 is Initializable, Ownership {
      * @param validatorFeeBps reward fee to the operator
      */
     function setOperatorFee(uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 operatorId) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
-
+        if (serviceFeeBps + validatorFeeBps > 10000) revert FeesExceedMax();
+        
         operators[operatorId].serviceFeeBps = SafeCast.toUint16(serviceFeeBps);
         operators[operatorId].validatorFeeBps = SafeCast.toUint16(validatorFeeBps);
     }

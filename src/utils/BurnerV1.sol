@@ -52,6 +52,8 @@ contract BurnerV1 is Initializable, Ownership {
 
     event Burn(address burner, address recipient, uint256 amount, uint256 burnId); // emits the person who sent burn tx along with the recipient, amount and ID
 
+    error NotRedeemable();
+
     /**
      * @notice Burns stflip tokens, transfers FLIP tokens from msg.sender, adds entry to burns/sums list
      * @param to, the owner of the burn, the address that will receive the burn once completed
@@ -72,7 +74,7 @@ contract BurnerV1 is Initializable, Ownership {
      * @param burnId, the ID of the burn to redeem.
      */
     function redeem(uint256 burnId) external {
-        require(_redeemable(burnId), "Burner: not redeemable. either already claimed or insufficient balance");
+        if (_redeemable(burnId) == false) revert NotRedeemable();
 
         flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
         burns[burnId].completed = true;
