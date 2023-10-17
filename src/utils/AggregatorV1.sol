@@ -177,7 +177,7 @@ contract AggregatorV1 is Initializable, Ownership {
         while (true) {
             if (attempts == 0) revert NoAttemptsLeft();
 
-            mid = (last+first) / 2;
+            mid = (last+first) >> 1;
             price = _marginalCost(pool, tokenIn, tokenOut, mid);
 
             if (price > targetPrice) {
