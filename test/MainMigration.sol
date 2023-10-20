@@ -59,6 +59,10 @@ contract Harness_RebaserV1 is RebaserV1 {
   function Harness_setPendingFee(uint256 servicePendingFee_) external {
     servicePendingFee = SafeCast.toUint80(servicePendingFee_);
   }
+
+  function Harness_setTotalOperatorPendingFee(uint256 fee) external {
+    totalOperatorPendingFee = SafeCast.toUint80(fee);
+  }
 }
 
 contract Harness_OutputV1 is OutputV1 {

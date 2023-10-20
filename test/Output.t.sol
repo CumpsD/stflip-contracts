@@ -122,12 +122,15 @@ contract OutputTest is MainMigration {
         
     }
 
-    function testFuzz_FundValidatorsEndingBalance(bytes32 validatorAddress, uint256 amountToBurn_, uint256 amountToMint_, uint256 amountToFund_ ) external {
-        uint256 amountToMint = bound(amountToMint_, 1, 500_000*10**18);
-        uint256 amountToBurn = bound(amountToBurn_, 0, amountToMint - 1);
+    function testFuzz_FundValidatorsEndingBalance(bytes32 validatorAddress, uint256 amountToBurn_, uint256 amountToMint_, uint256 amountToFund_, uint80 operatorPendingFee, uint80 servicePendingFee) external {
+        uint256 amountToMint = bound(amountToMint_, uint256(operatorPendingFee) + uint256(servicePendingFee) + 1, 2_500_000*10**18);
+        uint256 amountToBurn = bound(amountToBurn_, 0, amountToMint - operatorPendingFee - servicePendingFee);
         uint256 amountToFund = bound(amountToFund_, 1, amountToMint);
 
         uint256 initialFlipBalance = flip.balanceOf(address(wrappedOutputProxy));
+        
+        wrappedRebaserProxy.Harness_setPendingFee(servicePendingFee);
+        wrappedRebaserProxy.Harness_setTotalOperatorPendingFee(operatorPendingFee);
 
         vm.startPrank(owner);
             flip.mint(owner, amountToMint);
@@ -141,8 +144,15 @@ contract OutputTest is MainMigration {
             wrappedOutputProxy.addValidators(addressInput, 1);
             wrappedOutputProxy.setValidatorsStatus(addressInput,true, true);
 
-            if (amountToFund > amountToMint + initialFlipBalance - amountToBurn) {
-                vm.expectRevert("Output: insufficient funds for burns");
+            console.log("amountToFund", amountToFund);
+            console.log("amountToMint", amountToMint);
+            console.log("initialFlipBalance", initialFlipBalance);
+            console.log("amountToBurn", amountToBurn);
+            console.log("servicePendingFee", servicePendingFee);
+            console.log("operatorPendingFee", operatorPendingFee);
+
+            if (amountToFund > amountToMint + initialFlipBalance - amountToBurn - servicePendingFee - operatorPendingFee) {
+                vm.expectRevert(OutputV1.InsufficientOutputBalance.selector);
             }
 
             uint256[] memory amountInput = new uint256[](1);

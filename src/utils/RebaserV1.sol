@@ -32,6 +32,7 @@ contract RebaserV1 is Initializable, Ownership {
     uint32 public lastRebaseTime;          // uint32 sufficient
     uint32 public rebaseInterval;          // uint32 sufficient
     uint80 public servicePendingFee;       // uint80-88 sufficient
+    uint80 public totalOperatorPendingFee;
 
     BurnerV1 public wrappedBurnerProxy;
     OutputV1 public wrappedOutputProxy;
@@ -171,6 +172,8 @@ contract RebaserV1 is Initializable, Ownership {
         for (operatorId = 1; operatorId < operatorCount; operatorId++) {
             totalOperatorPendingFee_ += _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
         }  
+
+        totalOperatorPendingFee = SafeCast.toUint80(totalOperatorPendingFee_);
 
         return (stateChainBalance, totalOperatorPendingFee_);
     }

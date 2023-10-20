@@ -10,6 +10,7 @@ pragma solidity 0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
 import "../utils/BurnerV1.sol";
+import "../utils/RebaserV1.sol";
 import "../mock/StateChainGateway.sol";
 import "../utils/Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -25,6 +26,7 @@ contract OutputV1 is Initializable, Ownership {
 
     StateChainGateway public stateChainGateway; // StateChainGateway where FLIP goes for staking and comes from during unstaking
     BurnerV1 public wrappedBurnerProxy;
+    RebaserV1 public wrappedRebaserProxy;
     IERC20 public flip;
 
     struct Validator {
@@ -59,6 +61,9 @@ contract OutputV1 is Initializable, Ownership {
         _disableInitializers();
     }
 
+
+    error InsufficientOutputBalance();
+
     /**
      * 
      * @param flip_ The FLIP token address
@@ -77,6 +82,7 @@ contract OutputV1 is Initializable, Ownership {
 
         stateChainGateway = StateChainGateway(stateChainGateway_);
         wrappedBurnerProxy = BurnerV1(burnerProxy_);
+        wrappedRebaserProxy = RebaserV1(rebaser_);
 
         flip.approve(address(rebaser_), 2**256-1);
         flip.approve(address(burnerProxy_), 2**256 - 1);
@@ -200,7 +206,9 @@ contract OutputV1 is Initializable, Ownership {
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
 
-        require(flip.balanceOf(address(this)) >= wrappedBurnerProxy.totalPendingBurns(), "Output: insufficient funds for burns");
+        if (flip.balanceOf(address(this)) < wrappedBurnerProxy.totalPendingBurns() + wrappedRebaserProxy.totalOperatorPendingFee() + wrappedRebaserProxy.servicePendingFee()) {
+            revert InsufficientOutputBalance();
+        }
     }
 
     /** Redeems funds from state chain accounts
