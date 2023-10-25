@@ -78,7 +78,7 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
             addr := mload(add(b, 32))
         }
     }
-
+    
     function _setupGnosisSafe() internal {
         uint256[] memory _owners = new uint256[](5);
         for (uint256 i = 0; i < eoaOwners.length; ++i) {
@@ -187,16 +187,25 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
     function _setupDealAndLockFxs() internal {
         uint256 amount = 100_000e18;
 
+        console.log("stflip.totalSupply() / 10e18", stflip.totalSupply() / 10**18);
+        vm.startPrank(owner);
+            flip.mint(owner, 1_000_000e18);
+            wrappedMinterProxy.mint(accounts[0], 100_000e18);
+        vm.stopPrank();
         // Give FXS balances to every account
         for (uint256 i = 0; i < accounts.length; ++i) {
             // deal(address(flip), accounts[i], amount);
             vm.prank(owner);
-                flip.mint(accounts[i], amount * (100 + i) / 100);
+                flip.mint(accounts[i], amount * (100 - i) / 100);
             vm.startPrank(accounts[i]);
                 flip.approve(address(wrappedMinterProxy), 2** 256 -1 );
-                wrappedMinterProxy.mint(address(accounts[i]), amount * (100 + i) / 100);
+                wrappedMinterProxy.mint(address(accounts[i]), amount * (100 - i) / 100);
             vm.stopPrank();
+            console.log(accounts[i], "has", fxs.balanceOf(accounts[i]));
         }
+
+        console.log("after stflip.totalSupply() / 10e18", stflip.totalSupply() / 10**18);
+
 
         // even distribution of lock time / veFXS balance
         // for (uint256 i = 0; i < accounts.length; ++i) {
@@ -208,11 +217,11 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
         //     assertGt(veFxs.balanceOf(account), amount, "veFXS for an account is always equal to or greater than FXS");
         // }
 
-        // assertGt(
-        //     veFxs.balanceOf(accounts[0]),
-        //     veFxs.balanceOf(accounts[accounts.length - 1]),
-        //     "Descending veFXS balances"
-        // );
+        assertGt(
+            veFxs.balanceOf(accounts[0]),
+            veFxs.balanceOf(accounts[accounts.length - 1]),
+            "Descending veFXS balances"
+        );
     }
 
     function _setupWhaleAccounts() internal {
@@ -352,28 +361,26 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
                 eoaOwners.push(_accounts[i]);
             }
         }
-
         _setupGnosisSafe();
 
-        (address _mockFxs, , ) = deployMockFxs(address(multisig), address(admin));
-        fxs = stFlip(_mockFxs);
+        // (address _mockFxs, , ) = deployMockFxs(address(multisig), address(admin));
+        fxs = stFlip(stflip);
+        veFxs = stFlip(address(stflip));
+        veFxsVotingDelegation = stFlip(address(stflip));
+
+        console.log("total supply", fxs.totalSupply());
         // deal(address(fxs), Constants.FRAX_TREASURY_2, 3_000_000e18);
-        vm.prank(owner);
-            flip.mint(Constants.FRAX_TREASURY_2, 3_000_000e18);
-        vm.startPrank(Constants.FRAX_TREASURY_2);
-            flip.approve(address(minter), 2**256 -1 );
-            wrappedMinterProxy.mint(Constants.FRAX_TREASURY_2, 3_000_000e18);
-        vm.stopPrank();
+        // vm.prank(owner);
+        //     flip.mint(Constants.FRAX_TREASURY_2, 300_000e18);
+        // vm.startPrank(Constants.FRAX_TREASURY_2);
+        //     flip.approve(address(minter), 2**256 -1 );
+        //     wrappedMinterProxy.mint(Constants.FRAX_TREASURY_2, 300_000e18);
+        // vm.stopPrank();
         // STFLIP HERE
         //(address _mockVeFxs, , ) = deployVeFxs(vyperDeployer, _mockFxs);
         // veFxs = IVeFxs(_mockVeFxs);
-
         _setupDeployAndConfigure();
         _setupDealAndLockFxs();
-
-        veFxs = stFlip(address(stflip));
-        veFxs = stFlip(address(stflip));
-        veFxsVotingDelegation = stFlip(address(stflip));
 
         mineBlocks(1);
     }
@@ -475,6 +482,13 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
     }
 
     function dealCreateLockFxs(address account, uint256 amount) public {
+        vm.prank(owner);
+            flip.mint(account, amount);
+        
+        vm.startPrank(account);
+            flip.approve(address(wrappedMinterProxy), 2** 256 -1 );
+            wrappedMinterProxy.mint(account, amount);
+        vm.stopPrank();
         // hoax(Constants.FRAX_TREASURY_2);
         // fxs.transfer(account, amount);
 

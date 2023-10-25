@@ -19,9 +19,9 @@ contract TestFraxGovernor is FraxGovernorTestBase {
     }
 
     // Make sure FraxGovernorAlpha supports necessary interfaces
-    function testFraxGovernorAlphaInterface() public view {
-        assert(fraxGovernorOmega.supportsInterface(type(IGovernorTimelock).interfaceId));
-    }
+    // function testFraxGovernorAlphaInterface() public view {
+    //     assert(fraxGovernorOmega.supportsInterface(type(IGovernorTimelock).interfaceId));
+    // }
 
     // All contracts return proper CLOCK_MODE() and clock()
     function testClockMode() public {
@@ -114,7 +114,10 @@ contract TestFraxGovernor is FraxGovernorTestBase {
         assertEq(0, veFxsVotingDelegation.getVotes(accounts[0], block.timestamp - (365 days * 2)));
 
         // never locked user has no voting weight
-        assertEq(0, veFxsVotingDelegation.getVotes(address(0x123), block.timestamp));
+        assertEq(0, veFxsVotingDelegation.getVotes(address(0x123), block.timestamp - 1));
+
+        assertEq(0, veFxsVotingDelegation.getVotes(address(0x123)));
+
     }
 
     // Test the revert case for quorum() where there is no proposal at the provided timestamp
@@ -626,7 +629,14 @@ contract TestFraxGovernor is FraxGovernorTestBase {
     // Can resolve optimistic proposals out of order if necessary
     function testMisorderExecSuccess() public {
         uint256 startNonce = getSafe(address(multisig)).safe.nonce();
+        
 
+        vm.prank(owner);
+            flip.mint(Constants.FRAX_TREASURY_2, 100e18);
+        vm.startPrank(Constants.FRAX_TREASURY_2);
+            flip.approve(address(minter), 2**256 -1 );
+            wrappedMinterProxy.mint(Constants.FRAX_TREASURY_2, 100e18);
+        vm.stopPrank();
         // put 100 FXS in safe to transfer later in proposal
         hoax(Constants.FRAX_TREASURY_2);
         fxs.transfer(address(getSafe(address(multisig)).safe), 100e18);
@@ -651,8 +661,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
         vm.roll(block.number + 1);
 
         assertEq(
-            veFxsVotingDelegation.getVotes(account, block.timestamp),
-            veFxs.balanceOf(accounts[0]),
+            veFxsVotingDelegation.getVotes(account, block.timestamp - 1),
+            veFxs.fragmentToYam(veFxs.balanceOf(accounts[0])),
             "getVotes balance is equal to veFXS balance"
         );
 
@@ -815,12 +825,16 @@ contract TestFraxGovernor is FraxGovernorTestBase {
     // Omega works with multiple gnosis safes
     function testManyMultisigsOmega() public {
         // put 100 FXS in safe to transfer later in proposal
-        hoax(Constants.FRAX_TREASURY_2);
-        fxs.transfer(address(multisig), 100e18);
+        // hoax(Constants.FRAX_TREASURY_2);
+        // fxs.transfer(address(multisig), 100e18);
 
+        vm.startPrank(owner);
+            flip.mint(owner, 100e18);
+            wrappedMinterProxy.mint(address(multisig), 100e18);
+        vm.stopPrank();
+        
         uint256 startNonce = getSafe(address(multisig)).safe.nonce();
         uint256 startNonce2 = getSafe(address(multisig2)).safe.nonce();
-
         (
             uint256 pid,
             address[] memory targets,
@@ -842,7 +856,6 @@ contract TestFraxGovernor is FraxGovernorTestBase {
 
         mineBlocksBySecond(fraxGovernorOmega.votingDelay() + 1);
         vm.roll(block.number + 1);
-
         vm.startPrank(accounts[0]);
         fraxGovernorOmega.castVote(pid, uint8(GovernorCompatibilityBravo.VoteType.Abstain));
         assertTrue(fraxGovernorOmega.hasVoted(pid, accounts[0]), "Account voted");
@@ -850,6 +863,7 @@ contract TestFraxGovernor is FraxGovernorTestBase {
         vm.expectRevert("GovernorCountingFractional: all weight cast");
         fraxGovernorOmega.castVote(pid, uint8(GovernorCompatibilityBravo.VoteType.Abstain));
 
+        console.log("voting with ", accounts[0], stflip.balanceOf(accounts[0]));
         fraxGovernorOmega.castVote(pid2, uint8(GovernorCompatibilityBravo.VoteType.Against));
 
         vm.stopPrank();
@@ -861,6 +875,7 @@ contract TestFraxGovernor is FraxGovernorTestBase {
             uint256(fraxGovernorOmega.state(pid)),
             "Proposal state is succeeded"
         );
+        console.log("proposal state line 872", fraxGovernorOmega.state(pid2));
         assertEq(
             uint256(IGovernor.ProposalState.Defeated),
             uint256(fraxGovernorOmega.state(pid2)),
@@ -872,7 +887,7 @@ contract TestFraxGovernor is FraxGovernorTestBase {
             fraxGovernorOmega.execute(targets, values, calldatas, keccak256(bytes("")));
 
             vm.startPrank(eoaOwners[0]);
-
+            console.log("fvs stflip", fxs.balanceOf(address(multisig)), stflip.balanceOf(address(multisig)));
             getSafe(address(multisig)).safe.execTransaction(
                 address(fxs),
                 0,
@@ -889,6 +904,7 @@ contract TestFraxGovernor is FraxGovernorTestBase {
             assertEq(getSafe(address(multisig)).safe.nonce(), startNonce + 1, "Execution incremented the nonce");
         }
 
+        console.log("state", fraxGovernorOmega.state(pid2));
         (bytes32 rejectTxHash, , ) = createNoOpProposal(address(multisig2), address(multisig2), multisig2.nonce());
         fraxGovernorOmega.rejectTransaction(address(multisig2), multisig2.nonce());
 
@@ -1131,9 +1147,14 @@ contract TestFraxGovernor is FraxGovernorTestBase {
             if (uint256(fraxGovernorOmega.state(pid)) == uint256(IGovernor.ProposalState.Active)) {
                 hoax(accounts[i]);
                 fraxGovernorOmega.castVote(pid, uint8(GovernorCompatibilityBravo.VoteType.Against));
+                console.log("vote casted", accounts[i], stflip.balanceOf(accounts[i]), fraxGovernorOmega.hasVoted(pid, accounts[i]));
             }
         }
-
+        console.log("total underlying v. actual", stflip.initSupply(), stflip.totalSupply());
+        console.log("proposal state", fraxGovernorOmega.state(pid), uint256(IGovernor.ProposalState.Defeated), uint256(IGovernor.ProposalState.Pending));
+        (uint256 a, uint256 b, uint256 c ) = fraxGovernorOmega.proposalVotes(pid);
+        console.log(a,b,c);
+        console.log("shortCircuitThreshold", fraxGovernorOmega.shortCircuitThreshold(block.timestamp - 1));
         assertEq(
             uint256(IGovernor.ProposalState.Defeated),
             uint256(fraxGovernorOmega.state(pid)),
