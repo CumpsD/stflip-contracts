@@ -273,6 +273,7 @@ contract RebaserV1 is Initializable, Ownership {
         }
 
         operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
+        totalOperatorPendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, operatorId);
     }

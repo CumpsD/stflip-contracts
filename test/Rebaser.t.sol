@@ -443,11 +443,12 @@ contract RebaserTest is MainMigration {
         uint256 totalPendingFee;
         vm.startPrank(owner);
             for (uint i = 1; i < 10; i ++) {
-                initialPendingFee[i] = bound(initialPendingFee_[i], 0, 1_000_000*10**18);
+                initialPendingFee[i] = bound(initialPendingFee_[i], 0, 100_000*10**18);
                 amountToClaim[i] = bound(amountToClaim_[i], 0, initialPendingFee[i]);
                 wrappedOutputProxy.addOperator(address(uint160(i)), vm.toString(i),0, 10000, 20);
                 totalPendingFee += initialPendingFee[i];                
                 wrappedRebaserProxy.Harness_updateOperator(initialPendingFee[i], i, true);
+                wrappedRebaserProxy.Harness_setTotalOperatorPendingFee(wrappedRebaserProxy.totalOperatorPendingFee() + initialPendingFee[i]);
             }
             flip.mint(owner, 1_000_000*10**18);
             wrappedMinterProxy.mint(owner,1_000_000*10**18);
