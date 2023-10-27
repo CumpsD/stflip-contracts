@@ -1307,7 +1307,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                                                             fraxGovernorOmega,
                                                             address(this),
                                                             address(fraxGovernorOmega),
-                                                            abi.encodeWithSignature("updateQuorumNumerator(uint256)", omegaQuorum + 1)
+                                                            abi.encodeWithSignature("updateQuorumNumerator(uint256)", omegaQuorum + 1),
+                                                            getSafe(address(multisig)).safe.nonce()
                                                         );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -1493,7 +1494,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                                                         fraxGovernorOmega,
                                                         address(this),
                                                         address(fraxGovernorOmega),
-                                                        abi.encodeWithSignature("updateShortCircuitNumerator(uint256)", omegaShortCircuitThreshold + 1)
+                                                        abi.encodeWithSignature("updateShortCircuitNumerator(uint256)", omegaShortCircuitThreshold + 1),
+                                                        getSafe(address(multisig)).safe.nonce()
                                                     );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -1579,7 +1581,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSignature("updateShortCircuitNumerator(uint256)", omegaDenom + 1)
+                    abi.encodeWithSignature("updateShortCircuitNumerator(uint256)", omegaDenom + 1),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -1672,7 +1675,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSignature("setVeFxsVotingDelegation(address)", newVotingDelegation)
+                    abi.encodeWithSignature("setVeFxsVotingDelegation(address)", newVotingDelegation),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -1766,7 +1770,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSignature("setVotingDelay(uint256)", omegaVotingDelay + 1)
+                    abi.encodeWithSignature("setVotingDelay(uint256)", omegaVotingDelay + 1),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -1860,7 +1865,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSignature("setVotingDelayBlocks(uint256)", omegaVotingDelayBlocks + 1)
+                    abi.encodeWithSignature("setVotingDelayBlocks(uint256)", omegaVotingDelayBlocks + 1),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -1954,7 +1960,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSignature("setVotingPeriod(uint256)", omegaVotingPeriod + 1)
+                    abi.encodeWithSignature("setVotingPeriod(uint256)", omegaVotingPeriod + 1),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2008,7 +2015,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                         "setSafeVotingPeriod(address,uint256)",
                         address(multisig),
                         newSafeVotingPeriod
-                    )
+                    ),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2128,7 +2136,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSignature("setProposalThreshold(uint256)", omegaProposalThreshold - 1)
+                    abi.encodeWithSignature("setProposalThreshold(uint256)", omegaProposalThreshold - 1),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2179,7 +2188,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSelector(IFraxGovernorOmega.addToSafeAllowlist.selector, _safeAllowlist)
+                    abi.encodeWithSelector(IFraxGovernorOmega.addToSafeAllowlist.selector, _safeAllowlist),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2226,7 +2236,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSelector(IFraxGovernorOmega.addToSafeAllowlist.selector, _safeAllowlist)
+                    abi.encodeWithSelector(IFraxGovernorOmega.addToSafeAllowlist.selector, _safeAllowlist),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
         mineBlocksBySecond(fraxGovernorOmega.votingDelay() + 1);
@@ -2276,7 +2287,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSelector(IFraxGovernorOmega.removeFromSafeAllowlist.selector, _safesToRemove)
+                    abi.encodeWithSelector(IFraxGovernorOmega.removeFromSafeAllowlist.selector, _safesToRemove),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2324,7 +2336,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     fraxGovernorOmega,
                     address(this),
                     address(fraxGovernorOmega),
-                    abi.encodeWithSelector(IFraxGovernorOmega.removeFromSafeAllowlist.selector, _safesToRemove)
+                    abi.encodeWithSelector(IFraxGovernorOmega.removeFromSafeAllowlist.selector, _safesToRemove),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2382,7 +2395,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     abi.encodeWithSelector(
                         IFraxGovernorOmega.addToDelegateCallAllowlist.selector,
                         _delegateCallAllowlist
-                    )
+                    ),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2433,7 +2447,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     abi.encodeWithSelector(
                         IFraxGovernorOmega.addToDelegateCallAllowlist.selector,
                         _delegateCallAllowlist
-                    )
+                    ),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2482,7 +2497,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     abi.encodeWithSelector(
                         IFraxGovernorOmega.removeFromDelegateCallAllowlist.selector,
                         _delegateCallToRemove
-                    )
+                    ),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 
@@ -2530,7 +2546,8 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                     abi.encodeWithSelector(
                         IFraxGovernorOmega.removeFromDelegateCallAllowlist.selector,
                         _delegateCallToRemove
-                    )
+                    ),
+                    getSafe(address(multisig)).safe.nonce()
                 );
         GenericOptimisticProposalReturn memory ret = createGenericOptimisticProposal(params);
 

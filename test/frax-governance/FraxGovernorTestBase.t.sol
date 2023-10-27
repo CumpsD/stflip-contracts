@@ -552,7 +552,7 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
             data,
             Enum.Operation.Call,
             0,
-            0,
+            0,   
             0,
             payable(address(0)),
             payable(address(0)),
@@ -730,6 +730,7 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
         address caller;
         address to; // address to call
         bytes _txdata;
+        uint256 nonce;
     }
 
     struct GenericOptimisticProposalReturn {
@@ -754,7 +755,7 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
             0,
             address(0),
             address(0),
-            getSafe(params._safe).safe.nonce()
+            params.nonce //getSafe(params._safe).safe.nonce()
         );
         ret.txHash = keccak256(txData);
         IFraxGovernorOmega.TxHashArgs memory args = IFraxGovernorOmega.TxHashArgs(
@@ -767,7 +768,7 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
             0,
             address(0),
             address(0),
-            getSafe(params._safe).safe.nonce()
+            params.nonce //getSafe(params._safe).safe.nonce()
         );
 
         (ret.pid, ret.targets, ret.values, ret.calldatas) = optimisticTxProposalHash(params._safe, params._fraxGovernorOmega, txData);
@@ -791,10 +792,32 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
             description: ""
         });
         vm.expectEmit(true, true, true, true);
-        emit TransactionProposed(params._safe, getSafe(params._safe).safe.nonce(), ret.txHash, ret.pid);
+        emit TransactionProposed(params._safe, params.nonce, ret.txHash, ret.pid);
         params._fraxGovernorOmega.addTransaction(address(params._safe), args, generateEoaSigs(3, ret.txHash));
         console.log("adding txhash");
         console.logBytes32(ret.txHash);
+    }
+
+    function createAndExecuteOptimisticProposal(
+        GenericOptimisticProposalParams memory params
+    ) public returns (GenericOptimisticProposalReturn memory ret) {
+        ret = createGenericOptimisticProposal(params);
+        mineBlocksBySecond(params._fraxGovernorOmega.votingDelay() + params._fraxGovernorOmega.votingPeriod()+ 1);
+        fraxGovernorOmega.execute(ret.targets, ret.values, ret.calldatas , keccak256(bytes("")));
+        
+        vm.prank(eoaOwners[0]);
+            getSafe(address(params._safe)).safe.execTransaction(
+                address(params.to),
+                0,
+                params._txdata,
+                Enum.Operation.Call,
+                0,
+                0,
+                0,
+                address(0),
+                payable(address(0)),
+                generateEoaSigs(3, ret.txHash)
+            );
     }
 
     function genericAlphaSafeProposalData(
