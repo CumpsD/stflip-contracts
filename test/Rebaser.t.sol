@@ -183,21 +183,23 @@ contract RebaserTest is MainMigration {
         uint256 serviceFeeBps;
         uint256 validatorFeeBps;
         uint256 rewards;
+        uint256 newRewards;
         uint256 slashCounter;
         uint256 operatorId;
         uint256 operatorBalance;
-        uint256 initialBalance;
+        int256 initialBalance;
         uint256 initialTotalOperatorPendingFee;
         uint256 initialServicePendingFee;
     }
-    function testFuzz_UpdateOperator(uint256 staked_, uint256 unstaked_, uint256 slashCounter_, uint256 rewards_, uint256 serviceFeeBps_, uint256 validatorFeeBps_, uint256 operatorBalance_, bool takeFee) public {
+    function testFuzz_UpdateOperator(uint256 staked_, uint256 unstaked_, uint256 slashCounter_, uint256 rewards_, uint256 newRewards_, uint256 serviceFeeBps_, uint256 validatorFeeBps_, uint256 operatorBalance_, bool takeFee) public {
         Params memory p;
         p.rewards = bound(rewards_, 0, 100_000 * 10**18);
+        p.newRewards = bound(newRewards_, 0, 10_000 * 10**18);
         p.slashCounter = bound(slashCounter_, 0, 100_000 * 10**18);
-        uint256 minStaked = p.slashCounter > p.rewards ? p.slashCounter - p.rewards : 0;
+        uint256 minStaked = p.slashCounter > p.rewards + p.newRewards ? p.slashCounter - p.rewards - p.newRewards : 0;
         p.staked = bound(staked_,minStaked, 1_000_000 * 10**18);
 
-        p.unstaked = bound(unstaked_, 0, p.staked + p.rewards - p.slashCounter );
+        p.unstaked = bound(unstaked_, 0, p.staked + p.rewards + p.newRewards - p.slashCounter );
 
         p.serviceFeeBps = bound(serviceFeeBps_, 0, 10000);
         p.validatorFeeBps = bound(validatorFeeBps_, 0, 10000 - p.serviceFeeBps);
@@ -212,7 +214,7 @@ contract RebaserTest is MainMigration {
         console.log(p.staked, p.unstaked, p.rewards, p.slashCounter);
 
         // uint256 initialBalance = (staked - (unstaked - rewards)) - slashCounter;
-        p.initialBalance = p.staked + p.rewards - p.unstaked - p.slashCounter;
+        p.initialBalance = int256(p.staked) + int256(p.rewards) - int256(p.unstaked) - int256(p.slashCounter);
         // balance = staked - unstaked
         // balance - rewards = staked - unstaked
         // balance = staked - unstaked + rewards
@@ -233,8 +235,8 @@ contract RebaserTest is MainMigration {
         console.log("operatorbalance", p.operatorBalance);
         wrappedRebaserProxy.Harness_updateOperator(p.operatorBalance, 1, takeFee);
         (rewards, pendingFee,slashCounter) = wrappedRebaserProxy.operators(1); 
-        if (p.operatorBalance >= p.initialBalance) {
-            increment = p.operatorBalance - p.initialBalance;
+        if (int256(p.operatorBalance) >= p.initialBalance) {
+            increment = uint256(int256(p.operatorBalance) - p.initialBalance);
 
             if (increment > p.slashCounter) {
                 increment -= p.slashCounter;
@@ -257,7 +259,8 @@ contract RebaserTest is MainMigration {
                 require(rebaserOperator.pendingFee == pendingFee, "testFuzz_UpdateOperator: pendingFee != expected");
             }
         } else {
-            increment = p.initialBalance - p.operatorBalance;
+            increment = uint256(p.initialBalance - int256(p.operatorBalance));
+            require(p.initialBalance > 0, "testFuzz_UpdateOperator: initialBalance == 0");
             require(rebaserOperator.slashCounter + increment == slashCounter, "testFuzz_UpdateOperator: slash counter != expected");
             require(rebaserOperator.rewards == rewards, "testFuzz_UpdateOperator: rewards != expected");
             require(rebaserOperator.pendingFee == pendingFee, "testFuzz_UpdateOperator: pendingFee != expected");
