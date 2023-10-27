@@ -76,9 +76,10 @@ contract BurnerV1 is Initializable, Ownership {
     function redeem(uint256 burnId) external {
         if (_redeemable(burnId) == false) revert NotRedeemable();
 
-        flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
         burns[burnId].completed = true;
         redeemed = redeemed + burns[burnId].amount;
+
+        flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
     }
 
     /**
