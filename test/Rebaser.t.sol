@@ -30,7 +30,7 @@ contract RebaserTest is MainMigration {
         uint256[] memory validatorBalances = new uint256[](0);
         bytes32[] memory addresses = new bytes32[](0);
         vm.prank(manager);
-        vm.expectRevert("Rebaser: rebase too soon");
+        vm.expectRevert(RebaserV1.RebaseTooSoon.selector);
         
 
         wrappedRebaserProxy.rebase(1, validatorBalances, addresses, true);
@@ -98,7 +98,7 @@ contract RebaserTest is MainMigration {
 
         vm.startPrank(owner);
             flip.mint(address(output), rewards);
-            vm.expectRevert("Rebaser: apr too high");
+            vm.expectRevert(RebaserV1.AprTooHigh.selector);
             wrappedRebaserProxy.rebase(1, validatorBalances, addresses, takeFee);
         vm.stopPrank();
     }
@@ -128,7 +128,7 @@ contract RebaserTest is MainMigration {
 
 
         vm.prank(owner);
-            vm.expectRevert("Rebaser: supply decrease too high");
+            vm.expectRevert(RebaserV1.SupplyDecreaseTooHigh.selector);
             wrappedRebaserProxy.rebase(1,validatorBalances, addresses, true);
     }
 

@@ -51,6 +51,14 @@ contract RebaserV1 is Initializable, Ownership {
     event FeeClaim(address feeRecipient, uint256 indexed amount, bool indexed receivedFlip, uint256 indexed operatorId);
     event RebaserRebase(uint256 indexed apr, uint256 indexed stateChainBalance, uint256 previousSupply, uint256 indexed newSupply);
 
+    error RebaseTooSoon();
+    error AprTooHigh();
+    error SupplyDecreaseTooHigh();
+    error ValidatorAddressesDoNotMatch();
+    error InputLengthsMustMatch();
+    error ExcessiveFeeClaim();
+    error NotFeeRecipientOrManager();
+
     constructor () {
         _disableInitializers();
     }
@@ -124,8 +132,8 @@ contract RebaserV1 is Initializable, Ownership {
      */
     function rebase (uint256 epoch, uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) external onlyRole(MANAGER_ROLE) {
         uint256 timeElapsed = block.timestamp - lastRebaseTime;
-        require(timeElapsed >= rebaseInterval, "Rebaser: rebase too soon");
-        require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
+        if (timeElapsed < rebaseInterval) revert RebaseTooSoon();
+        if (validatorBalances.length != addresses.length) revert InputLengthsMustMatch();
 
         (uint256 stateChainBalance, uint256 totalOperatorPendingFee_) = _updateOperators(validatorBalances, addresses, takeFee);
         uint256 currentSupply = stflip.totalSupply();
@@ -158,10 +166,12 @@ contract RebaserV1 is Initializable, Ownership {
         (OutputV1.ValidatorInfo[] memory validatorInfo, uint256 operatorCount, bool addressesEqual) = wrappedOutputProxy.getValidatorInfo(addresses);
         uint256[] memory operatorBalances = new uint256[](operatorCount);
 
-        require(addressesEqual, "Rebaser: validator addresses do not match");
-        require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        for (uint i = 0; i < validatorInfo.length; i++) {
+        if (addressesEqual == false) revert ValidatorAddressesDoNotMatch();
+        if (validatorBalances.length != addresses.length) revert InputLengthsMustMatch();
+
+        uint256 validatorInfoLength = validatorInfo.length;
+        for (uint i; i < validatorInfoLength; ++i) {
             if (validatorInfo[i].trackBalance == true) {
                 operatorBalances[validatorInfo[i].operatorId] += validatorBalances[i];
                 stateChainBalance += validatorBalances[i];
@@ -232,9 +242,10 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 apr;
         if (newSupply > currentSupply){
             apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
-            require(apr + 1 < aprThresholdBps, "Rebaser: apr too high");
+
+            if (apr + 1 >= aprThresholdBps) revert AprTooHigh();
         } else {
-            require(10000 - (newSupply * 10000 / currentSupply) < slashThresholdBps, "Rebaser: supply decrease too high");
+            if (10000 - (newSupply * 10000 / currentSupply) >= slashThresholdBps) revert SupplyDecreaseTooHigh();
         }
 
         return apr;
@@ -258,8 +269,8 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 pendingFee = operators[operatorId].pendingFee;
         (manager,feeRecipient) = wrappedOutputProxy.getOperatorAddresses(operatorId);
         
-        require(max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
-        require(msg.sender == feeRecipient || msg.sender == manager, "Rebaser: not fee recipient or manager");
+        if (max == false && amount > pendingFee) revert ExcessiveFeeClaim();
+        if (msg.sender != feeRecipient && msg.sender != manager) revert NotFeeRecipientOrManager();
 
         uint256 amountToClaim = max ? pendingFee : amount;
 
@@ -281,7 +292,7 @@ contract RebaserV1 is Initializable, Ownership {
      * @param receiveFlip Whether to receive the fee in flip or stflip
      */
     function claimServiceFee(uint256 amount, bool max, bool receiveFlip) external onlyRole(FEE_RECIPIENT_ROLE) {
-        require(max == true || amount <= servicePendingFee, "Rebaser: fee claim requested exceeds pending fees");
+        if (max == false && amount > servicePendingFee) revert ExcessiveFeeClaim();
 
         uint256 amountToClaim = max ? servicePendingFee : amount;
 

@@ -58,6 +58,14 @@ contract OutputV1 is Initializable, Ownership {
         _disableInitializers();
     }
 
+    error NotManagerOfOperator();
+    error OperatorNotWhitelisted();
+    error CannotAddToNullOperator();
+    error ValidatorAlreadyAdded();
+    error ValidatorNotWhitelisted();
+    error FeesExceedMax();
+    error InputLengthsMustMatch();
+
     /**
      * 
      * @param flip_ The FLIP token address
@@ -90,12 +98,15 @@ contract OutputV1 is Initializable, Ownership {
      * from their manager address. These addresses will not be stakeable initially.
      */
     function addValidators(bytes32[] calldata addresses, uint256 operatorId) external {
-        require(operators[operatorId].manager == msg.sender, "Output: not manager of operator");
-        require(operators[operatorId].whitelisted == true, "Output: operator not whitelisted");
-        require(operatorId != 0, "Output: cannot add to null operator");
-        operators[operatorId].validatorAllowance -= SafeCast.toUint8(addresses.length);
-        for (uint256 i = 0; i < addresses.length; i++) {
-            require(validators[addresses[i]].operatorId == 0, "Output: validator already added");
+        if (operators[operatorId].manager != msg.sender) revert NotManagerOfOperator();
+        if (operators[operatorId].whitelisted != true) revert OperatorNotWhitelisted();
+        if (operatorId == 0) revert CannotAddToNullOperator();
+
+        uint256 addressesLength = addresses.length;
+        operators[operatorId].validatorAllowance -= SafeCast.toUint8(addressesLength);
+        for (uint256 i; i < addressesLength; ++i) {
+            if (validators[addresses[i]].operatorId != 0) revert ValidatorAlreadyAdded();
+
             validators[addresses[i]].operatorId = SafeCast.toUint8(operatorId);
             validators[addresses[i]].whitelisted = false;
             validatorAddresses.push(addresses[i]);
@@ -119,7 +130,8 @@ contract OutputV1 is Initializable, Ownership {
      * that needs to be counted. 
      */
     function setValidatorsStatus(bytes32[] calldata addresses, bool whitelist, bool trackBalance) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        for (uint256 i = 0; i < addresses.length; i++) {
+        uint256 addressesLength = addresses.length;
+        for (uint256 i; i < addressesLength; ++i) {
             validators[addresses[i]].whitelisted = whitelist;
             validators[addresses[i]].trackBalance = trackBalance;
         }
@@ -131,7 +143,8 @@ contract OutputV1 is Initializable, Ownership {
      * @param whitelist The whitelist status to set
      */
     function setValidatorsWhitelist(bytes32[] calldata addresses, bool whitelist) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        for (uint256 i = 0; i < addresses.length; i++) {
+        uint256 addressesLength = addresses.length;
+        for (uint256 i; i < addressesLength; ++i) {
             validators[addresses[i]].whitelisted = whitelist;
         }
     }
@@ -143,7 +156,8 @@ contract OutputV1 is Initializable, Ownership {
      * @dev We should never have to use this function.  
      */
     function setValidatorsTrackBalance(bytes32[] calldata addresses, bool trackBalance) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        for (uint256 i = 0; i < addresses.length; i++) {
+        uint256 addressesLength = addresses.length;
+        for (uint256 i; i < addressesLength; ++i) {
             validators[addresses[i]].trackBalance = trackBalance;
         }
     }
@@ -161,7 +175,8 @@ contract OutputV1 is Initializable, Ownership {
      * address list does not become bloated
      */
     function addOperator(address manager, string calldata name, uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 validatorAllowance) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
+        if (serviceFeeBps + validatorFeeBps > 10000) revert FeesExceedMax();
+
         Operator memory operator = Operator(0, 0, SafeCast.toUint16(serviceFeeBps), SafeCast.toUint16(validatorFeeBps),true, SafeCast.toUint8(validatorAllowance), manager, manager,name);
         operators.push(operator);
     }
@@ -185,15 +200,18 @@ contract OutputV1 is Initializable, Ownership {
      * validators as possible.
      */
     function fundValidators(bytes32[] calldata addresses, uint256[] calldata amounts) external onlyRole(MANAGER_ROLE) {
-        require(addresses.length == amounts.length, "lengths must match");
+        uint256 addressesLength = addresses.length;
+        if (addressesLength != amounts.length) revert InputLengthsMustMatch();
 
         Validator memory validator;
         uint8 operatorId_;
-        for (uint i = 0; i < addresses.length; i++) {
+        for (uint i; i < addressesLength; ++i) {
             validator = validators[addresses[i]];
             operatorId_ = validator.operatorId;
-            require(validator.whitelisted == true, "Output: validator not whitelisted");
-            require(operators[operatorId_].whitelisted == true, "Output: operator not whitelisted");
+
+            if (validator.whitelisted != true) revert ValidatorNotWhitelisted();
+            if (operators[operatorId_].whitelisted != true) revert OperatorNotWhitelisted();
+
             operators[operatorId_].staked += SafeCast.toUint96(amounts[i]);
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
@@ -209,7 +227,8 @@ contract OutputV1 is Initializable, Ownership {
      */
     function redeemValidators(bytes32[] calldata addresses) external onlyRole(MANAGER_ROLE) {
         uint256 amount;
-        for (uint i = 0; i < addresses.length; i++) {
+        uint256 addressesLength = addresses.length;
+        for (uint i; i < addressesLength; ++i) {
             (,amount) = stateChainGateway.executeRedemption(addresses[i]);
             operators[validators[addresses[i]].operatorId].unstaked += SafeCast.toUint96(amount);
         }
@@ -221,8 +240,8 @@ contract OutputV1 is Initializable, Ownership {
      * @param validatorFeeBps reward fee to the operator
      */
     function setOperatorFee(uint256 serviceFeeBps, uint256 validatorFeeBps, uint256 operatorId) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(serviceFeeBps + validatorFeeBps <= 10000, "Output: fees must be less than 100%");
-
+        if (serviceFeeBps + validatorFeeBps > 10000) revert FeesExceedMax();
+        
         operators[operatorId].serviceFeeBps = SafeCast.toUint16(serviceFeeBps);
         operators[operatorId].validatorFeeBps = SafeCast.toUint16(validatorFeeBps);
     }
@@ -277,8 +296,9 @@ contract OutputV1 is Initializable, Ownership {
      * during the rebase calculation
      */
     function getValidatorInfo(bytes32[] calldata addresses) external view returns (ValidatorInfo[] memory, uint256, bool) {
-        ValidatorInfo[] memory validatorInfo = new ValidatorInfo[](addresses.length);
-        for (uint256 i = 0; i < addresses.length; i++) {
+        uint256 addressesLength = addresses.length;
+        ValidatorInfo[] memory validatorInfo = new ValidatorInfo[](addressesLength);
+        for (uint256 i; i < addressesLength; ++i) {
             validatorInfo[i].operatorId = validators[addresses[i]].operatorId;
             validatorInfo[i].trackBalance = validators[addresses[i]].trackBalance;
         }
@@ -297,7 +317,7 @@ contract OutputV1 is Initializable, Ownership {
         uint256 count;
         bytes32[] memory countableAddresses_ = new bytes32[](length);
 
-        for (uint i = 0; i < length; i++) {
+        for (uint i; i < length; ++i) {
             validatorToCheck = validatorAddresses[i];
             if (validators[validatorToCheck].trackBalance == true) {
                 countableAddresses_[count++] = validatorToCheck;
@@ -306,7 +326,7 @@ contract OutputV1 is Initializable, Ownership {
 
         bytes32[] memory countableAddresses = new bytes32[](count);
 
-        for (uint i = 0; i < count; i++) {
+        for (uint i; i < count; ++i) {
             countableAddresses[i] = countableAddresses_[i];
         }
 
