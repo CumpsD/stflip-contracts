@@ -48,18 +48,18 @@ contract AggregatorV1 is Initializable, Ownership {
         // giving infinite approvals to the curve pool and the minter
         
         if (liquidityPool_ != address(0)) {
-            flip.approve(address(liquidityPool_), 2**256-1);
+            flip.approve(address(liquidityPool_), type(uint256).max);
         }
-        flip.approve(address(minter), 2**256-1);
-        stflip.approve(address(burner), 2**256-1);
-        stflip.approve(address(liquidityPool_), 2**256-1);
+        flip.approve(address(minter), type(uint256).max);
+        stflip.approve(address(burner), type(uint256).max);
+        stflip.approve(address(liquidityPool_), type(uint256).max);
 
         __AccessControlDefaultAdminRules_init(0, gov_);
     }
 
     event StakeAggregation (address indexed sender, uint256 indexed swapReceived, uint256 indexed minted);
     event BurnAggregation (address sender, uint256 indexed amountInstantBurn, uint256 indexed amountBurn, uint256 indexed received);
-    event CanonicalPoolChanged(address pool);
+    event CanonicalPoolChanged(address indexed pool);
 
     /**
     * @notice Spends stFLIP for FLIP via swap, instant burn, and unstake request.
@@ -211,8 +211,8 @@ contract AggregatorV1 is Initializable, Ownership {
 
         canonicalPool = IStableSwap(pool_);
 
-        flip.approve(address(canonicalPool), 2**256 - 1);
-        stflip.approve(address(canonicalPool), 2**256 - 1);
+        flip.approve(address(canonicalPool), type(uint256).max);
+        stflip.approve(address(canonicalPool), type(uint256).max);
 
         emit CanonicalPoolChanged(pool_);
     }

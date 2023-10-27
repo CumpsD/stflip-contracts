@@ -48,8 +48,8 @@ contract RebaserV1 is Initializable, Ownership {
 
     mapping(uint256 => Operator) public operators;
 
-    event FeeClaim(address feeRecipient, uint256 amount, bool receivedFlip, uint256 operatorId);
-    event RebaserRebase(uint256 apr, uint256 stateChainBalance, uint256 previousSupply, uint256 newSupply);
+    event FeeClaim(address feeRecipient, uint256 indexed amount, bool indexed receivedFlip, uint256 indexed operatorId);
+    event RebaserRebase(uint256 indexed apr, uint256 indexed stateChainBalance, uint256 previousSupply, uint256 indexed newSupply);
 
     constructor () {
         _disableInitializers();
