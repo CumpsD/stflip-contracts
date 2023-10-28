@@ -49,8 +49,16 @@ contract RebaserV1 is Initializable, Ownership {
 
     mapping(uint256 => Operator) public operators;
 
-    event FeeClaim(address feeRecipient, uint256 amount, bool receivedFlip, uint256 operatorId);
-    event RebaserRebase(uint256 apr, uint256 stateChainBalance, uint256 previousSupply, uint256 newSupply);
+    event FeeClaim(address feeRecipient, uint256 indexed amount, bool indexed receivedFlip, uint256 indexed operatorId);
+    event RebaserRebase(uint256 indexed apr, uint256 indexed stateChainBalance, uint256 previousSupply, uint256 indexed newSupply);
+
+    error RebaseTooSoon();
+    error AprTooHigh();
+    error SupplyDecreaseTooHigh();
+    error ValidatorAddressesDoNotMatch();
+    error InputLengthsMustMatch();
+    error ExcessiveFeeClaim();
+    error NotFeeRecipientOrManager();
 
     constructor () {
         _disableInitializers();
@@ -125,8 +133,8 @@ contract RebaserV1 is Initializable, Ownership {
      */
     function rebase (uint256 epoch, uint256[] calldata validatorBalances, bytes32[] calldata addresses, bool takeFee) external onlyRole(MANAGER_ROLE) {
         uint256 timeElapsed = block.timestamp - lastRebaseTime;
-        require(timeElapsed >= rebaseInterval, "Rebaser: rebase too soon");
-        require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
+        if (timeElapsed < rebaseInterval) revert RebaseTooSoon();
+        if (validatorBalances.length != addresses.length) revert InputLengthsMustMatch();
 
         (uint256 stateChainBalance, uint256 totalOperatorPendingFee_) = _updateOperators(validatorBalances, addresses, takeFee);
         uint256 currentSupply = stflip.totalSupply();
@@ -159,10 +167,12 @@ contract RebaserV1 is Initializable, Ownership {
         (OutputV1.ValidatorInfo[] memory validatorInfo, uint256 operatorCount, bool addressesEqual) = wrappedOutputProxy.getValidatorInfo(addresses);
         uint256[] memory operatorBalances = new uint256[](operatorCount);
 
-        require(addressesEqual, "Rebaser: validator addresses do not match");
-        require(validatorBalances.length == addresses.length, "Rebaser: length mismatch");
 
-        for (uint i = 0; i < validatorInfo.length; i++) {
+        if (addressesEqual == false) revert ValidatorAddressesDoNotMatch();
+        if (validatorBalances.length != addresses.length) revert InputLengthsMustMatch();
+
+        uint256 validatorInfoLength = validatorInfo.length;
+        for (uint i; i < validatorInfoLength; ++i) {
             if (validatorInfo[i].trackBalance == true) {
                 operatorBalances[validatorInfo[i].operatorId] += validatorBalances[i];
                 stateChainBalance += validatorBalances[i];
@@ -184,7 +194,8 @@ contract RebaserV1 is Initializable, Ownership {
      * @param operatorId The ID of the operator
      * @param takeFee Whether or not pendingFee should increment
      * @dev Calculates previous balance as total amount staked + total rewards - total unstaked - current slashCounter.
-     * If the actual balance is greater than the current balance this means that there are rewards. The reward increment is 
+     * If the actual balance is greater than the current balance this means that there are rewards. We separate the current
+     * balance into the positive and negative components to account for a possible overflow. The reward increment is 
      * the difference of these two values. We then check that the reward increment is greater than the slashCounter because
      * an operator should not be paid until they earn back a slash. We decrement the slashCounter until its zero and then
      * we increment the pendingFees by a specified percentage of the reward increase. If slashCounter is bigger than reward
@@ -197,16 +208,28 @@ contract RebaserV1 is Initializable, Ownership {
         uint96 unstaked;
         uint16 serviceFeeBps;
         uint16 validatorFeeBps;
-        uint256 previousBalance;
         (staked,unstaked,serviceFeeBps, validatorFeeBps) = wrappedOutputProxy.getOperatorInfo(operatorId);
 
         uint256 slashCounter_ = operators[operatorId].slashCounter;
-        previousBalance = staked + operators[operatorId].rewards - unstaked - slashCounter_;
+        
+        // in actuality, previousBalance = positivePreviousBalanceComponent - negativePreviousBalanceComponent
+        // but, we separate them for the edge case where the negative component exceeds the positive component, which would cause an underflow
+        uint256 positivePreviousBalanceComponent = staked + operators[operatorId].rewards;
+        uint256 negativePreviousBalanceComponent = unstaked + slashCounter_;
 
-        if (operatorBalance >= previousBalance) {
-            rewardIncrement = operatorBalance - previousBalance; 
+        // mathematically equivalent to `if (operatorBalance >= previousBalance)` but we rearrange to account for the underflow possibility mentioned above:
+        // operatorBalance >= previousBalance
+        // operatorBalance >= positivePreviousBalanceComponent - negativePreviousBalanceComponent
+        // operatorBalance + negativePreviousBalanceComponent >= positivePreviousBalanceComponent
+        if (operatorBalance + negativePreviousBalanceComponent >= positivePreviousBalanceComponent) {
+            
+            if (positivePreviousBalanceComponent > negativePreviousBalanceComponent) {
+                rewardIncrement = operatorBalance - (positivePreviousBalanceComponent - negativePreviousBalanceComponent); // default path
+            } else {
+                rewardIncrement = operatorBalance + (negativePreviousBalanceComponent - positivePreviousBalanceComponent); // edge case if operator's entire balance is unstaked
+            }
+
             if (rewardIncrement > slashCounter_) {
-                
                 if (slashCounter_ != 0) {
                     rewardIncrement -= slashCounter_;
                     operators[operatorId].slashCounter = 0; 
@@ -220,11 +243,11 @@ contract RebaserV1 is Initializable, Ownership {
                 operators[operatorId].slashCounter -= SafeCast.toUint88(rewardIncrement);
             }
         } else {
-            operators[operatorId].slashCounter += SafeCast.toUint88(previousBalance - operatorBalance);
+            operators[operatorId].slashCounter += SafeCast.toUint88(positivePreviousBalanceComponent - negativePreviousBalanceComponent - operatorBalance);
         }
         return operators[operatorId].pendingFee;
     }
-
+    
     /**
      * Ensures that the APR of the possible supply change is within reasonable bounds
      * @param timeElapsed unix time since the last rebase
@@ -235,9 +258,10 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 apr;
         if (newSupply > currentSupply){
             apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
-            require(apr + 1 < aprThresholdBps, "Rebaser: apr too high");
+
+            if (apr + 1 >= aprThresholdBps) revert AprTooHigh();
         } else {
-            require(10000 - (newSupply * 10000 / currentSupply) < slashThresholdBps, "Rebaser: supply decrease too high");
+            if (10000 - (newSupply * 10000 / currentSupply) >= slashThresholdBps) revert SupplyDecreaseTooHigh();
         }
 
         return apr;
@@ -261,19 +285,19 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 pendingFee = operators[operatorId].pendingFee;
         (manager,feeRecipient) = wrappedOutputProxy.getOperatorAddresses(operatorId);
         
-        require(max == true || amount <= pendingFee, "Rebaser: fee claim requested exceeds pending fees");
-        require(msg.sender == feeRecipient || msg.sender == manager, "Rebaser: not fee recipient or manager");
+        if (max == false && amount > pendingFee) revert ExcessiveFeeClaim();
+        if (msg.sender != feeRecipient && msg.sender != manager) revert NotFeeRecipientOrManager();
 
         uint256 amountToClaim = max ? pendingFee : amount;
 
+        operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
+        totalOperatorPendingFee -= SafeCast.toUint80(amountToClaim);
+        
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
             stflip.mint(msg.sender, amountToClaim);
         }
-
-        operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
-        totalOperatorPendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, operatorId);
     }
@@ -285,17 +309,17 @@ contract RebaserV1 is Initializable, Ownership {
      * @param receiveFlip Whether to receive the fee in flip or stflip
      */
     function claimServiceFee(uint256 amount, bool max, bool receiveFlip) external onlyRole(FEE_RECIPIENT_ROLE) {
-        require(max == true || amount <= servicePendingFee, "Rebaser: fee claim requested exceeds pending fees");
+        if (max == false && amount > servicePendingFee) revert ExcessiveFeeClaim();
 
         uint256 amountToClaim = max ? servicePendingFee : amount;
+
+        servicePendingFee -= SafeCast.toUint80(amountToClaim);
 
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
             stflip.mint(msg.sender, amountToClaim);
         }
-
-        servicePendingFee -= SafeCast.toUint80(amountToClaim);
 
         emit FeeClaim(msg.sender, amountToClaim, receiveFlip, 0); // consider putting service Fee under operator id zero. consider implications though since all validators will have operator id of zero by default. 
     }
@@ -315,11 +339,3 @@ contract RebaserV1 is Initializable, Ownership {
 
 
 }
-
-
-
-
-
-
-
-

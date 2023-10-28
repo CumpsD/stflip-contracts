@@ -48,18 +48,20 @@ contract AggregatorV1 is Initializable, Ownership {
         // giving infinite approvals to the curve pool and the minter
         
         if (liquidityPool_ != address(0)) {
-            flip.approve(address(liquidityPool_), 2**256-1);
+            flip.approve(address(liquidityPool_), type(uint256).max);
         }
-        flip.approve(address(minter), 2**256-1);
-        stflip.approve(address(burner), 2**256-1);
-        stflip.approve(address(liquidityPool_), 2**256-1);
+        flip.approve(address(minter), type(uint256).max);
+        stflip.approve(address(burner), type(uint256).max);
+        stflip.approve(address(liquidityPool_), type(uint256).max);
 
         __AccessControlDefaultAdminRules_init(0, gov_);
     }
 
     event StakeAggregation (address indexed sender, uint256 indexed swapReceived, uint256 indexed minted);
     event BurnAggregation (address sender, uint256 indexed amountInstantBurn, uint256 indexed amountBurn, uint256 indexed received);
-    event CanonicalPoolChanged(address pool);
+    event CanonicalPoolChanged(address indexed pool);
+
+    error NoAttemptsLeft();
 
     /**
     * @notice Spends stFLIP for FLIP via swap, instant burn, and unstake request.
@@ -75,16 +77,16 @@ contract AggregatorV1 is Initializable, Ownership {
 
         stflip.transferFrom(msg.sender, address(this), total);
         
-        if (amountInstantBurn > 0) {
+        if (amountInstantBurn != 0) {
             uint256 instantBurnId = burner.burn(msg.sender, amountInstantBurn);
             burner.redeem(instantBurnId); 
         }
 
-        if (amountBurn > 0) {
+        if (amountBurn != 0) {
             burner.burn(msg.sender, amountBurn);
         }
 
-        if (amountSwap > 0) {
+        if (amountSwap != 0) {
             swapReceived = canonicalPool.exchange(1, 0, amountSwap, minimumAmountSwapOut, msg.sender);
         }
 
@@ -106,11 +108,11 @@ contract AggregatorV1 is Initializable, Ownership {
         uint256 swapReceived;
         uint256 mintAmount = amountTotal - amountSwap;
 
-        if (amountSwap > 0){
+        if (amountSwap != 0){
             swapReceived = canonicalPool.exchange(0, 1, amountSwap, minimumAmountSwapOut, msg.sender);
         } 
 
-        if (mintAmount > 0) {
+        if (mintAmount != 0) {
             minter.mint(msg.sender, mintAmount);
         }
 
@@ -160,8 +162,8 @@ contract AggregatorV1 is Initializable, Ownership {
      */
     function calculatePurchasable(uint256 targetPrice, uint256 targetError, uint256 attempts, address pool_, int128 tokenIn, int128 tokenOut) external view returns (uint256) {   
         address pool = pool_ == address(0) ? address(canonicalPool) : pool_;
-        uint256 first = 0;
-        uint256 mid = 0;
+        uint256 first;
+        uint256 mid;
         // this would be the absolute maximum of FLIP spendable, so we can start there
         uint256 last = IStableSwap(pool).balances(uint256(int256(tokenOut)));
         uint256 price;
@@ -173,9 +175,9 @@ contract AggregatorV1 is Initializable, Ownership {
         }
 
         while (true) {
-            require(attempts > 0, "Aggregator: no attempts left");
+            if (attempts == 0) revert NoAttemptsLeft();
 
-            mid = (last+first) / 2;
+            mid = (last+first) >> 1;
             price = _marginalCost(pool, tokenIn, tokenOut, mid);
 
             if (price > targetPrice) {
@@ -211,8 +213,8 @@ contract AggregatorV1 is Initializable, Ownership {
 
         canonicalPool = IStableSwap(pool_);
 
-        flip.approve(address(canonicalPool), 2**256 - 1);
-        stflip.approve(address(canonicalPool), 2**256 - 1);
+        flip.approve(address(canonicalPool), type(uint256).max);
+        stflip.approve(address(canonicalPool), type(uint256).max);
 
         emit CanonicalPoolChanged(pool_);
     }
