@@ -32,7 +32,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     /**
      * @notice Event emitted when tokens are rebased
      */
-    event Rebase(uint256 epoch, uint256 prevYamsScalingFactor, uint256 newYamsScalingFactor, uint256 rebaseInterval);
+    event Rebase(uint256 epoch, uint256 indexed prevYamsScalingFactor, uint256 indexed newYamsScalingFactor, uint256 indexed rebaseInterval);
 
     /* - ERC20 Events - */
 
