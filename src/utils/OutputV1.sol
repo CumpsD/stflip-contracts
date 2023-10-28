@@ -10,6 +10,7 @@ pragma solidity 0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../token/stFlip.sol";
 import "../utils/BurnerV1.sol";
+import "../utils/RebaserV1.sol";
 import "../mock/StateChainGateway.sol";
 import "../utils/Ownership.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -24,6 +25,8 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 contract OutputV1 is Initializable, Ownership {
 
     StateChainGateway public stateChainGateway; // StateChainGateway where FLIP goes for staking and comes from during unstaking
+    BurnerV1 public wrappedBurnerProxy;
+    RebaserV1 public wrappedRebaserProxy;
     IERC20 public flip;
 
     struct Validator {
@@ -58,6 +61,7 @@ contract OutputV1 is Initializable, Ownership {
         _disableInitializers();
     }
 
+    error InsufficientOutputBalance();
     error NotManagerOfOperator();
     error OperatorNotWhitelisted();
     error CannotAddToNullOperator();
@@ -83,10 +87,14 @@ contract OutputV1 is Initializable, Ownership {
         _grantRole(MANAGER_ROLE, manager_);
 
         stateChainGateway = StateChainGateway(stateChainGateway_);
-        
+
+        wrappedBurnerProxy = BurnerV1(burnerProxy_);
+        wrappedRebaserProxy = RebaserV1(rebaser_);
+
         flip.approve(address(rebaser_), type(uint256).max);
         flip.approve(address(burnerProxy_), type(uint256).max);
         flip.approve(address(stateChainGateway), type(uint256).max);
+
         Operator memory operator = Operator(0, 0, 0, 0,false, 0, gov_, gov_,"null");
         operators.push(operator);
     }
@@ -215,6 +223,10 @@ contract OutputV1 is Initializable, Ownership {
             operators[operatorId_].staked += SafeCast.toUint96(amounts[i]);
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
         }
+
+        if (flip.balanceOf(address(this)) < wrappedBurnerProxy.totalPendingBurns() + wrappedRebaserProxy.totalOperatorPendingFee() + wrappedRebaserProxy.servicePendingFee()) {
+            revert InsufficientOutputBalance();
+        }
     }
 
     /** Redeems funds from state chain accounts
@@ -244,6 +256,15 @@ contract OutputV1 is Initializable, Ownership {
         
         operators[operatorId].serviceFeeBps = SafeCast.toUint16(serviceFeeBps);
         operators[operatorId].validatorFeeBps = SafeCast.toUint16(validatorFeeBps);
+    }
+
+    /**
+     * Set operator whitelist status
+     * @param operatorId Operatorid of relevant operator
+     * @param whitelist Whitelist status to set
+     */
+    function setOperatorWhitelist(uint256 operatorId, bool whitelist) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        operators[operatorId].whitelisted = whitelist;
     }
 
     /**

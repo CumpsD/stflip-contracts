@@ -32,6 +32,7 @@ contract RebaserV1 is Initializable, Ownership {
     uint32 public lastRebaseTime;          // uint32 sufficient
     uint32 public rebaseInterval;          // uint32 sufficient
     uint80 public servicePendingFee;       // uint80-88 sufficient
+    uint80 public totalOperatorPendingFee;
 
     BurnerV1 public wrappedBurnerProxy;
     OutputV1 public wrappedOutputProxy;
@@ -182,6 +183,8 @@ contract RebaserV1 is Initializable, Ownership {
             totalOperatorPendingFee_ += _updateOperator(operatorBalances[operatorId], operatorId, takeFee);
         }  
 
+        totalOperatorPendingFee = SafeCast.toUint80(totalOperatorPendingFee_);
+
         return (stateChainBalance, totalOperatorPendingFee_);
     }
 
@@ -288,7 +291,8 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 amountToClaim = max ? pendingFee : amount;
 
         operators[operatorId].pendingFee -= SafeCast.toUint80(amountToClaim);
-
+        totalOperatorPendingFee -= SafeCast.toUint80(amountToClaim);
+        
         if (receiveFlip == true) {
             flip.transferFrom(address(wrappedOutputProxy), msg.sender, amountToClaim);
         } else {
