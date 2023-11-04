@@ -123,7 +123,11 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
             address(stflip),
             _safeAllowlist,
             _delegateCallAllowlist,
-            payable(address(multisig))
+            payable(address(multisig)),
+            1 minutes,
+            2 days,
+            4,
+            51
         );
         fraxGovernorOmega = IFraxGovernorOmega(_fraxGovernorOmega);
 
