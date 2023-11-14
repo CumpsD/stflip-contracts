@@ -28,46 +28,46 @@ contract TokenStorage {
     /**
      * @notice Whether the contract is frozen
      */
-    bool public paused;
+    bool public frozen;
 
     /**
-     * @notice Decimal difference between shares and actual balance
+     * @notice Internal decimals used to handle scaling factor
      */
-    uint256 public constant balanceToShareDecimals = 10**6;
+    uint256 public constant internalDecimals = 10**24;
 
     /**
-     * @notice One share unit
+     * @notice Used for percentage maths
      */
-    uint256 public constant shareDecimals = 10**24;
+    uint256 public constant BASE = 10**18;
 
     /**
      * @notice Map of token allowances
      */
-    mapping (address => mapping (address => uint256)) internal _allowedBalances;
+    mapping (address => mapping (address => uint256)) internal _allowedFragments;
 
     /**
-     * @notice The last timestamp that `syncSupply` was called
-     * @dev Set to uint32 so balance calcs can use 1 sload
+     * @notice The last timestamp that `setRebase` was called
+     * @dev Set to uint32 for scaling factor calculations to use 1 ssload
      */
     uint32 public syncStart;
 
     /**
-     * @notice The end of the current reward distribution interval
-     * @dev Set to uint32 so balance calcs can use 1 sload
+     * @notice The end of the current rebase increase interval
+     * @dev Set to uint32 for scaling factor calculations to use 1 ssload
      */
     uint32 public syncEnd;
 
     /**
-     * @notice The `totalSupply` at `syncStart`
-     * @dev Set to uint96 for balance calculations to use 1 ssload
+     * @notice The scaling factor at the time of `lastRebaseTimestamp`
+     * @dev Set to uint96 for scaling factor calculations to use 1 ssload
      */
     uint96 public preSyncSupply;
 
     /**
-     * @notice The amount of rewards to distribute over the interval
-     * @dev Set to uint96 for balance calculations to use 1 ssload
+     * @notice The scaling factor at `rebaseIntervalEnd`
+     * @dev Set to uint96 for scaling factor calculations to use 1 ssload
      */
     uint96 public rewardsToSync;
-
+    
     uint256[45] private __gap;
 }
