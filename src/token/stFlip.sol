@@ -395,6 +395,13 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     }
 
     /**
+     * Public getter for total shares of stFLIP
+     */
+    function totalShares() public view returns (uint256) {
+        return _getTotalSupply();
+    }
+
+    /**
      * Overriding the clock set in `VotesUpgradeable` since
      * GovernorOmega uses timestamp
      */
