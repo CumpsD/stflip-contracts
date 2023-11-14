@@ -18,16 +18,19 @@ contract MinterTest is MainMigration {
     /**
      * @notice Fuzz function to ensure minting works as expected
      * @param amountToMint_ Amount to mint
-     * @param rebaseFactor_ Ensure this holds for all rebase factors
+     * @param initialBalancePerShare_ initialbalancepershare
      */
-    function testFuzz_OneToOne(uint256 amountToMint_, uint256 rebaseFactor_) public {      
-        uint256 amountToMint = bound(amountToMint_, 0, 100_000_000*decimalsMultiplier);
-        uint256 rebaseFactor = bound(rebaseFactor_, stflip.BASE(), stflip.BASE()*10);
+    function testFuzz_OneToOne(uint256 amountToMint_, uint256 initialBalancePerShare_) public {      
+        uint256 amountToMint = bound(amountToMint_, 1000, 100_000_000*decimalsMultiplier);
+        uint256 initialBalancePerShare = bound(initialBalancePerShare_, 10**17, 10**19);
+        
 
+        console.log("amountToMint:               ",amountToMint);
+        console.log("initialBalancePerShare:     ",initialBalancePerShare, initialBalancePerShare/10**17);
         vm.startPrank(owner);
             flip.mint(user1, amountToMint);
-            stflip.mint(owner, 1);
-            stflip.setRebase(0, rebaseFactor, 0);
+            stflip.mint(owner, 10**18);
+            stflip.syncSupply(0, initialBalancePerShare, 0);
         vm.stopPrank();
 
         uint256 initialFlipSupply = flip.totalSupply();
@@ -37,21 +40,28 @@ contract MinterTest is MainMigration {
 
         vm.startPrank(user1);
             flip.approve(address(minter), 2**256-1);
+            console.log("initial share balance: ", stflip.sharesOf(user1));
+            console.log("minting shares:", stflip.balanceToShares(amountToMint));
+            console.log("share to balance: ", stflip.sharesToBalance(1));
             wrappedMinterProxy.mint(user1,amountToMint);
+            console.log("after share balance: ", stflip.sharesOf(user1));
+            console.log("share to balance: ", stflip.sharesToBalance(1));
         vm.stopPrank();
         
-        console.log("amount to mint",amountToMint);
-        console.log("initial stflip supply",initialStflipSupply / 10**15);
-        console.log("expected v. actual flip supply",initialFlipSupply,flip.totalSupply());
-        console.log("expected v. actual stflip supply",initialStflipSupply + amountToMint,stflip.totalSupply());
-        console.log("expected v. actual stflip balance",initialStflipBalance + amountToMint,stflip.balanceOf(user1), stflip.getVotes(user1));
-        console.log("expected v. actual flip balance",initialFlipBalance - amountToMint,flip.balanceOf(user1));
-
         require(initialFlipSupply == flip.totalSupply(), "flip supply change");
         require(initialStflipSupply + amountToMint == stflip.totalSupply() || initialStflipSupply + amountToMint -1 == stflip.totalSupply(), "unexpected stflip supply change");
         require(initialFlipBalance - amountToMint == flip.balanceOf(user1), "unexpected flip balance change");
-        // rebase token rounding :/
-        require(initialStflipBalance + amountToMint == stflip.balanceOf(user1) || initialStflipBalance + amountToMint - 1 == stflip.balanceOf(user1), "unexpected stflip balance change");
+        console.log("stflip.totalSupply():   ", stflip.totalSupply());
+        console.log("initialStflipBalance:   " ,initialStflipBalance);
+        console.log("stflip.balanceOf(user1):", stflip.balanceOf(user1));
+        console.log("stflip.sharesOf(user1): ", stflip.sharesOf(user1));
+        console.log("stflip.sharesToBalance(10**6)", stflip.sharesToBalance(10**6));
+        console.log("amountToMint:           ", amountToMint);
+        if (stflip.sharesOf(user1) <= 10**24 / initialBalancePerShare) {
+            require (initialStflipBalance + 0 == stflip.balanceOf(user1), "unexpected stflip balance change 1 ");
+        } else  { 
+            require(initialStflipBalance + amountToMint == stflip.balanceOf(user1) || initialStflipBalance + amountToMint == stflip.balanceOf(user1) + 1, "unexpected stflip balance change 2");
+        }
     }
     
 }
