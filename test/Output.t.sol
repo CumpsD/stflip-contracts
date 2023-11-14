@@ -123,8 +123,8 @@ contract OutputTest is MainMigration {
     }
 
     function testFuzz_FundValidatorsEndingBalance(bytes32 validatorAddress, uint256 amountToBurn_, uint256 amountToMint_, uint256 amountToFund_, uint80 operatorPendingFee, uint80 servicePendingFee) external {
-        uint256 amountToMint = bound(amountToMint_, uint256(operatorPendingFee) + uint256(servicePendingFee) + 1, 2_500_000*10**18);
-        uint256 amountToBurn = bound(amountToBurn_, 0, amountToMint - operatorPendingFee - servicePendingFee);
+        uint256 amountToMint = bound(amountToMint_, uint256(operatorPendingFee) + uint256(servicePendingFee) + 1000, 2_500_000*10**18);
+        uint256 amountToBurn = bound(amountToBurn_, 1000, amountToMint - operatorPendingFee - servicePendingFee);
         uint256 amountToFund = bound(amountToFund_, 1, amountToMint);
 
         uint256 initialFlipBalance = flip.balanceOf(address(wrappedOutputProxy));

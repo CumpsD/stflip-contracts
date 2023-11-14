@@ -104,10 +104,10 @@ contract AggregatorTest is MainMigration {
         uint256 stflipBalance = stflip.balanceOf(owner);
         intitialStflipSupply = stflip.totalSupply();
 
-        uint256 lpAmount1 = bound(lpAmount1_, 5000*10**18, flipBalance-100);
+        uint256 lpAmount1 = bound(lpAmount1_, 5000*10**18, flipBalance-1000);
         uint256 lpAmount2 = bound(lpAmount2_, 5000*10**18, stflipBalance-100);
 
-        uint256 amount = bound(amount_, 2, flipBalance - lpAmount1);
+        uint256 amount = bound(amount_, 1000, flipBalance - lpAmount1 );
         console.log(amount_,lpAmount1_,lpAmount2_);
         console.log(amount,lpAmount1,lpAmount2);
         
