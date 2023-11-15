@@ -25,6 +25,7 @@ contract BurnerV1 is Initializable, Ownership {
 
     address public output;
     uint256 public redeemed;
+    uint256 constant MINIMUM_BURN_AMOUNT = 1000;
     
     struct burn_ {
         uint88 amount;
@@ -54,12 +55,16 @@ contract BurnerV1 is Initializable, Ownership {
 
     error NotRedeemable();
 
+    error BelowMinimumBurnAmount();
+
     /**
      * @notice Burns stflip tokens from msg.sender and adds entry to burns/sums list
      * @param to, the owner of the burn, the address that will receive the burn once completed
      * @param amount, the amount to burn
      */
     function burn(address to, uint256 amount) external returns (uint256) {
+        if (amount < MINIMUM_BURN_AMOUNT) revert BelowMinimumBurnAmount();
+
         stflip.burn(amount, msg.sender);
         burns.push(burn_(SafeCast.toUint88(amount), to,  false));
         sums.push(amount + sums[sums.length - 1]);

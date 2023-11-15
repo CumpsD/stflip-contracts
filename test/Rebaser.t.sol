@@ -371,7 +371,7 @@ contract RebaserTest is MainMigration {
         uint256 actualSupply = stflip.totalSupply();
         
         console.log("expectedSupply v. actualSupply", expectedSupply, actualSupply);
-        console.log("scaling factor", stflip.yamsScalingFactor());
+        // console.log("scaling factor", stflip.yamsScalingFactor());
         require( _relativelyEq(expectedSupply,actualSupply), "testFuzz_SuccessfulPositiveRebase: supply increase != expected");
     }
 
@@ -406,7 +406,7 @@ contract RebaserTest is MainMigration {
         uint256 actualSupply = stflip.totalSupply();
 
         console.log("expectedSupply v. actualSupply", expectedSupply, actualSupply);
-        console.log("scaling factor", stflip.yamsScalingFactor());
+        // console.log("scaling factor", stflip.yamsScalingFactor());
         require( _relativelyEq(expectedSupply,actualSupply), "testFuzz_SuccessfulNegativeRebase: supply increase != expected");
     }
 

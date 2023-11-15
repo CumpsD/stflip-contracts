@@ -32,8 +32,8 @@ contract VotingTest is MainMigration {
             wrappedMinterProxy.mint(a, bal);
         vm.stopPrank();
         vm.warp(4);
-        require(stflip.getVotes(a) == stflip.fragmentToYam(bal), "current votes should be equal to minted votes");
-        require(stflip.getPastVotes(a, 3) == stflip.fragmentToYam(bal), "past votes should be equal to minted votes");
+        require(stflip.getVotes(a) == stflip.balanceToShares(bal), "current votes should be equal to minted votes");
+        require(stflip.getPastVotes(a, 3) == stflip.balanceToShares(bal), "past votes should be equal to minted votes");
         require(stflip.getPastVotes(a, 1) == 0, "pre mint votes should be zero");
 
     }
@@ -54,9 +54,9 @@ contract VotingTest is MainMigration {
 
         vm.warp(4);
         require(stflip.getVotes(a) == 0);
-        require(stflip.getVotes(b) == stflip.fragmentToYam(bal));
+        require(stflip.getVotes(b) == stflip.balanceToShares(bal));
         require(stflip.getPastVotes(a, 3) == 0);
-        require(stflip.getPastVotes(b, 3) == stflip.fragmentToYam(bal));
+        require(stflip.getPastVotes(b, 3) == stflip.balanceToShares(bal));
         require(stflip.getPastVotes(a, 2) == 0);
         require(stflip.getPastVotes(b, 2) == 0);
     }

@@ -109,6 +109,9 @@ contract BurnerTest is MainMigration {
         // we ignore i = 0 so that the index of the user aligns with their burn id
         for (uint i = 1; i < 50; i++) {
             amounts[i] = uint256(amounts_[i]) * 10**18;
+            if (amounts[i] < 1000) {
+                amounts[i] = 1000;
+            }
         }
         
         // creating random order to claim the burnIds

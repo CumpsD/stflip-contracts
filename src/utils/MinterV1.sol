@@ -21,9 +21,11 @@ import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 contract MinterV1 is Initializable, Ownership {
 
     address public output;
-    
+    uint256 constant MINIMUM_MINT_AMOUNT = 1000;
     stFlip public stflip;
     IERC20 public flip;
+
+    error BelowMinimumMintAmount();
 
     constructor() {
         _disableInitializers();
@@ -42,6 +44,8 @@ contract MinterV1 is Initializable, Ownership {
      * @param amount The amount of stFLIP to mint
      */
     function mint(address to, uint256 amount) external returns (bool) {
+        if (amount < MINIMUM_MINT_AMOUNT) revert BelowMinimumMintAmount();
+
         flip.transferFrom(msg.sender, output, amount);
 
         _mint(to, amount);

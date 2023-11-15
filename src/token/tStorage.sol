@@ -28,46 +28,46 @@ contract TokenStorage {
     /**
      * @notice Whether the contract is frozen
      */
-    bool public frozen;
+    bool public paused;
 
     /**
-     * @notice Internal decimals used to handle scaling factor
+     * @notice Decimal difference between shares and actual balance
      */
-    uint256 public constant internalDecimals = 10**24;
+    uint256 public constant balanceToShareDecimals = 10**6;
 
     /**
-     * @notice Used for percentage maths
+     * @notice One share unit
      */
-    uint256 public constant BASE = 10**18;
+    uint256 public constant shareDecimals = 10**24;
 
     /**
      * @notice Map of token allowances
      */
-    mapping (address => mapping (address => uint256)) internal _allowedFragments;
+    mapping (address => mapping (address => uint256)) internal _allowedBalances;
 
     /**
-     * @notice The last timestamp that `setRebase` was called
-     * @dev Set to uint32 for scaling factor calculations to use 1 ssload
+     * @notice The last timestamp that `syncSupply` was called
+     * @dev Set to uint32 so balance calcs can use 1 sload
      */
-    uint32 public lastRebaseTimestamp;
+    uint32 public syncStart;
 
     /**
-     * @notice The end of the current rebase increase interval
-     * @dev Set to uint32 for scaling factor calculations to use 1 ssload
+     * @notice The end of the current reward distribution interval
+     * @dev Set to uint32 so balance calcs can use 1 sload
      */
-    uint32 public rebaseIntervalEnd;
+    uint32 public syncEnd;
 
     /**
-     * @notice The scaling factor at the time of `lastRebaseTimestamp`
-     * @dev Set to uint96 for scaling factor calculations to use 1 ssload
+     * @notice The `totalSupply` at `syncStart`
+     * @dev Set to uint96 for balance calculations to use 1 ssload
      */
-    uint96 public previousYamScalingFactor;
+    uint96 public preSyncSupply;
 
     /**
-     * @notice The scaling factor at `rebaseIntervalEnd`
-     * @dev Set to uint96 for scaling factor calculations to use 1 ssload
+     * @notice The amount of rewards to distribute over the interval
+     * @dev Set to uint96 for balance calculations to use 1 ssload
      */
-    uint96 public nextYamScalingFactor;
+    uint96 public rewardsToSync;
 
     uint256[45] private __gap;
 }

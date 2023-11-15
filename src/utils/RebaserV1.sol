@@ -142,7 +142,7 @@ contract RebaserV1 is Initializable, Ownership {
         uint256 newSupply = stateChainBalance + flip.balanceOf(address(wrappedOutputProxy)) - wrappedBurnerProxy.totalPendingBurns() - servicePendingFee - totalOperatorPendingFee_;
         uint256 apr = _validateSupplyChange(timeElapsed, currentSupply, newSupply);
         
-        stflip.setRebase(epoch, newSupply * stflip.internalDecimals() / stflip.initSupply(), rebaseInterval);
+        stflip.syncSupply(epoch, newSupply, rebaseInterval);
         lastRebaseTime = SafeCast.toUint32(block.timestamp);
 
         emit RebaserRebase(apr, stateChainBalance, currentSupply, newSupply);
