@@ -730,7 +730,7 @@ contract TestFraxGovernor is FraxGovernorTestBase {
 
         assertEq(
             veFxsVotingDelegation.getVotes(account, block.timestamp - 1),
-            veFxs.fragmentToYam(veFxs.balanceOf(accounts[0])),
+            veFxs.balanceToShares(veFxs.balanceOf(accounts[0])),
             "getVotes balance is equal to veFXS balance"
         );
 
@@ -1218,7 +1218,7 @@ contract TestFraxGovernor is FraxGovernorTestBase {
                 console.log("vote casted", accounts[i], stflip.balanceOf(accounts[i]), fraxGovernorOmega.hasVoted(pid, accounts[i]));
             }
         }
-        console.log("total underlying v. actual", stflip.initSupply(), stflip.totalSupply());
+        console.log("total underlying v. actual", stflip.totalShares(), stflip.totalSupply());
         console.log("proposal state", fraxGovernorOmega.state(pid), uint256(IGovernor.ProposalState.Defeated), uint256(IGovernor.ProposalState.Pending));
         (uint256 a, uint256 b, uint256 c ) = fraxGovernorOmega.proposalVotes(pid);
         console.log(a,b,c);
