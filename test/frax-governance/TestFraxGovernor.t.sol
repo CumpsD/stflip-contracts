@@ -299,16 +299,84 @@ contract TestFraxGovernor is FraxGovernorTestBase {
     }
 
     // Cannot call addTransaction() with the safe as a target
-    function testDisallowedTxTargets() public {
-        (bytes32 txHash, IFraxGovernorOmega.TxHashArgs memory args, ) = createNoOpProposal(
-            address(getSafe(address(multisig)).safe),
-            address(getSafe(address(multisig)).safe),
-            getSafe(address(multisig)).safe.nonce()
+    // function testDisallowedTxTargets() public {
+    //     (bytes32 txHash, IFraxGovernorOmega.TxHashArgs memory args, ) = createNoOpProposal(
+    //         address(getSafe(address(multisig)).safe),
+    //         address(getSafe(address(multisig)).safe),
+    //         getSafe(address(multisig)).safe.nonce()
+    //     );
+
+    //     hoax(eoaOwners[0]);
+    //     vm.expectRevert(abi.encodeWithSelector(IFraxGovernorOmega.DisallowedTarget.selector, address(multisig)));
+    //     fraxGovernorOmega.addTransaction(address(multisig), args, generateEoaSigs(3, txHash));
+    // }
+
+    function testAddSafeOwner() public {
+        require(getSafe(address(multisig)).safe.isOwner(address(uint160(1000))) == false, "signer added initially?");
+
+        createAndExecuteOptimisticProposal(
+            GenericOptimisticProposalParams(
+                address(multisig),
+                fraxGovernorOmega,
+                address(this),
+                address(multisig),
+                abi.encodeWithSignature("addOwnerWithThreshold(address,uint256)", address(uint160(1000)), 3),
+                getSafe(address(multisig)).safe.nonce()
+            )
         );
 
-        hoax(eoaOwners[0]);
-        vm.expectRevert(abi.encodeWithSelector(IFraxGovernorOmega.DisallowedTarget.selector, address(multisig)));
-        fraxGovernorOmega.addTransaction(address(multisig), args, generateEoaSigs(3, txHash));
+        require(getSafe(address(multisig)).safe.isOwner(address(uint160(1000))), "signer not added");
+        require(getSafe(address(multisig2)).safe.isOwner(address(uint160(1000))) == false, "signer added initially?");
+
+        createAndExecuteOptimisticProposal(
+            GenericOptimisticProposalParams(
+                address(multisig2),
+                fraxGovernorOmega,
+                address(this),
+                address(multisig2),
+                abi.encodeWithSignature("addOwnerWithThreshold(address,uint256)", address(uint160(1000)), 3),
+                getSafe(address(multisig2)).safe.nonce()
+            )
+        );
+
+        require(getSafe(address(multisig2)).safe.isOwner(address(uint160(1000))), "signer not added");
+    }
+
+    function testSwapSafeOwner() public {
+        address[] memory multisigs = new address[](2);
+        multisigs[0] = address(multisig);
+        multisigs[1] = address(multisig2);
+
+        for (uint i =0; i < multisigs.length; i ++) {
+            address[] memory owners = getSafe(address(multisigs[i])).safe.getOwners();
+
+
+            address prevOwner = owners[3];
+            address oldOwner = owners[4];
+            address newOwner = address(uint160(150));
+
+            require(getSafe(address(multisigs[i])).safe.isOwner(prevOwner), "prevOwner not owner to start");
+            require(getSafe(address(multisigs[i])).safe.isOwner(newOwner) == false, "newOwner is owner to start");
+            require(getSafe(address(multisigs[i])).safe.isOwner(oldOwner), "oldowner not owner to start");
+
+            createAndExecuteOptimisticProposal(
+                GenericOptimisticProposalParams(
+                    address(multisigs[i]),
+                    fraxGovernorOmega,
+                    address(this),
+                    address(multisigs[i]),
+                    abi.encodeWithSignature("swapOwner(address,address,address)", prevOwner, oldOwner, newOwner),
+                    getSafe(address(multisigs[i])).safe.nonce()
+                )
+            );
+
+            require(getSafe(address(multisigs[i])).safe.isOwner(prevOwner), "prevOwner no longer owner");
+            require(getSafe(address(multisigs[i])).safe.isOwner(newOwner), "newOwner not owner");
+            require(getSafe(address(multisigs[i])).safe.isOwner(oldOwner) == false, "oldowner still owner");
+        }
+        
+
+
     }
 
     // Cannot call addTransaction() with non-allowlisted Safe delegatecall
