@@ -25,6 +25,7 @@ contract BurnerV1 is Initializable, Ownership {
 
     address public output;
     uint256 public redeemed;
+    uint256 constant MINIMUM_BURN_AMOUNT = 1000;
     
     struct burn_ {
         uint88 amount;
@@ -50,14 +51,20 @@ contract BurnerV1 is Initializable, Ownership {
         output = output_;
     }
 
-    event Burn(address burner, address recipient, uint256 amount, uint256 burnId); // emits the person who sent burn tx along with the recipient, amount and ID
+    event Burn(address burner, address indexed recipient, uint256 indexed amount, uint256  indexed burnId); // emits the person who sent burn tx along with the recipient, amount and ID
+
+    error NotRedeemable();
+
+    error BelowMinimumBurnAmount();
 
     /**
-     * @notice Burns stflip tokens, transfers FLIP tokens from msg.sender, adds entry to burns/sums list
+     * @notice Burns stflip tokens from msg.sender and adds entry to burns/sums list
      * @param to, the owner of the burn, the address that will receive the burn once completed
      * @param amount, the amount to burn
      */
     function burn(address to, uint256 amount) external returns (uint256) {
+        if (amount < MINIMUM_BURN_AMOUNT) revert BelowMinimumBurnAmount();
+
         stflip.burn(amount, msg.sender);
         burns.push(burn_(SafeCast.toUint88(amount), to,  false));
         sums.push(amount + sums[sums.length - 1]);
@@ -72,11 +79,12 @@ contract BurnerV1 is Initializable, Ownership {
      * @param burnId, the ID of the burn to redeem.
      */
     function redeem(uint256 burnId) external {
-        require(_redeemable(burnId), "Burner: not redeemable. either already claimed or insufficient balance");
+        if (_redeemable(burnId) == false) revert NotRedeemable();
 
-        flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
         burns[burnId].completed = true;
         redeemed = redeemed + burns[burnId].amount;
+
+        flip.transferFrom(output, burns[burnId].user, burns[burnId].amount);
     }
 
     /**
@@ -93,9 +101,10 @@ contract BurnerV1 is Initializable, Ownership {
     function _getBurnIds(address account) internal view returns (uint256[] memory) {
 
         uint256[] memory burnIds = new uint256[](burns.length);
-        uint256 t = 0;
+        uint256 t;
 
-        for (uint256 i = 0; i < burns.length; i++) {
+        uint256 burnsLength = burns.length;
+        for (uint256 i; i < burnsLength; ++i) {
             if (burns[i].user == account) {
                 burnIds[t] = i;
                 t++;
@@ -103,7 +112,7 @@ contract BurnerV1 is Initializable, Ownership {
         }
 
         uint256[] memory filteredBurnIds = new uint256[](t);
-        for (uint256 i = 0; i < t; i++) {
+        for (uint256 i; i < t; ++i) {
             filteredBurnIds[i] = burnIds[i];
         }
 
@@ -129,7 +138,8 @@ contract BurnerV1 is Initializable, Ownership {
         burn_[] memory userBurns = new burn_[](burnIds.length);
         bool[] memory userRedeemables = new bool[](burnIds.length);
 
-        for (uint256 i = 0; i < burnIds.length; i++) {
+        uint256 burnsLength = burns.length;
+        for (uint256 i; i < burnsLength; ++i) {
             userBurns[i] = burns[burnIds[i]];
             userRedeemables[i] = _redeemable(burnIds[i]);
         }

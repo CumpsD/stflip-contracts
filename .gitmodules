@@ -10,4 +10,7 @@
 	url = https://github.com/openzeppelin/openzeppelin-contracts
 [submodule "lib/frax-governance"]
 	path = lib/frax-governance
-	url = https://github.com/fraxFinance/frax-governance
+	url = https://github.com/thunderhead-labs/frax-governance
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/transmissions11/solmate

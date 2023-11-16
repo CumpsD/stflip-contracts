@@ -4,3 +4,4 @@
 @test/=test/
 @script-deploy/=script/deploy/
 @governance/=lib/frax-governance/
+@solmate/=lib/solmate
