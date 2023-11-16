@@ -4,7 +4,6 @@ pragma solidity ^0.8.19;
 import { FraxCompatibilityFallbackHandler } from "@governance/src/FraxCompatibilityFallbackHandler.sol";
 import { BaseScript } from "frax-std/BaseScript.sol";
 import { console } from "frax-std/FraxTest.sol";
-import { Constants } from "@script-deploy/Constants.sol";
 
 function deployFraxCompatibilityFallbackHandler() returns (address _address, string memory _contractName) {
     _contractName = "FraxCompatibilityFallbackHandler";

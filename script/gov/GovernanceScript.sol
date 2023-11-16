@@ -55,7 +55,7 @@ contract GovernanceScript is Script, GovernanceOperations {
             address(0),
             0x0485D65da68b2A6b48C3fA28D7CCAce196798B94,
             abi.encodeWithSignature("transfer(address,uint256)", 0xfdB60134e0a072Ea885527474B8fF2bCE1462C55, 10**18),
-            DeployedSafe(payable(multisig)).nonce()
+            DeployedSafe(payable(multisig)).nonce()  + 6
         );
         console.log("nonce:", DeployedSafe(payable(multisig)).nonce());
         bytes memory sig1 = abi.encodePacked(hex"f5f1395e477841e99e20ffa03f0564ef9dafa56fbdbcb707b9198e1e308fc07016a6ba61248d0dcee85fb24dbcfc206df7a25f6115625bc9cd64f2d3d89ce0d71b");

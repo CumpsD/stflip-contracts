@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import { BaseScript } from "frax-std/BaseScript.sol";
 import { console } from "frax-std/FraxTest.sol";
-import { Constants } from "@script-deploy/Constants.sol";
 import { FraxGuard } from "@governance/src/FraxGuard.sol";
 
 function deployFraxGuard(
@@ -20,6 +19,5 @@ contract DeployFraxGuard is BaseScript {
         broadcaster
         returns (address _address, bytes memory _constructorParams, string memory _contractName)
     {
-        (_address, _constructorParams, _contractName) = deployFraxGuard(Constants.FRAX_GOVERNOR_OMEGA);
     }
 }

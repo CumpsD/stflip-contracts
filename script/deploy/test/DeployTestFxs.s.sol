@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import { BaseScript } from "frax-std/BaseScript.sol";
 import { console } from "frax-std/FraxTest.sol";
-import { Constants } from "@script-deploy/Constants.sol";
 // import "@test/frax-governance/mock/FxsMock.sol";
 // import "@governance/src/interfaces/IVeFxs.sol";
 // import "test/utils/VyperDeployer.sol";
