@@ -16,7 +16,7 @@ function deployMockFxs(address multisig, address proxyAdmin) returns (address _a
     _constructorParams = abi.encode(_contractName, _symbol);
     TransparentUpgradeableProxy stflipProxy = new TransparentUpgradeableProxy(address(new stFlip()), address(proxyAdmin), "");
     stFlip stflip = stFlip(address(stflipProxy));
-    stflip.initialize("StakedFlip", "stFLIP", 18, address(multisig), 0);
+    stflip.initialize("StakedFlip", "stFLIP", 18, address(multisig), 0, address(0), address(0),address(0));
     _address = address(stflipProxy);
 }
 

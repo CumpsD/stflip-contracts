@@ -32,7 +32,6 @@ import { deployFraxCompatibilityFallbackHandler } from "@script-deploy/DeployFra
 // import { deployMockFxs, deployVeFxs } from "@script-deploy/test/DeployTestFxs.s.sol";
 import { FraxCompatibilityFallbackHandler } from "@governance/src/FraxCompatibilityFallbackHandler.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import {MainMigration} from "@test/MainMigration.sol";
 import { stFlip } from "@src/token/stFlip.sol";
 import {Script} from"forge-std/Script.sol";
 import {GovernanceOperations} from "@src/governance/GovernanceOperations.sol";

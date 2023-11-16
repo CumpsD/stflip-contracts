@@ -50,7 +50,7 @@ contract DeployLiquidityPool is Script {
         
         address flip = 0x1194C91d47Fc1b65bE18db38380B5344682b67db;
         address stflip = 0xfA6A8a263b645B55dfa8dfbD24cC7bDdD0B5A2a4;
-        vm.startBroadcast(vm.envUint("GOV_PK"));
+        vm.startBroadcast(vm.envUint("SIGNER1KEY"));
             tenderSwap = new TenderSwap();
             LiquidityPoolToken liquidityPoolToken = new LiquidityPoolToken();
             tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
@@ -58,5 +58,12 @@ contract DeployLiquidityPool is Script {
             console.log("tenderSwap: ", address(tenderSwap));
             console.log("lp token", address(liquidityPoolToken));
         vm.stopBroadcast();
+    }
+
+    function addLiquidity() external {
+
+        vm.startBroadcast(vm.envUint("USERPK"));
+            tenderSwap.addLiquidity([1000*decimalsMultiplier, 800*decimalsMultiplier], 0, block.timestamp + 100);
+
     }
 }
