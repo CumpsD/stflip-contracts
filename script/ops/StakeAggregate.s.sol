@@ -17,12 +17,12 @@ import "../../src/utils/RebaserV1.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
-contract NewAggregator is Script {
+contract StakeAggregate is Script {
 
 
     function run() external {
         
-        vm.startBroadcast(vm.envUint("USER_PK"));
+        vm.startBroadcast();
             address aggregatorProxy = vm.envAddress("AGGREGATOR");
             stFlip flip = stFlip(vm.envAddress("FLIP"));
             stFlip stflip = stFlip(vm.envAddress("STFLIP"));
@@ -31,7 +31,7 @@ contract NewAggregator is Script {
             stflip.approve(address(aggregatorProxy), 2**256 -1 );
             flip.approve(address(aggregatorProxy), 2**256 -1 );
 
-            AggregatorTestnetV1(aggregatorProxy).unstakeAggregate(2*10**18, 0, 0,0, 99999999999999999);
+            AggregatorTestnetV1(aggregatorProxy).unstakeAggregate(0, 10**18, 0,0, 99999999999999999);
 
 
         vm.stopBroadcast();

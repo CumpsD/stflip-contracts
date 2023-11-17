@@ -35,34 +35,23 @@ contract GovernanceScript is Script, GovernanceOperations {
     stFlip stflip;
 
     constructor() {
-        eoaOwners.push(0x2f9900C7678b31F6f292F8F22E7b47308f614043);
-        eoaOwners.push(0x3f7dcFDF249E1589C992Ca7fdD441D5d8E346324);
-        eoaOwners.push(0xE2f029DBFbe12c570eeB7153492077467206b577);
-        eoaOwners.push(0x6dd6B4C4775943d4d3E08f3AB13F9daf6E78E709);
-        eoaOwners.push(0xfA16BA4cAb2119d6ED87EF1EEeda5Bdd94048795);
 
-        addressToPk[0x2f9900C7678b31F6f292F8F22E7b47308f614043] = vm.envUint("TESTNET_SIGNER1");
-        addressToPk[0x3f7dcFDF249E1589C992Ca7fdD441D5d8E346324] = vm.envUint("TESTNET_SIGNER2");
-        addressToPk[0xE2f029DBFbe12c570eeB7153492077467206b577] = vm.envUint("TESTNET_SIGNER3");
-        addressToPk[0x6dd6B4C4775943d4d3E08f3AB13F9daf6E78E709] = vm.envUint("TESTNET_SIGNER4");
-        addressToPk[0xfA16BA4cAb2119d6ED87EF1EEeda5Bdd94048795] = vm.envUint("TESTNET_SIGNER5");
-
-        multisig = 0x94CABeA8BA50A0Ad1AFB46626f46911a56E36662;
-        stflip = stFlip(0xEd47129521Cc6792Ae619574c61F3Ec191626267);
+        multisig = 0x30A66D9f0A7B77D8a8FeE033fcF96741132CA967;
+        stflip = stFlip(0x06592F75ed5E30C156190fd6B3E353af37770276);
         params = GenericOptimisticProposalParams(
             multisig,
             governor,
             address(0),
-            0x0485D65da68b2A6b48C3fA28D7CCAce196798B94,
-            abi.encodeWithSignature("transfer(address,uint256)", 0xfdB60134e0a072Ea885527474B8fF2bCE1462C55, 10**18),
-            DeployedSafe(payable(multisig)).nonce()  + 6
+            0x8a85CBb160A44b0eEdB9D5eA25a035Fa80b3BBFB,
+            abi.encodePacked(hex"99a88ec4000000000000000000000000b4cc04d6fa9a5da2d8714518c35fb3ed3eafd2c500000000000000000000000050f3bd802760c8ac264ef26b9c6ead4192ccf0d9"),//abi.encodeWithSignature("addOperator(address,string,uint256,uint256,uint256)", 0x4347F866A3019540e5304ded6c11F21102d6FE14, "First Operator", 1000, 1500, 5),
+            DeployedSafe(payable(multisig)).nonce()+1
         );
         console.log("nonce:", DeployedSafe(payable(multisig)).nonce());
-        bytes memory sig1 = abi.encodePacked(hex"f5f1395e477841e99e20ffa03f0564ef9dafa56fbdbcb707b9198e1e308fc07016a6ba61248d0dcee85fb24dbcfc206df7a25f6115625bc9cd64f2d3d89ce0d71b");
-        bytes memory sig2 = abi.encodePacked(hex"91ee97cd2c03538c7c7bc6df5f1ca04911d2319f4fe4c5919e8ec98f04ce1f080e3f8fb2b5fc84501a701aacf761df59ff9bb2cba26ffc87988d13cb953160901c");
-        bytes memory sig3 = abi.encodePacked(hex"8f24c2f4c86e612565e4b2b6c54e7419fdb266f882d4b823dcac22aaeaa7efc43788786250c4048b0c41842d07ccd4288044c9f0218729d25cfb9db527a7c7791c");
+        bytes memory sig1 = abi.encodePacked(hex"e20ab8394e12efc134580e3d033d45a7ec3801429db74307d8bae0714dbbf9827ecc7d7c416502cee11bc268cfd0c55e98cafa0724d809aae2cdf7ba6d325c7f1c");
+        // bytes memory sig2 = abi.encodePacked(hex"91ee97cd2c03538c7c7bc6df5f1ca04911d2319f4fe4c5919e8ec98f04ce1f080e3f8fb2b5fc84501a701aacf761df59ff9bb2cba26ffc87988d13cb953160901c");
+        // bytes memory sig3 = abi.encodePacked(hex"8f24c2f4c86e612565e4b2b6c54e7419fdb266f882d4b823dcac22aaeaa7efc43788786250c4048b0c41842d07ccd4288044c9f0218729d25cfb9db527a7c7791c");
 
-        signatures = abi.encodePacked(sig1, sig2, sig3);
+        signatures = abi.encodePacked(sig1);
 
     }
     
@@ -106,8 +95,8 @@ contract GovernanceScript is Script, GovernanceOperations {
     }
 
     function executeProposal() public {
-        vm.startBroadcast(addressToPk[0x2f9900C7678b31F6f292F8F22E7b47308f614043]);
-            executeOptimisticProposal(params);
+        vm.startBroadcast();
+            executeOptimisticProposal(params, signatures);
     }
 
 
@@ -186,7 +175,7 @@ contract GovernanceScript is Script, GovernanceOperations {
 
 
     function castVote() external  {
-        uint256 pk = vm.envUint("USER_PK");
+        uint256 pk = vm.envUint("USERKEY");
         address user = vm.addr(pk);
         GenericOptimisticProposalReturn memory ret = optimisticProposalInfo(params);
 

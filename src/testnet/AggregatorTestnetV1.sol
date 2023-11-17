@@ -72,7 +72,7 @@ contract AggregatorTestnetV1 is Initializable {
             flip.transfer(msg.sender, received - 1);
         }
 
-        emit BurnAggregation(msg.sender,amountInstantBurn, amountBurn, received-1);
+        emit BurnAggregation(msg.sender,amountInstantBurn, amountBurn, received);
 
         return amountInstantBurn + received;
     }

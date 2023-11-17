@@ -46,24 +46,37 @@ contract DeployLiquidityPool is Script {
     uint8 public decimals = 18;
     uint256 public decimalsMultiplier = 10**decimals;
 
-    function run() external {
+    function deployPool() external {
         
-        address flip = 0x1194C91d47Fc1b65bE18db38380B5344682b67db;
-        address stflip = 0xfA6A8a263b645B55dfa8dfbD24cC7bDdD0B5A2a4;
-        vm.startBroadcast(vm.envUint("SIGNER1KEY"));
-            tenderSwap = new TenderSwap();
-            LiquidityPoolToken liquidityPoolToken = new LiquidityPoolToken();
-            tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
+        // address flip = vm.envAddress("FLIP");
+        // address stflip = vm.envAddress("STFLIP");
+        // vm.startBroadcast(vm.envUint("SIGNER1KEY"));
+        //     tenderSwap = new TenderSwap();
+        //     LiquidityPoolToken liquidityPoolToken = new LiquidityPoolToken();
+        //     tenderSwap.initialize(IERC20(address(stflip)), IERC20(address(flip)), "FLIP-stFLIP LP Token", "FLIP-stFLIP", 10, 10**7, 0, liquidityPoolToken);
 
-            console.log("tenderSwap: ", address(tenderSwap));
-            console.log("lp token", address(liquidityPoolToken));
-        vm.stopBroadcast();
+        //     console.log("tenderSwap: ", address(tenderSwap));
+        //     console.log("lp token", address(liquidityPoolToken));
+        // vm.stopBroadcast();
     }
 
     function addLiquidity() external {
 
-        vm.startBroadcast(vm.envUint("USERPK"));
-            tenderSwap.addLiquidity([1000*decimalsMultiplier, 800*decimalsMultiplier], 0, block.timestamp + 100);
+        vm.startBroadcast(vm.envUint("USERKEY"));
+            stFlip(vm.envAddress("FLIP")).approve(vm.envAddress("LIQUIDITYPOOL"), 5000*10**18);
+            stFlip(vm.envAddress("STFLIP")).approve(vm.envAddress("LIQUIDITYPOOL"), 5000*10**18);
+
+            TenderSwap(vm.envAddress("LIQUIDITYPOOL")).addLiquidity([5000*decimalsMultiplier, 4000*decimalsMultiplier], 0, block.timestamp + 100);
+
+    }
+
+    function mint() external {
+
+        vm.startBroadcast(vm.envUint("USERKEY"));
+
+            stFlip(vm.envAddress("FLIP")).approve(vm.envAddress("MINTER"), 500*10**18);
+
+            MinterV1(vm.envAddress("MINTER")).mint(vm.addr(vm.envUint("USERKEY")), 500*10**18);
 
     }
 }
