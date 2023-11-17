@@ -138,7 +138,7 @@ contract BurnerV1 is Initializable, Ownership {
         burn_[] memory userBurns = new burn_[](burnIds.length);
         bool[] memory userRedeemables = new bool[](burnIds.length);
 
-        uint256 burnsLength = burns.length;
+        uint256 burnsLength = burnIds.length;
         for (uint256 i; i < burnsLength; ++i) {
             userBurns[i] = burns[burnIds[i]];
             userRedeemables[i] = _redeemable(burnIds[i]);
