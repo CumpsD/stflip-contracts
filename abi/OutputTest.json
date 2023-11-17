@@ -563,33 +563,7 @@
     "name": "flip",
     "outputs": [
       {
-        "internalType": "contract stFlip",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "flipProxy",
-    "outputs": [
-      {
-        "internalType": "contract TransparentUpgradeableProxy",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "flipV1",
-    "outputs": [
-      {
-        "internalType": "contract stFlip",
+        "internalType": "contract Flip",
         "name": "",
         "type": "address"
       }
@@ -933,6 +907,44 @@
       }
     ],
     "name": "testFuzz_FundValidators",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "validatorAddress",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountToBurn_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountToMint_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountToFund_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint80",
+        "name": "operatorPendingFee",
+        "type": "uint80"
+      },
+      {
+        "internalType": "uint80",
+        "name": "servicePendingFee",
+        "type": "uint80"
+      }
+    ],
+    "name": "testFuzz_FundValidatorsEndingBalance",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

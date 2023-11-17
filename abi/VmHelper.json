@@ -1,0 +1,119 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_blocks",
+        "type": "uint256"
+      }
+    ],
+    "name": "mineBlocks",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "timeElapsed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "blocksElapsed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentBlockNumber",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct VmHelper.MineBlocksResult",
+        "name": "result",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "secondsElapsed",
+        "type": "uint256"
+      }
+    ],
+    "name": "mineBlocksBySecond",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "timeElapsed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "blocksElapsed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentBlockNumber",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct VmHelper.MineBlocksBySecondResult",
+        "name": "result",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "mineOneBlock",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "timeElapsed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "blocksElapsed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentBlockNumber",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct VmHelper.MineOneBlockResult",
+        "name": "result",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

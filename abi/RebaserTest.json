@@ -563,33 +563,7 @@
     "name": "flip",
     "outputs": [
       {
-        "internalType": "contract stFlip",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "flipProxy",
-    "outputs": [
-      {
-        "internalType": "contract TransparentUpgradeableProxy",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "flipV1",
-    "outputs": [
-      {
-        "internalType": "contract stFlip",
+        "internalType": "contract Flip",
         "name": "",
         "type": "address"
       }
@@ -997,6 +971,11 @@
       {
         "internalType": "uint256",
         "name": "rewards_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newRewards_",
         "type": "uint256"
       },
       {

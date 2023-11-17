@@ -5,6 +5,46 @@
     "type": "constructor"
   },
   {
+    "inputs": [],
+    "name": "CannotAddToNullOperator",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "FeesExceedMax",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InputLengthsMustMatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InsufficientOutputBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotManagerOfOperator",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "OperatorNotWhitelisted",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidatorAlreadyAdded",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidatorNotWhitelisted",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [],
     "name": "DefaultAdminDelayChangeCanceled",
@@ -222,6 +262,19 @@
   },
   {
     "inputs": [],
+    "name": "PAUSER_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "REBASER_ROLE",
     "outputs": [
       {
@@ -260,6 +313,11 @@
       {
         "internalType": "uint256",
         "name": "validatorFeeBps",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "validatorAllowance",
         "type": "uint256"
       }
     ],
@@ -410,12 +468,83 @@
   },
   {
     "inputs": [],
+    "name": "getCountableValidators",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getOperatorAddresses",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getOperatorCount",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getOperatorInfo",
+    "outputs": [
+      {
+        "internalType": "uint96",
+        "name": "",
+        "type": "uint96"
+      },
+      {
+        "internalType": "uint96",
+        "name": "",
+        "type": "uint96"
+      },
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
       }
     ],
     "stateMutability": "view",
@@ -435,6 +564,47 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "addresses",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "getValidatorInfo",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "operatorId",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "trackBalance",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct OutputV1.ValidatorInfo[]",
+        "name": "",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -544,34 +714,34 @@
     "name": "operators",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint96",
         "name": "staked",
-        "type": "uint256"
+        "type": "uint96"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint96",
         "name": "unstaked",
-        "type": "uint256"
+        "type": "uint96"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint16",
         "name": "serviceFeeBps",
-        "type": "uint256"
+        "type": "uint16"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint16",
         "name": "validatorFeeBps",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
+        "type": "uint16"
       },
       {
         "internalType": "bool",
         "name": "whitelisted",
         "type": "bool"
+      },
+      {
+        "internalType": "uint8",
+        "name": "validatorAllowance",
+        "type": "uint8"
       },
       {
         "internalType": "address",
@@ -582,6 +752,11 @@
         "internalType": "address",
         "name": "feeRecipient",
         "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -695,13 +870,113 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "serviceFeeBps",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "validatorFeeBps",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "operatorId",
+        "type": "uint256"
+      }
+    ],
+    "name": "setOperatorFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "allowance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "operatorId",
+        "type": "uint256"
+      }
+    ],
+    "name": "setOperatorValidatorAllowance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "operatorId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "whitelist",
+        "type": "bool"
+      }
+    ],
+    "name": "setOperatorWhitelist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32[]",
         "name": "addresses",
         "type": "bytes32[]"
       },
       {
         "internalType": "bool",
-        "name": "status",
+        "name": "whitelist",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "trackBalance",
+        "type": "bool"
+      }
+    ],
+    "name": "setValidatorsStatus",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "addresses",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "trackBalance",
+        "type": "bool"
+      }
+    ],
+    "name": "setValidatorsTrackBalance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "addresses",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "whitelist",
         "type": "bool"
       }
     ],
@@ -785,13 +1060,18 @@
     "name": "validators",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint8",
         "name": "operatorId",
-        "type": "uint256"
+        "type": "uint8"
       },
       {
         "internalType": "bool",
         "name": "whitelisted",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "trackBalance",
         "type": "bool"
       }
     ],
@@ -804,6 +1084,19 @@
     "outputs": [
       {
         "internalType": "contract BurnerV1",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wrappedRebaserProxy",
+    "outputs": [
+      {
+        "internalType": "contract RebaserV1",
         "name": "",
         "type": "address"
       }

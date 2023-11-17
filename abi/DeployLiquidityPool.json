@@ -14,6 +14,13 @@
   },
   {
     "inputs": [],
+    "name": "addLiquidity",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "admin",
     "outputs": [
       {
@@ -105,6 +112,20 @@
   },
   {
     "inputs": [],
+    "name": "deployPool",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "mint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "minter",
     "outputs": [
       {
@@ -179,13 +200,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "run",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
