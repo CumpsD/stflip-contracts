@@ -51,10 +51,13 @@ contract RebaserV1 is Initializable, Ownership {
 
     event FeeClaim(address feeRecipient, uint256 indexed amount, bool indexed receivedFlip, uint256 indexed operatorId);
     event RebaserRebase(uint256 indexed apr, uint256 indexed stateChainBalance, uint256 previousSupply, uint256 indexed newSupply);
-
+    event NewAprThreshold(uint256 indexed newAprThreshold);
+    event NewSlashThreshold(uint256 indexed newSlashThreshold);
+    event NewRebaseInterval(uint256 indexed newRebaseInterval);
+    
     error RebaseTooSoon();
-    error AprTooHigh();
-    error SupplyDecreaseTooHigh();
+    error AprTooHigh(uint256 apr);
+    error SupplyDecreaseTooHigh(uint256 decrease);
     error ValidatorAddressesDoNotMatch();
     error InputLengthsMustMatch();
     error ExcessiveFeeClaim();
@@ -98,6 +101,8 @@ contract RebaserV1 is Initializable, Ownership {
      */
     function setAprThresholdBps(uint256 aprThresholdBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         aprThresholdBps = SafeCast.toUint16(aprThresholdBps_);
+
+        emit NewAprThreshold(aprThresholdBps_);
     }
 
     /** Sets slash threshold in bps
@@ -107,6 +112,8 @@ contract RebaserV1 is Initializable, Ownership {
      */
     function setSlashThresholdBps(uint256 slashThresholdBps_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         slashThresholdBps = SafeCast.toUint16(slashThresholdBps_);
+
+        emit NewSlashThreshold(slashThresholdBps_);
     }
 
     /** Sets minimum rebase interval
@@ -115,6 +122,8 @@ contract RebaserV1 is Initializable, Ownership {
      */
     function setRebaseInterval(uint256 rebaseInterval_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         rebaseInterval = SafeCast.toUint32(rebaseInterval_);
+
+        emit NewRebaseInterval(rebaseInterval_);
     }
 
     /** Calculates the new rebase factor based on the state chain validator balance
@@ -166,7 +175,6 @@ contract RebaserV1 is Initializable, Ownership {
 
         (OutputV1.ValidatorInfo[] memory validatorInfo, uint256 operatorCount, bool addressesEqual) = wrappedOutputProxy.getValidatorInfo(addresses);
         uint256[] memory operatorBalances = new uint256[](operatorCount);
-
 
         if (addressesEqual == false) revert ValidatorAddressesDoNotMatch();
         if (validatorBalances.length != addresses.length) revert InputLengthsMustMatch();
@@ -259,9 +267,10 @@ contract RebaserV1 is Initializable, Ownership {
         if (newSupply > currentSupply){
             apr = (newSupply * 10**18 / currentSupply - 10**18) * 10**18 / (timeElapsed * 10**18 / TIME_IN_YEAR) / (10**18/10000);
 
-            if (apr + 1 >= aprThresholdBps) revert AprTooHigh();
+            if (apr + 1 >= aprThresholdBps) revert AprTooHigh(apr + 1);
         } else {
-            if (10000 - (newSupply * 10000 / currentSupply) >= slashThresholdBps) revert SupplyDecreaseTooHigh();
+            uint256 supplyDecrease = 10000 - (newSupply * 10000 / currentSupply);
+            if (supplyDecrease >= slashThresholdBps) revert SupplyDecreaseTooHigh(supplyDecrease);
         }
 
         return apr;
