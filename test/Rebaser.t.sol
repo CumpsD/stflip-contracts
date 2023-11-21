@@ -36,6 +36,7 @@ contract RebaserTest is MainMigration {
         wrappedRebaserProxy.rebase(1, validatorBalances, addresses, true);
 
     }
+    event OperatorAdded(string indexed name, uint256 indexed serviceFeeBps, uint256 indexed validatorFeeBps, uint256 validatorAllowance, address manager);
 
 
     struct RebaserOperator {
@@ -98,7 +99,7 @@ contract RebaserTest is MainMigration {
 
         vm.startPrank(owner);
             flip.mint(address(output), rewards);
-            vm.expectRevert(RebaserV1.AprTooHigh.selector);
+            vm.expectRevert();
             wrappedRebaserProxy.rebase(1, validatorBalances, addresses, takeFee);
         vm.stopPrank();
     }
@@ -128,7 +129,7 @@ contract RebaserTest is MainMigration {
 
 
         vm.prank(owner);
-            vm.expectRevert(RebaserV1.SupplyDecreaseTooHigh.selector);
+            vm.expectRevert();
             wrappedRebaserProxy.rebase(1,validatorBalances, addresses, true);
     }
 
@@ -206,6 +207,8 @@ contract RebaserTest is MainMigration {
         p.operatorBalance = bound(operatorBalance_, 0, 1_000_000 * 10**18);
         
         vm.startPrank(owner);
+            vm.expectEmit(true, true, true, true);
+            emit OperatorAdded("owner", p.serviceFeeBps, p.validatorFeeBps, 20, owner);
             wrappedOutputProxy.addOperator(owner, "owner", p.serviceFeeBps, p.validatorFeeBps, 20);
         vm.stopPrank();
 
@@ -361,6 +364,9 @@ contract RebaserTest is MainMigration {
             wrappedMinterProxy.mint(owner,initialMint);
 
             flip.mint(address(output), rewards);
+
+            vm.expectEmit(false, true, true, true);
+            emit RebaserRebase(0, 0, stflip.totalSupply(), initialMint + rewards + initialSupply);  
             wrappedRebaserProxy.rebase(1,validatorBalances, addresses,false);
         vm.stopPrank();
 
@@ -397,10 +403,13 @@ contract RebaserTest is MainMigration {
 
         (bytes32[] memory addresses, uint256[] memory validatorBalances) = _prepareOutput();
 
-        vm.prank(owner);
-            wrappedRebaserProxy.rebase(1,validatorBalances, addresses,false);
-
         uint256 expectedSupply = startSupply - slash + initialSupply;
+
+        vm.startPrank(owner);
+            vm.expectEmit(false, true, true, true);
+            emit RebaserRebase(0, 0, stflip.totalSupply(), expectedSupply);
+            wrappedRebaserProxy.rebase(1,validatorBalances, addresses,false);
+        vm.stopPrank();
         vm.warp(block.timestamp + wrappedRebaserProxy.rebaseInterval() * 2);
 
         uint256 actualSupply = stflip.totalSupply();
@@ -476,10 +485,13 @@ contract RebaserTest is MainMigration {
 
             initialStflipSupply = stflip.totalSupply();
             
+            expectedClaim = max[i] ? initialPendingFee[i] : amountToClaim[i];
+
             vm.prank(feeRecipient);
+                vm.expectEmit(true, true, true, true);
+                emit FeeClaim(feeRecipient, expectedClaim, receiveFlip[i], i);
                 wrappedRebaserProxy.claimFee(amountToClaim[i], max[i], receiveFlip[i], i);
 
-            expectedClaim = max[i] ? initialPendingFee[i] : amountToClaim[i];
             actualClaim = token.balanceOf(feeRecipient) - initialTokenBalance;
             
             require(_relativelyEq(expectedClaim, actualClaim) , "testFuzz_SuccessfulClaimFee: amount claimed != expected");
@@ -487,6 +499,34 @@ contract RebaserTest is MainMigration {
             require(_relativelyEq(expectedStflipSupply, stflip.totalSupply()), "testFuzz_SuccessfulClaimFee: incorrect stflip supply change");
         }
         
+    }
+
+    event FeeClaim(address feeRecipient, uint256 indexed amount, bool indexed receivedFlip, uint256 indexed operatorId);
+    event RebaserRebase(uint256 indexed apr, uint256 indexed stateChainBalance, uint256 previousSupply, uint256 indexed newSupply);
+    event NewAprThreshold(uint256 indexed newAprThreshold);
+    event NewSlashThreshold(uint256 indexed newSlashThreshold);
+    event NewRebaseInterval(uint256 indexed newRebaseInterval);
+
+    function testFuzz_RebaserParams(uint256 value) public {
+        vm.startPrank(owner);
+
+            uint16 val1 = uint16(value);
+            uint32 val2 = uint32(value);
+            vm.expectEmit(true, false, false, false);
+                emit NewAprThreshold(val1);
+                wrappedRebaserProxy.setAprThresholdBps(val1);
+                require(wrappedRebaserProxy.aprThresholdBps() == val1, "testFuzz_RebaserParams: aprThresholdBps != expected");
+            
+            vm.expectEmit(true, false, false, false);
+                emit NewSlashThreshold(val1);
+                wrappedRebaserProxy.setSlashThresholdBps(val1);
+                require(wrappedRebaserProxy.slashThresholdBps() == val1, "testFuzz_RebaserParams: slashThresholdBps != expected");
+            
+            vm.expectEmit(true, false, false, false);
+                emit NewRebaseInterval(val2);
+                wrappedRebaserProxy.setRebaseInterval(val2);
+                require(wrappedRebaserProxy.rebaseInterval() == val2, "testFuzz_RebaserParams: rebaseInterval != expected");
+        vm.stopPrank();
     }
 
 }

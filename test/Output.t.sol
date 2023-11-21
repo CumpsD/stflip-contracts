@@ -27,6 +27,16 @@ contract OutputTest is MainMigration {
         string name;
     }
 
+    event ValidatorsAdded(uint256 indexed count, uint256 indexed operatorId);
+    event ValidatorsWhitelistUpdated(uint256 indexed count, bool indexed status);
+    event ValidatorsTrackBalanceUpdated(uint256 indexed count, bool indexed status);
+    event ValidatorsStatusUpdated(uint256 indexed count, bool indexed whitelist, bool indexed trackBalance);
+    event OperatorAdded(string indexed name, uint256 indexed serviceFeeBps, uint256 indexed validatorFeeBps, uint256 validatorAllowance, address manager);
+    event ValidatorAllowanceUpdated(uint256 indexed newAllowance, uint256 indexed operatorId);
+    event ValidatorsFunded(uint256 indexed count, uint256 indexed amount);
+    event ValidatorsRedeemed(uint256 indexed count, uint256 indexed amount);
+    event OperatorFeeUpdated(uint256 indexed serviceFeeBps, uint256 indexed validatorFeeBps, uint256 indexed operatorId);
+    event OperatorWhitelistUpdated(uint256 indexed operatorId, bool indexed whitelist);
 
     function testFuzz_AddOperator(address[50] calldata managers, string[50] calldata names, uint256[50] calldata serviceFeeBps_, uint256[50] calldata validatorFeeBps_, uint256 count_) external {
         uint256 count = bound(count_, 2, 50);
@@ -40,6 +50,9 @@ contract OutputTest is MainMigration {
 
         vm.startPrank(owner);
         for (uint i = 1; i < count; i++) {
+
+            vm.expectEmit(true, true, true, true);
+            emit OperatorAdded(names[i], serviceFeeBpsList[i], validatorFeeBpsList[i], 20, managers[i]);
             wrappedOutputProxy.addOperator(managers[i], names[i], serviceFeeBpsList[i], validatorFeeBpsList[i], 20);
         }
 
@@ -108,12 +121,18 @@ contract OutputTest is MainMigration {
         for (uint i = 0; i < 50; i++) {
             vm.prank(address(uint160(order[i])));
                 inp[0] = addresses[i];
-                wrappedOutputProxy.addValidators(inp, order[i]);
+                vm.expectEmit(true, true, false, false);
+                    emit ValidatorsAdded(inp.length, order[i]);
+                        wrappedOutputProxy.addValidators(inp, order[i]);
         }
 
         vm.startPrank(owner);
+            vm.expectEmit(true, true, true, true);
+                emit ValidatorsStatusUpdated(addresses.length, true, true);
             wrappedOutputProxy.setValidatorsStatus(addresses,true, true);
-            wrappedOutputProxy.fundValidators(addresses, amounts);
+            vm.expectEmit(true, true, true, true);
+                emit ValidatorsFunded(addresses.length, total);
+                wrappedOutputProxy.fundValidators(addresses, amounts);
         vm.stopPrank();
 
         for (uint i = 1; i < 10; i++) {
