@@ -46,6 +46,11 @@ contract TokenStorage {
     bool public rebasePaused;
 
     /**
+     * @notice Last proposal start period
+     */
+    uint32 public lastSnapshotTime;
+
+    /**
      * @notice Decimal difference between shares and actual balance
      */
     uint256 public constant balanceToShareDecimals = 10**6;

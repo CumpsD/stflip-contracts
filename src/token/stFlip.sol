@@ -491,6 +491,11 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return getPastTotalSupply(timepoint);
     }
 
+    function newSnapshotTime(uint256 snapshot) external onlyRole(GOVERNOR_ROLE) returns (bool) {
+        lastSnapshotTime = SafeCast.toUint32(snapshot);
+        return true;
+    }
+
     function delegate(address) external {}
 }
 
