@@ -2600,6 +2600,13 @@
   },
   {
     "inputs": [],
+    "name": "test_SnapshotTime",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "test_TransferProxyAdminOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",

@@ -178,7 +178,7 @@
   },
   {
     "inputs": [],
-    "name": "GOVERNER_ROLE",
+    "name": "GOVERNOR_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",

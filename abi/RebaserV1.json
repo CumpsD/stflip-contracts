@@ -5,7 +5,13 @@
     "type": "constructor"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "apr",
+        "type": "uint256"
+      }
+    ],
     "name": "AprTooHigh",
     "type": "error"
   },
@@ -30,7 +36,13 @@
     "type": "error"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "decrease",
+        "type": "uint256"
+      }
+    ],
     "name": "SupplyDecreaseTooHigh",
     "type": "error"
   },
@@ -131,6 +143,45 @@
       }
     ],
     "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "newAprThreshold",
+        "type": "uint256"
+      }
+    ],
+    "name": "NewAprThreshold",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "newRebaseInterval",
+        "type": "uint256"
+      }
+    ],
+    "name": "NewRebaseInterval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "newSlashThreshold",
+        "type": "uint256"
+      }
+    ],
+    "name": "NewSlashThreshold",
     "type": "event"
   },
   {
@@ -280,7 +331,7 @@
   },
   {
     "inputs": [],
-    "name": "GOVERNER_ROLE",
+    "name": "GOVERNOR_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
