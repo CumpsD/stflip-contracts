@@ -54,17 +54,17 @@ contract DeployGovScript is GovernanceOperations, Script {
     address governor;
     
     function _setState() internal {
-        multisig = ISafe(vm.envAddress("MULTISIG"));
-        multisig2 = ISafe(vm.envAddress("MULTISIG2"));
-        deployer = vm.envAddress("SIGNER1");
+        multisig = ISafe(vm.envAddress("ALPHASIG"));
+        multisig2 = ISafe(vm.envAddress("CONTRACTSIG"));
+        deployer = vm.envAddress("DEPLOYER");
 
     }
     function deployOmegaAndConfigure() public {
         _setState();
 
-        vm.startBroadcast(vm.envUint("SIGNER1KEY"));
+        vm.startBroadcast();
 
-
+            console.log("DEPLOYER", address(this));
             signMessageLib = new SignMessageLib();
             console.log("DEPLOYED SIGNMESSAGELIB:", address(signMessageLib));
 
@@ -81,8 +81,8 @@ contract DeployGovScript is GovernanceOperations, Script {
                 _safeAllowlist,
                 _delegateCallAllowlist,
                 payable(address(multisig)),
-                12,
-                5 minutes,
+                60,
+                2 minutes,
                 95,
                 95
             );

@@ -11,7 +11,8 @@ import "@src/utils/BurnerV1.sol";
 import "@src/utils/OutputV1.sol";
 import "@src/utils/RebaserV1.sol";
 import "@src/testnet/AggregatorTestnetV1.sol";
-
+import "@src/mock/ICurveDeployer.sol";
+import "@src/mock/IStableSwap.sol";
 
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -49,16 +50,30 @@ contract DeployAll is Script {
     RebaserV1 public rebaserV1;
     RebaserV1 public wrappedRebaserProxy;
 
-    address contractOwner = vm.envAddress("MULTISIG2");
-    address flip = 0x0485D65da68b2A6b48C3fA28D7CCAce196798B94;
-    address stateChainGateway = 0x38AA40B7b5a70d738baBf6699a45DacdDBBEB3fc;
-    address manager = 0xf4c296B4Dea143a31120Ca6c71FED74e0364ad87;
-    address feeRecipient = 0xd4473bb6DB6Ed67f382c1DF6C9d6FE992efAAb60;
+    address public contractOwner;
+    address public flip;
+    address public stateChainGateway;
+    address public manager;
+    address public feeRecipient;
 
-    function run() external {
-        
+    constructor() {
+        contractOwner = vm.envAddress("CONTRACTSIG");
+        flip = vm.envAddress("FLIP");
+        stateChainGateway = vm.envAddress("GATEWAY");
+        manager = vm.envAddress("MANAGER");
+        feeRecipient = vm.envAddress("FEE_RECIPIENT");
+    }
 
-        vm.startBroadcast(vm.envUint("SIGNER1KEY"));
+    function deployMain() public {
+
+        console.log("deploying all main contracts");
+        console.log("contractOwner    ", contractOwner);
+        console.log("flip             ", flip);
+        console.log("stateChainGateway", stateChainGateway);
+        console.log("manager          ", manager);
+        console.log("feeRecipient     ", feeRecipient);
+
+        vm.startBroadcast();
             
             admin = new ProxyAdmin();
             console.log("deployed admin at              ", address(admin));
@@ -72,25 +87,25 @@ contract DeployAll is Script {
             burnerV1 = new BurnerV1();
             console.log("deployed burner implementation ", address(burnerV1));
             burner = new TransparentUpgradeableProxy(address(burnerV1), address(admin), "");
-            console.log("deployed burner proxy", address(burner));
+            console.log("deployed burner proxy          ", address(burner));
             wrappedBurnerProxy = BurnerV1(address(burner));
 
             minterV1 = new MinterV1();
             console.log("deployed minter implementation ", address(minterV1));
             minter = new TransparentUpgradeableProxy(address(minterV1), address(admin), "");
-            console.log("deployed minter proxy", address(minter));
+            console.log("deployed minter proxy          ", address(minter));
             wrappedMinterProxy = MinterV1(address(minter));
         
             outputV1 = new OutputV1();
             console.log("deployed output implementation ", address(outputV1));
             output = new TransparentUpgradeableProxy(address(outputV1), address(admin), "");
-            console.log("deployed output proxy", address(output));
+            console.log("deployed output proxy          ", address(output));
             wrappedOutputProxy = OutputV1(address(output));
 
             rebaserV1 = new RebaserV1();
             console.log("deployed rebaser implementation", address(rebaserV1));
             rebaser = new TransparentUpgradeableProxy(address(rebaserV1), address(admin), "");
-            console.log("deployed rebaser proxy", address(rebaser));
+            console.log("deployed rebaser proxy         ", address(rebaser));
             wrappedRebaserProxy = RebaserV1(address(rebaser));
 
             wrappedRebaserProxy.initialize( [
@@ -103,9 +118,9 @@ contract DeployAll is Script {
                                             address(output),
                                             address(minter)
                                             ],
-                                            500,
-                                            30,
-                                            1 hours
+                                            20000,
+                                            10,
+                                            12 hours
                                             );
             console.log("initialized rebaser at         ", address(rebaser));
             wrappedOutputProxy.initialize(  
@@ -135,21 +150,53 @@ contract DeployAll is Script {
         address burner = vm.envAddress("BURNER");
         address liquidityPool = vm.envAddress("LIQUIDITYPOOL");
         address flip = vm.envAddress("FLIP");
-        address contractOwner = vm.envAddress("MULTISIG2");
+        address stflip = vm.envAddress("FLIP");
+        address admin = vm.envAddress("ADMIN");
+        address contractOwner = vm.envAddress("CONTRACTSIG");
         
-        vm.startBroadcast(vm.envUint("SIGNER1KEY"));
+        vm.startBroadcast();
 
             aggregatorV1 = new AggregatorV1();
             console.log("deployed aggregator implementation", address(aggregatorV1));
-            aggregator = new TransparentUpgradeableProxy(address(aggregatorV1), address(admin), "");
-            console.log("deployed aggregator proxy         ", address(aggregator));
-            wrappedAggregatorProxy = AggregatorV1(address(aggregator));
+            // aggregator = new TransparentUpgradeableProxy(address(aggregatorV1), address(admin), "");
+            // console.log("deployed aggregator proxy         ", address(aggregator));
+            // wrappedAggregatorProxy = AggregatorV1(address(aggregator));
         
-            wrappedAggregatorProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip), contractOwner);
-            console.log("initialized aggregator            ", address(aggregator));
+            // wrappedAggregatorProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip), contractOwner);
+            // console.log("initialized aggregator            ", address(aggregator));
 
         vm.stopBroadcast();
 
+    }
+
+    function deployCurvePool() public {
+        address flip = vm.envAddress("FLIP");
+        address stflip = vm.envAddress("STFLIP");
+
+        vm.startBroadcast();
+
+        ICurveDeployer curveDeployer = ICurveDeployer(0x6A8cbed756804B16E05E741eDaBd5cB544AE21bf);
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(flip);  
+        tokens[1] = address(stflip);
+
+        uint8[] memory assetTypes = new uint8[](2);
+        assetTypes[0] = uint8(0);
+        assetTypes[1] = uint8(2);
+        address poolAddress = curveDeployer.deploy_plain_pool(
+            "Curve.fi FLIP/stFLIP", "stFLIP-LP", 
+            tokens,          //[address(flip), address(stflip), address(0), address(0)],
+            100,             // A factor
+            30000000,        // fee
+            10**10,        // off peg multiplier?
+            865,             // ma exp time?
+            0,               // implementation index
+            assetTypes,      // asset types,
+            new bytes4[](2), // method ids
+            new address[](2) // oracles
+            );
+
+        vm.stopBroadcast();
     }
 
     function deployAggregatorTestnet() public {
