@@ -76,7 +76,7 @@ contract Harness_OutputV1 is OutputV1 {
 contract MainMigration is Test {
 
     IStableSwap public canonicalPool;
-    ICurveDeployer public curveDeployer = ICurveDeployer(0xB9fC157394Af804a3578134A6585C0dc9cc990d4);
+    ICurveDeployer public curveDeployer = ICurveDeployer(0x6A8cbed756804B16E05E741eDaBd5cB544AE21bf);
 
     // TODO change flip to be a normal erc20 token
 

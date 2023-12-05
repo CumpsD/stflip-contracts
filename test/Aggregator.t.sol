@@ -13,40 +13,80 @@ contract AggregatorTest is MainMigration {
     uint256 intitialStflipSupply;
     uint256 unstakeAggregateReceived;
     function setUp() public {
-        _makePersistent();
-
+        
         uint256 mainnetFork = vm.createFork(vm.envString("MAINNET_RPC_URL"));
 
 
         vm.selectFork(mainnetFork);
-        vm.rollFork(17698215); 
+        vm.rollFork(18629737); 
+
+        wrappedMinterProxy = MinterV1(vm.envAddress("MINTER"));
+        wrappedBurnerProxy = BurnerV1(vm.envAddress("BURNER"));
+        
+
+        aggregatorV1 = new AggregatorV1();
+        aggregator = new TransparentUpgradeableProxy(address(aggregatorV1), address(admin), "");
+        wrappedAggregatorProxy = AggregatorV1(payable(address(aggregator)));
+        wrappedAggregatorProxy.initialize(address(wrappedMinterProxy),address(wrappedBurnerProxy), address(0), address(vm.envAddress("STFLIP")), address(vm.envAddress("FLIP")), owner);
+
+        minter = TransparentUpgradeableProxy(payable(address(wrappedMinterProxy)));
+        burner = TransparentUpgradeableProxy(payable(address(wrappedBurnerProxy)));
+
 
         _setUpPool();
 
+        vm.prank(0x9A449133c6a8b4E117840B69e2a1D43634F562D3);
+            flip.transfer(owner, 25_000_000*10**18);
         vm.startPrank(owner);
-            flip.mint(owner, 30_000_000*10**18);
             flip.approve(address(minter),2**256 - 1);
             wrappedMinterProxy.mint(owner, 15_000_000*10**18);
 
             stflip.approve(address(canonicalPool), 2**256 - 1);
             flip.approve(address(canonicalPool), 2**256 - 1);
+            stflip.approve(address(wrappedAggregatorProxy), 2**256-1);
+
+            flip.approve(address(wrappedAggregatorProxy), 2**256-1);
+
         vm.stopPrank();
+
+        _makePersistent();
     }
 
     function _setUpPool() internal {
         
+
+        stflip = stFlip(vm.envAddress("STFLIP"));
+        flip = Flip(vm.envAddress("FLIP"));
+        
         // raw call data from frontend
         // bytes memory data = abi.encodePacked(hex"52f2db6900000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000180000000000000000000000000f939e0a03fb07f59a73314e73794be0e57ac1b4e0000000000000000000000005f98805a4e8be255a32880fdec7f6728c6568ba0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064000000000000000000000000000000000000000000000000000000000098968000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000b464c49502f7374464c4950000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a464c49502d7374464c4900000000000000000000000000000000000000000000");
         // address(curveDeployer).call{value: 0}(data);
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(flip);  
+        tokens[1] = address(stflip);
 
-        address poolAddress = curveDeployer.deploy_plain_pool("FLIP/stFLIP", "stFLIP", 
-                                                                [address(flip), address(stflip), address(0),address(0)],//[address(flip), address(stflip), address(0), address(0)],
-                                                                100, // A factor
-                                                                10000000, // fee
-                                                                3, // token type?
-                                                                4 // implementation type?
-                                                                );
+        uint8[] memory assetTypes = new uint8[](2);
+        assetTypes[0] = uint8(0);
+        assetTypes[1] = uint8(2);
+
+        console.log(curveDeployer.admin(), "curve admin");
+        address poolAddress = curveDeployer.deploy_plain_pool(
+            "Curve.fi FLIP/stFLIP", "stFLIP-LP", 
+            tokens,          //[address(flip), address(stflip), address(0), address(0)],
+            100,             // A factor
+            30000000,        // fee
+            10**10,        // off peg multiplier?
+            865,             // ma exp time?
+            0,               // implementation index
+            assetTypes,      // asset types,
+            new bytes4[](2), // method ids
+            new address[](2) // oracles
+            );
+
         canonicalPool = IStableSwap(poolAddress);
+
+        console.log("token 0 ", canonicalPool.coins(0));
+        console.log("token 1 ", canonicalPool.coins(1));
 
 
         vm.startPrank(owner);
@@ -87,6 +127,7 @@ contract AggregatorTest is MainMigration {
 
         vm.makePersistent(address(owner));
         vm.makePersistent(address(admin));
+
     }
 
     /**
@@ -114,11 +155,14 @@ contract AggregatorTest is MainMigration {
         vm.startPrank(owner);
             flip.approve(address(canonicalPool), 2**200);
             stflip.approve(address(canonicalPool), 2**200);
-            canonicalPool.add_liquidity([lpAmount1, lpAmount2], 0);
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = lpAmount1;
+            amounts[1] = lpAmount2;
+            canonicalPool.add_liquidity(amounts, 0);
 
             uint256 price = 10**18;
 
-            uint256 purchasable = wrappedAggregatorProxy.calculatePurchasable(price, 10**8, 100, address(canonicalPool), 0, 1);
+            uint256 purchasable = wrappedAggregatorProxy.calculatePurchasable(price, 10**8, 1000, address(canonicalPool), 0, 1);
             uint256 _dx;
             uint256 _minDy;
 
@@ -174,12 +218,15 @@ contract AggregatorTest is MainMigration {
 
         uint256 lpAmount1 = bound(lpAmount1_, 1000*10**18, flipBalance / 2);
         uint256 lpAmount2 = bound(lpAmount2_, 1000*10**18, stflipBalance / 2);
-        uint256 amountClaimable = bound(amountClaimable_, 50000, flipBalance - lpAmount1);
-        uint256 amountUnstake = bound(amountUnstake_, 1000000, stflipBalance - lpAmount2 );
+        uint256 amountClaimable = bound(amountClaimable_, 50000, flipBalance - lpAmount1 - 1);
+        uint256 amountUnstake = bound(amountUnstake_, 1000000, stflipBalance - lpAmount2  - 1);
         console.log(lpAmount1, lpAmount2, amountClaimable, amountUnstake);
         
         vm.startPrank(owner);
-            canonicalPool.add_liquidity([lpAmount1, lpAmount2], 0);
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = lpAmount1;
+            amounts[1] = lpAmount2;
+            canonicalPool.add_liquidity(amounts, 0);
         
             uint256 amountSwapOut = 0;
             uint256 amountInstantBurn;
@@ -206,6 +253,7 @@ contract AggregatorTest is MainMigration {
                 }
             }
             console.log(amountInstantBurn, amountBurn, amountSwap);
+            console.log("userbalance", stflip.balanceOf(owner));
             unstakeAggregateReceived = wrappedAggregatorProxy.unstakeAggregate(amountInstantBurn, amountBurn, amountSwap, amountSwapOut);
 
         vm.stopPrank();
@@ -273,8 +321,12 @@ contract AggregatorTest is MainMigration {
         uint256 lpAmount2 = bound(lpAmount2_, 1000*10**18, stflipBalance / 2);
 
         vm.prank(owner);
-            canonicalPool.add_liquidity([lpAmount1, lpAmount2], 0);
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = lpAmount1;
+            amounts[1] = lpAmount2;
+            canonicalPool.add_liquidity(amounts, 0);
 
+        console.log("lp1/2", lpAmount1/10**18, lpAmount2/10**18);
         uint256 price = 10**18;
         uint256 purchasable = wrappedAggregatorProxy.calculatePurchasable(price, 10**8, 100, address(canonicalPool), 0, 1);
 
@@ -283,8 +335,9 @@ contract AggregatorTest is MainMigration {
 
         if (purchasable > 0) {
 
+            vm.prank(0xCE317d9909F5dDD30dcd7331f832E906Adc81f5d);
+                flip.transfer(owner, purchasable);
             vm.startPrank(owner);
-                flip.mint(owner, purchasable);
                 canonicalPool.exchange(0, 1, purchasable, 0);
             vm.stopPrank();
         
