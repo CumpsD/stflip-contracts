@@ -50,10 +50,10 @@ This diagram gives a brief overview of how the system works to aid in the unders
 
 ## stFLIP Token Contract
 
-This ultimately is the hub of the protocol. stFLIP is a rebasing and voting token, using YAM and OZ's `VotesUpgradeable`. 
+This ultimately is the hub of the protocol. stFLIP is a rebasing and voting token, using OZ's `VotesUpgradeable`. 
 ### Rebase Factor
-stFLIP has a `yamsScalingFactor` which is updated to match the supply of the FLIP backing. "underlying" or "yams" are the actual values stored in the contract storage, and these are converted to actual "balance" or "yams" in `balanceOf` by multiplying this scaling factor by the underlying balance. Similarly, upon a transfer, the contract divides the "balance" by the scaling factor to convert to "underlying" to update balances in storage. `VotesUpgradeable` is responsible for the core underlying balance and transfer functionality of the token. For every mint, burn, and transfer, we call `transferVotingRights` which creates a new checkpoint with the latest total underlying supply for mints/burns and then creates a new underlying balance checkpoint for from/to addresses. We made some tiny [modifications](https://github.com/thunderhead-labs/openzeppelin-contracts-upgradeable) to `VotesUpgradeable` to have all addresses delegated to themselves.   
-After the Rebaser invokes a rebase, the rebase factor will linearly increase over a period of time to ensure continous reward distribution.
+stFLIP has a `preSyncSupply` and `rewardsToSync` which is updated to match the supply of the FLIP backing. Shares are the actual values stored in the contract storage, and these are converted to actual "balance" in `balanceOf` by calculating where the current total supply is in the reward distribution and multiplying by the user's percentage of the shares. `VotesUpgradeable` is responsible for the core underlying balance and transfer functionality of the token. For every mint, burn, and transfer, we call `transferVotingRights` which creates a new checkpoint with the latest total underlying supply for mints/burns and then creates a new shares checkpoint for from/to addresses. We made some tiny [modifications](https://github.com/thunderhead-labs/openzeppelin-contracts-upgradeable) to `VotesUpgradeable` to have all addresses delegated to themselves.   
+After the Rebaser invokes a rebase, `preSyncSupply`, `rewardsToSync`, `syncEnd` and `syncStart` which initiates the reward distribution interval which will linearly increase the total supply over time.
 
 ## Governance
 
