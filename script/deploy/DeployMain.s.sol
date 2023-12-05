@@ -10,7 +10,7 @@ import "@src/utils/MinterV1.sol";
 import "@src/utils/BurnerV1.sol";
 import "@src/utils/OutputV1.sol";
 import "@src/utils/RebaserV1.sol";
-import "@src/testnet/AggregatorTestnetV1.sol";
+// import "@src/testnet/AggregatorTestnetV1.sol";
 import "@src/mock/ICurveDeployer.sol";
 import "@src/mock/IStableSwap.sol";
 
@@ -38,9 +38,9 @@ contract DeployAll is Script {
     AggregatorV1 public aggregatorV1;
     AggregatorV1 public wrappedAggregatorProxy;
 
-    TransparentUpgradeableProxy public aggregatorTestnet;
-    AggregatorTestnetV1 public aggregatorTestnetV1;
-    AggregatorTestnetV1 public wrappedAggregatorTestnetProxy;
+    // TransparentUpgradeableProxy public aggregatorTestnet;
+    // AggregatorTestnetV1 public aggregatorTestnetV1;
+    // AggregatorTestnetV1 public wrappedAggregatorTestnetProxy;
 
     TransparentUpgradeableProxy public output;
     OutputV1 public outputV1;
@@ -202,27 +202,27 @@ contract DeployAll is Script {
     function deployAggregatorTestnet() public {
         
 
-        address minter = vm.envAddress("MINTER");
-        address burner = vm.envAddress("BURNER");
-        address liquidityPool = vm.envAddress("LIQUIDITYPOOL");
-        address flip = vm.envAddress("FLIP");
-         stflip = stFlip(vm.envAddress("STFLIP"));
+        // address minter = vm.envAddress("MINTER");
+        // address burner = vm.envAddress("BURNER");
+        // address liquidityPool = vm.envAddress("LIQUIDITYPOOL");
+        // address flip = vm.envAddress("FLIP");
+        //  stflip = stFlip(vm.envAddress("STFLIP"));
 
-        address contractOwner = vm.envAddress("MULTISIG2");
-        admin = ProxyAdmin(vm.envAddress("PROXYADMIN"));
+        // address contractOwner = vm.envAddress("MULTISIG2");
+        // admin = ProxyAdmin(vm.envAddress("PROXYADMIN"));
 
-        vm.startBroadcast(vm.envUint("SIGNER1KEY"));
+        // vm.startBroadcast(vm.envUint("SIGNER1KEY"));
 
-            aggregatorTestnetV1 = new AggregatorTestnetV1();
-            console.log("deployed aggregator implementation", address(aggregatorTestnetV1));
-            aggregatorTestnet = new TransparentUpgradeableProxy(address(aggregatorTestnetV1), address(admin), "");
-            console.log("deployed aggregator proxy         ", address(aggregatorTestnet));
-            wrappedAggregatorTestnetProxy = AggregatorTestnetV1(address(aggregatorTestnet));
+        //     aggregatorTestnetV1 = new AggregatorTestnetV1();
+        //     console.log("deployed aggregator implementation", address(aggregatorTestnetV1));
+        //     aggregatorTestnet = new TransparentUpgradeableProxy(address(aggregatorTestnetV1), address(admin), "");
+        //     console.log("deployed aggregator proxy         ", address(aggregatorTestnet));
+        //     wrappedAggregatorTestnetProxy = AggregatorTestnetV1(address(aggregatorTestnet));
         
-            wrappedAggregatorTestnetProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip));
-            console.log("initialized aggregator            ", address(aggregatorTestnet));
+        //     wrappedAggregatorTestnetProxy.initialize(address(minter),address(burner), address(liquidityPool), address(stflip), address(flip));
+        //     console.log("initialized aggregator            ", address(aggregatorTestnet));
 
-        vm.stopBroadcast();
+        // vm.stopBroadcast();
 
     }
 }

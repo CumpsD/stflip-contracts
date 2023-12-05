@@ -7,7 +7,7 @@ import "../../src/deploy/DeployV1.sol";
 
 import "../../src/token/stFlip.sol";
 import "../../src/token/stFlip.sol";
-import "../../src/testnet/AggregatorTestnetV1.sol";
+import "../../src/utils/AggregatorV1.sol";
 import "../../src/utils/MinterV1.sol";
 import "../../src/utils/BurnerV1.sol";
 import "../../src/utils/OutputV1.sol";
@@ -27,11 +27,15 @@ contract StakeAggregate is Script {
             stFlip flip = stFlip(vm.envAddress("FLIP"));
             stFlip stflip = stFlip(vm.envAddress("STFLIP"));
 
+            // vm.startPrank(vm.envAddress("CONTRACTSIG"));
+            //     AggregatorV1(aggregatorProxy).setPool(vm.envAddress("LIQUIDITYPOOL"));
+            // vm.stopPrank();
+
             // AggregatorTestnetV1(aggregatorProxy).stakeAggregate(1000*10**18, 100*10**18, 0, 99999999999999999);
             stflip.approve(address(aggregatorProxy), 2**256 -1 );
-            flip.approve(address(aggregatorProxy), 2**256 -1 );
+            flip.approve(address(aggregatorProxy), 0);
 
-            AggregatorTestnetV1(aggregatorProxy).unstakeAggregate(0, 10**18, 0,0, 99999999999999999);
+            AggregatorV1(aggregatorProxy).unstakeAggregate(172684374519099366658, 0, 0, 0);
 
 
         vm.stopBroadcast();

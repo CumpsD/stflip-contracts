@@ -7,7 +7,6 @@
 
 pragma solidity 0.8.20;
 
-import "../tenderswap/TenderSwap.sol";
 import "../mock/IStableSwap.sol";
 import "./MinterV1.sol";
 import "./BurnerV1.sol";

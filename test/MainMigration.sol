@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "../src/tenderswap/TenderSwap.sol";
-import "../src/tenderswap/LiquidityPoolToken.sol";
 import "../src/token/stFlip.sol";
 import "../src/mock/Flip.sol";
 import "../src/utils/AggregatorV1.sol";
