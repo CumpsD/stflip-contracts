@@ -131,6 +131,11 @@ contract FraxGovernorTestBase is MainMigration, FraxTest, SafeTestTools {
         );
         fraxGovernorOmega = IFraxGovernorOmega(_fraxGovernorOmega);
 
+
+        vm.startPrank(owner);
+            stflip.grantRole(stflip.GOVERNOR_ROLE(), _fraxGovernorOmega);
+
+        vm.stopPrank();
         (address _fraxCompatibilityFallbackHandler, ) = deployFraxCompatibilityFallbackHandler();
         fraxCompatibilityFallbackHandler = FraxCompatibilityFallbackHandler(_fraxCompatibilityFallbackHandler);
 

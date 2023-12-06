@@ -26,9 +26,29 @@ contract TokenStorage {
     uint8 public decimals;
 
     /**
-     * @notice Whether the contract is frozen
+     * @notice Whether transfers are paused
      */
-    bool public paused;
+    bool public transferPaused;
+
+    /**
+     * @notice Whether transfers are paused
+     */
+    bool public mintPaused;
+
+    /**
+     * @notice Whether transfers are paused
+     */
+    bool public burnPaused;
+
+    /**
+     * @notice Whether rebase are paused
+     */
+    bool public rebasePaused;
+
+    /**
+     * @notice Last proposal start period
+     */
+    uint32 public lastSnapshotTime;
 
     /**
      * @notice Decimal difference between shares and actual balance

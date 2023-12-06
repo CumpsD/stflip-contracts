@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "../src/tenderswap/TenderSwap.sol";
-import "../src/tenderswap/LiquidityPoolToken.sol";
 import "../src/token/stFlip.sol";
 import "../src/mock/Flip.sol";
 import "../src/utils/AggregatorV1.sol";
@@ -76,7 +74,7 @@ contract Harness_OutputV1 is OutputV1 {
 contract MainMigration is Test {
 
     IStableSwap public canonicalPool;
-    ICurveDeployer public curveDeployer = ICurveDeployer(0xB9fC157394Af804a3578134A6585C0dc9cc990d4);
+    ICurveDeployer public curveDeployer = ICurveDeployer(0x6A8cbed756804B16E05E741eDaBd5cB544AE21bf);
 
     // TODO change flip to be a normal erc20 token
 
@@ -129,7 +127,6 @@ contract MainMigration is Test {
         stflipV1 = new stFlip();
         stflipProxy = new TransparentUpgradeableProxy(address(stflipV1), address(admin), "");
         stflip = stFlip(address(stflipProxy));
-        stflip.initialize("StakedFlip", "stFLIP", decimals, owner, 0);
 
         flip = new Flip(1000000*10**decimals);
         // flipProxy = new TransparentUpgradeableProxy(address(flipV1), address(admin), "");
@@ -145,7 +142,7 @@ contract MainMigration is Test {
         burnerV1 = new BurnerV1();
         burner = new TransparentUpgradeableProxy(address(burnerV1), address(admin), "");
         wrappedBurnerProxy = BurnerV1(address(burner));
-        stflip.grantRole(stflip.BURNER_ROLE(), address(burner));
+        // stflip.grantRole(stflip.BURNER_ROLE(), address(burner));
 
 
         staker = new TestStaker(2**100-1, address(flip));
@@ -178,7 +175,7 @@ contract MainMigration is Test {
                                         30,
                                         20 hours
                                         );
-        stflip.grantRole(stflip.REBASER_ROLE(), address(rebaser));
+        // stflip.grantRole(stflip.REBASER_ROLE(), address(rebaser));
 
 
         //initializing output contract
@@ -190,11 +187,14 @@ contract MainMigration is Test {
                                     address(rebaser));
         //initializing minter
         wrappedMinterProxy.initialize(address(stflip), address(output), owner, address(flip));
-        stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
-        stflip.grantRole(stflip.MINTER_ROLE(), address(rebaser));
+        // stflip.grantRole(stflip.MINTER_ROLE(), address(minter));
+        // stflip.grantRole(stflip.MINTER_ROLE(), address(rebaser));
 
         //initializing burner
         wrappedBurnerProxy.initialize(address(stflip), owner, address(flip), address(output));
+
+
+        stflip.initialize("StakedFlip", "stFLIP", decimals, owner, 0, address(burner), address(minter), address(rebaser));
 
         //creating storage slot for lower gas usage.
 

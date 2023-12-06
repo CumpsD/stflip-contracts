@@ -22,19 +22,19 @@ contract NewBurner is Script {
 
     function run() external {
         
-        vm.startBroadcast(vm.envUint("GOV_PK"));
+        vm.startBroadcast(vm.envUint("SIGNER1KEY"));
             BurnerV1 burnerV1 = new BurnerV1();
             console.log("new burner impl", address(burnerV1));
 
-            ProxyAdmin admin = ProxyAdmin(vm.envAddress("PROXY_ADMIN"));
+            // ProxyAdmin admin = ProxyAdmin(vm.envAddress("PROXY_ADMIN"));
 
-            address burnerProxy = vm.envAddress("BURNER");
-            admin.upgrade(
-                            ITransparentUpgradeableProxy(payable(burnerProxy)), 
-                            address(burnerV1)
-                        );
+            // address burnerProxy = vm.envAddress("BURNER");
+            // admin.upgrade(
+            //                 ITransparentUpgradeableProxy(payable(burnerProxy)), 
+            //                 address(burnerV1)
+            //             );
 
-            console.log("upgraded burner ", burnerProxy, " to ", address(burnerV1));
+            // console.log("upgraded burner ", burnerProxy, " to ", address(burnerV1));
 
 
         vm.stopBroadcast();

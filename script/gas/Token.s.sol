@@ -29,7 +29,7 @@ contract GasToken is Script {
             stFlip stflipV1 = new stFlip();
             TransparentUpgradeableProxy  stflipProxy = new TransparentUpgradeableProxy(address(stflipV1), address(uint160(2)), "");
             stFlip stflip = stFlip(address(stflipProxy));
-            stflip.initialize("StakedFlip", "stFLIP", 18, owner, 0);
+            stflip.initialize("StakedFlip", "stFLIP", 18, owner, 0, address(0), address(0), address(0));
 
             stflip.mint(owner, 100_000*10**18);
 

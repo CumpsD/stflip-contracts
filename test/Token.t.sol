@@ -105,13 +105,13 @@ contract MinterTest is MainMigration {
                 console.log("expectedSupply: ", expectedSupply);
                 console.log("actualSupply:   ", stflip.totalSupply());
                 console.log("balancePerShare:", stflip.balancePerShare());
-                console.log("initSupply:     ", stflip.initSupply());
-                console.log("calc balancePershare:", stflip.totalSupply() * 10**24 / stflip.initSupply());
-                console.log("raw balancePershare:", stflip.totalSupplyRaw() * 10**18  / stflip.initSupply());
+                console.log("totalShares:    ", stflip.totalShares());
+                console.log("calc balancePershare:", stflip.totalSupply() * 10**24 / stflip.totalShares());
+                console.log("raw balancePershare:", stflip.totalSupplyRaw() * 10**18  / stflip.totalShares());
 
                 require(_relativelyEq(expectedSupply, stflip.totalSupply()), "supply incorrect");
                 require(expectedSupply == stflip.totalSupply(), "supply incorrect");
-                require(stflip.totalSupplyRaw() *10**18 / stflip.initSupply() == stflip.balancePerShare(), "balance per share wrong");
+                require(stflip.totalSupplyRaw() *10**18 / stflip.totalShares() == stflip.balancePerShare(), "balance per share wrong");
                 // uint256 calcBalancePerShare = stflip.totalSupply() * 10**24 / stflip.initSupply();
             
                 // because totalSupply truncates digits its possible that the calculated balance per share would wrong compared to calculating it normally
@@ -272,8 +272,12 @@ contract MinterTest is MainMigration {
                 stflip.burn(10**18, from);
 
             vm.expectRevert();
-                stflip.pause(true);
+                stflip.pauseTransfer(true);
 
+            vm.expectRevert();
+                stflip.pauseTransfer(true);
+            vm.expectRevert();
+                stflip.pauseTransfer(true);
             vm.expectRevert();
                 stflip.rescueTokens(from, from, 10**18);
 
@@ -282,26 +286,68 @@ contract MinterTest is MainMigration {
         vm.stopPrank();
     }
 
-    function testFuzz_Pause(bool paused) public {
-        if (paused == true) {
-            vm.startPrank(owner);
-                stflip.pause(true);
-                vm.expectRevert(stFlip.TokenIsPaused.selector);
-                    stflip.burn(10**18, user2);
+    function test_Pause() public {
 
-                vm.expectRevert(stFlip.TokenIsPaused.selector);
-                    stflip.mint(user2, 10**18);
+        vm.startPrank(owner);
+            stflip.mint(owner, 10**18);
 
-            vm.stopPrank();
-
-            vm.startPrank(user1);
-                vm.expectRevert(stFlip.TokenIsPaused.selector);
+            stflip.pauseTransfer(true);
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
                     stflip.transfer(user2, 10**18);
 
-                vm.expectRevert(stFlip.TokenIsPaused.selector);
-                    stflip.transferFrom(user1, user2, 10**18);
-            vm.stopPrank();
-        }
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
+                    stflip.transferFrom(owner, user2, 10**18);
+
+                stflip.syncSupply(0,10**18, 0);
+                wrappedBurnerProxy.burn(owner, 1000);
+                stflip.mint(owner, 0);
+
+            stflip.pauseRebase(true);
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
+                    stflip.transfer(user2, 10**18);
+
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
+                    stflip.transferFrom(owner, user2, 10**18);
+
+                vm.expectRevert(stFlip.RebaseIsPaused.selector);
+                    stflip.syncSupply(0,10**18, 0);
+
+                wrappedBurnerProxy.burn(owner, 1000);
+                stflip.mint(owner, 0);
+
+            stflip.pauseBurn(true);
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
+                    stflip.transfer(user2, 10**18);
+
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
+                    stflip.transferFrom(owner, user2, 10**18);
+
+                vm.expectRevert(stFlip.RebaseIsPaused.selector);
+                    stflip.syncSupply(0,10**18, 0);
+
+                vm.expectRevert(stFlip.BurnIsPaused.selector);
+                    wrappedBurnerProxy.burn(owner, 1000);
+
+                stflip.mint(owner, 0);
+
+            stflip.pauseMint(true);
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
+                    stflip.transfer(user2, 10**18);
+
+                vm.expectRevert(stFlip.TransferIsPaused.selector);
+                    stflip.transferFrom(owner, user2, 10**18);
+
+                vm.expectRevert(stFlip.RebaseIsPaused.selector);
+                    stflip.syncSupply(0,10**18, 0);
+
+                vm.expectRevert(stFlip.BurnIsPaused.selector);
+                    wrappedBurnerProxy.burn(owner, 1000);
+                    
+                vm.expectRevert(stFlip.MintIsPaused.selector);
+                    stflip.mint(owner, 0);
+
+
+        vm.stopPrank();
     }
 
 }

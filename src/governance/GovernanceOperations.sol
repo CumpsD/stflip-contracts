@@ -121,6 +121,23 @@ contract GovernanceOperations is Test {
     ) internal {
         GenericOptimisticProposalReturn memory ret = optimisticProposalInfo(params);
 
+        console.log("here");
+        for (uint i = 0; i < ret.targets.length; i++) {
+            console.log("targets   ", ret.targets[i]);
+        }
+        console.log("here");
+
+        for (uint i = 0; i < ret.values.length; i++) {
+            console.log("values    ", ret.values[i]);
+        }
+
+        for (uint i = 0; i < ret.calldatas.length; i++) {
+            console.log("calldatas ");
+            console.logBytes( ret.calldatas[i]);
+        }
+
+        console.log("desc.     ");
+        console.logBytes32(keccak256(bytes("")));
         params._fraxGovernorOmega.execute(ret.targets, ret.values, ret.calldatas , keccak256(bytes("")));
 
         

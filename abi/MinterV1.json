@@ -5,6 +5,11 @@
     "type": "constructor"
   },
   {
+    "inputs": [],
+    "name": "BelowMinimumMintAmount",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [],
     "name": "DefaultAdminDelayChangeCanceled",
@@ -65,25 +70,6 @@
       }
     ],
     "name": "Initialized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "Mint",
     "type": "event"
   },
   {
@@ -202,7 +188,7 @@
   },
   {
     "inputs": [],
-    "name": "GOVERNER_ROLE",
+    "name": "GOVERNOR_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -229,6 +215,19 @@
   {
     "inputs": [],
     "name": "MINTER_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PAUSER_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -426,11 +425,6 @@
         "internalType": "address",
         "name": "flip_",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "rebaser_",
-        "type": "address"
       }
     ],
     "name": "initialize",
@@ -452,30 +446,6 @@
       }
     ],
     "name": "mint",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "mintStflipFee",
     "outputs": [
       {
         "internalType": "bool",
@@ -543,19 +513,6 @@
         "internalType": "uint48",
         "name": "schedule",
         "type": "uint48"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "rebaser",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

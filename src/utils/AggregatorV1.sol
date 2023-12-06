@@ -7,14 +7,12 @@
 
 pragma solidity 0.8.20;
 
-import "../tenderswap/TenderSwap.sol";
 import "../mock/IStableSwap.sol";
 import "./MinterV1.sol";
 import "./BurnerV1.sol";
 import "forge-std/console.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-
 
 /**
  * @title Aggregator contract for stFLIP
@@ -175,11 +173,11 @@ contract AggregatorV1 is Initializable, Ownership {
         }
 
         while (true) {
-            if (attempts == 0) revert NoAttemptsLeft();
-
-            mid = (last+first) >> 1;
+            if (attempts == 0) {
+                revert NoAttemptsLeft();
+            }
+            mid = (last+first) / 2;
             price = _marginalCost(pool, tokenIn, tokenOut, mid);
-
             if (price > targetPrice) {
                 first = mid + 1;
             } else {
@@ -193,7 +191,7 @@ contract AggregatorV1 is Initializable, Ownership {
             } else {
                 currentError = (price*10**18/targetPrice) - 10**18;
             }
-
+ 
             if (currentError < targetError) {
                 return mid;
             }
@@ -219,4 +217,11 @@ contract AggregatorV1 is Initializable, Ownership {
         emit CanonicalPoolChanged(pool_);
     }
 
+    function setFlip(address flip_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        flip = IERC20(flip_);
+    }
+
+    function setStflip(address stflip_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        stflip = IERC20(stflip_);
+    }
 }

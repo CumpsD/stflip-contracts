@@ -51,17 +51,55 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
      */
     event Mint(address to, uint256 amount);
 
-    error TokenIsPaused();
+    error TransferIsPaused();
+
+    error MintIsPaused();
+
+    error BurnIsPaused();
+
+    error RebaseIsPaused();
+
 
     /**
-     * Modifier to ensure token is not frozen for certain operations
+     * Modifier to ensure token is not paused from transferring
      */
-    modifier notPaused() {
-        if (paused == true) {
-            revert TokenIsPaused();
+    modifier notTransferPaused() {
+        if (transferPaused == true) {
+            revert TransferIsPaused();
         }
         _;
     }
+
+    /**
+     * Modifier to ensure token is not paused from minting
+     */
+    modifier notMintPaused() {
+        if (mintPaused == true) {
+            revert MintIsPaused();
+        }
+        _;
+    }
+
+    /**
+     * Modifier to ensure token is not paused from burning
+     */
+    modifier notBurnPaused() {
+        if (burnPaused == true) {
+            revert BurnIsPaused();
+        }
+        _;
+    }
+
+    /**
+     * Modifier to ensure rebase are not paused
+     */
+    modifier notRebasePaused() {
+        if (rebasePaused == true) {
+            revert RebaseIsPaused();
+        }
+        _;
+    }
+
     
     /**
      * Sets initial initialization parameters
@@ -71,7 +109,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
      * @param gov_ Governance address
      * @param initialSupply_ Initial supply (0)
      */
-    function initialize(string memory name_, string memory symbol_, uint8 decimals_, address gov_, uint256 initialSupply_) initializer public {
+    function initialize(string memory name_, string memory symbol_, uint8 decimals_, address gov_, uint256 initialSupply_, address burner, address minter, address rebaser) initializer public {
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
@@ -85,23 +123,57 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         __AccessControlDefaultAdminRules_init(0, gov_);
         _grantRole(REBASER_ROLE, gov_);
         _grantRole(MINTER_ROLE, gov_);
+        _grantRole(PAUSER_ROLE, gov_);
+
+
+        _grantRole(BURNER_ROLE, burner);
+        _grantRole(MINTER_ROLE, minter);
+        _grantRole(MINTER_ROLE, rebaser);
+        _grantRole(REBASER_ROLE, rebaser);
+
     }
 
 
     /**
-    * @notice Freezes any user transfers of the contract
-    * @dev Limited to onlyGov modifier
+    * @notice Sets transfer pause status 
+    * @dev Necessary incase an operator messes up claim timing
+    * or oracle is wrong
     */
-    function pause(bool status) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
-        paused = status;
+    function pauseTransfer(bool status) external onlyRole(PAUSER_ROLE) returns (bool) {
+        transferPaused = status;
         return true;
     }
 
     /**
+    * @notice Sets mint pause status 
+    */
+    function pauseMint(bool status) external onlyRole(PAUSER_ROLE) returns (bool) {
+        mintPaused = status;
+        return true;
+    }
+
+    /**
+    * @notice Sets burn pause status
+    */
+    function pauseBurn(bool status) external onlyRole(PAUSER_ROLE) returns (bool) {
+        burnPaused = status;
+        return true;
+    }
+
+    /**
+    * @notice Sets rebase pause status
+    */
+    function pauseRebase(bool status) external onlyRole(PAUSER_ROLE) returns (bool) {
+        rebasePaused = status;
+        return true;
+    }
+
+
+    /**`
     * @notice Mints new tokens, increasing totalSupply, initSupply, and a users balance.
     * @dev Limited to onlyMinter modifier
     */
-    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) notPaused returns (bool) {
+    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) notMintPaused returns (bool) {
         _mint(to, amount);
         return true;
     }
@@ -151,7 +223,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     * @param value The amount to be transferred.
     * @return True on success, false otherwise.
     */
-    function transfer(address to, uint256 value) external notPaused returns (bool) {
+    function transfer(address to, uint256 value) external notTransferPaused returns (bool) {
 
         _transfer(msg.sender, to, value);
 
@@ -163,7 +235,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
      * @param value Amount to burn
      * @param refundee Address to burn from
      */
-    function burn(uint256 value, address refundee) external notPaused onlyRole(BURNER_ROLE) returns (bool) {
+    function burn(uint256 value, address refundee) external notBurnPaused onlyRole(BURNER_ROLE) returns (bool) {
         _burn(value, refundee);
         return true;
     } 
@@ -183,7 +255,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     * @param to The address you want to transfer to.
     * @param value The amount of tokens to be transferred.
     */
-    function transferFrom(address from, address to, uint256 value) external notPaused returns (bool) {
+    function transferFrom(address from, address to, uint256 value) external notTransferPaused returns (bool) {
         // decrease allowance
         _allowedBalances[from][msg.sender] = _allowedBalances[from][msg.sender] - value;
 
@@ -251,7 +323,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
      * supply and adjust rewardsToSync to sync the delta over the syncInterval. Interruptions to a sync
      * interval can be handled fine, but the Rebaser can only rebase every syncInterval in any case.  
      */
-    function syncSupply(uint256 epoch, uint256 newSupply, uint256 syncInterval) external onlyRole(REBASER_ROLE) returns (bool) {
+    function syncSupply(uint256 epoch, uint256 newSupply, uint256 syncInterval) external onlyRole(REBASER_ROLE) notRebasePaused returns (bool) {
         uint256 currentSupply = _totalSupply();
 
         if (newSupply < currentSupply) {
@@ -271,13 +343,6 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
         return true;
     }
 
-    /**
-     * Retrieves the total balance of `shares` from `VotesUpgradeable`
-     * latest supply checkpoint
-     */
-    function initSupply() external view returns (uint256) {
-        return _getTotalSupply();
-    }
     /**
      * Converts from actual balance to underlying shares
      * @param balance Balance value to convert
@@ -332,7 +397,7 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
      * @param amount amount
      */
     function rescueTokens(address token, address to, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
-        SafeERC20.safeTransfer(IERC20(token), to, amount);
+        IERC20(token).transfer(to, amount);
         return true;
     }
 
@@ -390,14 +455,14 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
     /**
      * Public getter for total supply of stFLIP
      */
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() external view returns (uint256) {
         return _totalSupply();
     }
 
     /**
      * Public getter for total shares of stFLIP
      */
-    function totalShares() public view returns (uint256) {
+    function totalShares() external view returns (uint256) {
         return _getTotalSupply();
     }
 
@@ -424,6 +489,11 @@ contract stFlip is Initializable, Ownership, TokenStorage, VotesUpgradeable {
 
     function totalSupplyAt(uint256 timepoint) external view returns (uint256) {
         return getPastTotalSupply(timepoint);
+    }
+
+    function newSnapshotTime(uint256 snapshot) external onlyRole(GOVERNOR_ROLE) returns (bool) {
+        lastSnapshotTime = SafeCast.toUint32(snapshot);
+        return true;
     }
 
     function delegate(address) external {}

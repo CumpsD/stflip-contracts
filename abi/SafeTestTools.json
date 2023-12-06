@@ -75,6 +75,11 @@
             "type": "bool"
           },
           {
+            "internalType": "bytes",
+            "name": "initData",
+            "type": "bytes"
+          },
+          {
             "internalType": "uint256",
             "name": "saltNonce",
             "type": "uint256"
@@ -103,11 +108,6 @@
             "internalType": "address payable",
             "name": "refundReceiver",
             "type": "address"
-          },
-          {
-            "internalType": "bytes",
-            "name": "initData",
-            "type": "bytes"
           }
         ],
         "internalType": "struct AdvancedSafeInitParams",

@@ -198,6 +198,59 @@ contract TestGovernorChanges is FraxGovernorTestBase {
         }
     }
 
+    function test_SnapshotTime() external {
+        uint256 currentTime = block.timestamp;
+        createAndExecuteOptimisticProposal(
+            GenericOptimisticProposalParams(
+                address(multisig),
+                fraxGovernorOmega,
+                address(0),
+                address(0),
+                abi.encodeWithSignature(""),
+                getSafe(address(multisig)).safe.nonce()
+            )
+        );
+
+        require(stflip.lastSnapshotTime() == currentTime + fraxGovernorOmega.votingDelay(), "snapshot time should be updated");
+        require(fraxGovernorOmega.lastSnapshotTime() == currentTime + fraxGovernorOmega.votingDelay(), "snapshot time should be updated");
+        
+        uint256 newTime = block.timestamp;
+        createAndExecuteOptimisticProposal(
+            GenericOptimisticProposalParams(
+                address(multisig),
+                fraxGovernorOmega,
+                address(0),
+                address(admin),
+                abi.encodeWithSignature("upgrade(address,address)", address(stflip), address(stflipV1)),
+                getSafe(address(multisig)).safe.nonce()
+            )
+        );
+
+        
+        require(stflip.lastSnapshotTime() == newTime + fraxGovernorOmega.votingDelay(), "snapshot time should be updated");
+        require(fraxGovernorOmega.lastSnapshotTime() == newTime + fraxGovernorOmega.votingDelay(), "snapshot time should be updated");
+
+        vm.startPrank(owner);
+            stflip.revokeRole(stflip.GOVERNOR_ROLE(), address(fraxGovernorOmega));
+        vm.stopPrank();
+
+        uint256 newTime1 = block.timestamp;
+        createAndExecuteOptimisticProposal(
+            GenericOptimisticProposalParams(
+                address(multisig),
+                fraxGovernorOmega,
+                address(0),
+                address(admin),
+                abi.encodeWithSignature("upgrade(address,address)", address(stflip), address(stflipV1)),
+                getSafe(address(multisig)).safe.nonce()
+            )
+        );
+
+        
+        require(stflip.lastSnapshotTime() == newTime + fraxGovernorOmega.votingDelay(), "snapshot time should be updated");
+        require(fraxGovernorOmega.lastSnapshotTime() == newTime1 + fraxGovernorOmega.votingDelay(), "snapshot time should be updated"); 
+    }
+
     // function test_Parameters() external {
     //     console.log("quorumNumerator", fraxGovernorOmega.quorumNumerator());
     //     console.log("quorumDenominator", fraxGovernorOmega.quorumDenominator());

@@ -15,11 +15,6 @@ test
 ├── Token.t.sol                     | Some token tests
 ├── Upgrade.t.sol                   | Some upgrade tests
 ├── Voting.t.sol                    | Some voting related tests
-├── gas                             | Misc gas benchmarks
-│   ├── BurnerGas.t.sol
-│   ├── RebaserGas.t.sol
-│   ├── Snapshot.t.sol
-│   └── rebaser
 src
 ├── mock
 │   ├── Flip.sol                    | Mock ERC20 token used in tests
@@ -50,10 +45,10 @@ This diagram gives a brief overview of how the system works to aid in the unders
 
 ## stFLIP Token Contract
 
-This ultimately is the hub of the protocol. stFLIP is a rebasing and voting token, using YAM and OZ's `VotesUpgradeable`. 
+This ultimately is the hub of the protocol. stFLIP is a rebasing and voting token, using OZ's `VotesUpgradeable`. 
 ### Rebase Factor
-stFLIP has a `yamsScalingFactor` which is updated to match the supply of the FLIP backing. "underlying" or "yams" are the actual values stored in the contract storage, and these are converted to actual "balance" or "yams" in `balanceOf` by multiplying this scaling factor by the underlying balance. Similarly, upon a transfer, the contract divides the "balance" by the scaling factor to convert to "underlying" to update balances in storage. `VotesUpgradeable` is responsible for the core underlying balance and transfer functionality of the token. For every mint, burn, and transfer, we call `transferVotingRights` which creates a new checkpoint with the latest total underlying supply for mints/burns and then creates a new underlying balance checkpoint for from/to addresses. We made some tiny [modifications](https://github.com/thunderhead-labs/openzeppelin-contracts-upgradeable) to `VotesUpgradeable` to have all addresses delegated to themselves.   
-After the Rebaser invokes a rebase, the rebase factor will linearly increase over a period of time to ensure continous reward distribution.
+stFLIP has a `preSyncSupply` and `rewardsToSync` which is updated to match the supply of the FLIP backing. Shares are the actual values stored in the contract storage, and these are converted to actual "balance" in `balanceOf` by calculating where the current total supply is in the reward distribution and multiplying by the user's percentage of the shares. `VotesUpgradeable` is responsible for the core underlying balance and transfer functionality of the token. For every mint, burn, and transfer, we call `transferVotingRights` which creates a new checkpoint with the latest total underlying supply for mints/burns and then creates a new shares checkpoint for from/to addresses. We made some tiny [modifications](https://github.com/thunderhead-labs/openzeppelin-contracts-upgradeable) to `VotesUpgradeable` to have all addresses delegated to themselves.   
+After the Rebaser invokes a rebase, `preSyncSupply`, `rewardsToSync`, `syncEnd` and `syncStart` which initiates the reward distribution interval which will linearly increase the total supply over time.
 
 ## Governance
 
@@ -126,6 +121,23 @@ The manager or fee recipient of an operator can `claimFee` to receive an `amount
 ## Conclusion
 This gives a solid explanation of the StakedFLIP protocol. Please reach out if you have further questions. 
 
+
+## Contract Addresses
+| Contract          | Proxy                                      | Implementation                             |
+|-------------------|--------------------------------------------|--------------------------------------------|
+| stFLIP            | [0x961D4921e1718E633BAC8Ded88c4a1cAe44b785a](https://etherscan.io/address/0x961D4921e1718E633BAC8Ded88c4a1cAe44b785a) | [0xe47394531ca17f9aec40dbbe920fb6d04c5ae605](https://etherscan.io/address/0xe47394531ca17f9aec40dbbe920fb6d04c5ae605) |
+| Output            | [0x6345A9F7e7069D478FFF3595f1522f28d8405151](https://etherscan.io/address/0x6345A9F7e7069D478FFF3595f1522f28d8405151) | [0x8ed99d9c19c95c632659f7b683e4511bdc639503](https://etherscan.io/address/0x8ed99d9c19c95c632659f7b683e4511bdc639503) |
+| Rebaser           | [0x695D1ce0E1Dd5Fca03Bed74c35A407BdEE06636a](https://etherscan.io/address/0x695D1ce0E1Dd5Fca03Bed74c35A407BdEE06636a) | [0x358660c720cf0303e6210651ffbbb25fadd92c5e](https://etherscan.io/address/0x358660c720cf0303e6210651ffbbb25fadd92c5e) |
+| Burner            | [0xb4078E779F4a982f27109522E2BA07dd9E133252](https://etherscan.io/address/0xb4078E779F4a982f27109522E2BA07dd9E133252) | [0x91e9c920fd77da76a8e7f5faa3f6cd0d96be7c3b](https://etherscan.io/address/0x91e9c920fd77da76a8e7f5faa3f6cd0d96be7c3b) |
+| Aggregator        | [0x38d8d03dFA9554D2232D4249EB23c48c23a24fA4](https://etherscan.io/address/0x38d8d03dFA9554D2232D4249EB23c48c23a24fA4) | [0xb63e67f54a2070e8b0e15a5a5a946dbb8e503966](https://etherscan.io/address/0xb63e67f54a2070e8b0e15a5a5a946dbb8e503966) |
+| Minter            | [0xb6ff055b901b8c2d37d55da1f1daaea956136350](https://etherscan.io/address/0xb6ff055b901b8c2d37d55da1f1daaea956136350) | [0xcec4a4f5c476dcefcb26d037200b498f2ca01e62](https://etherscan.io/address/0xcec4a4f5c476dcefcb26d037200b498f2ca01e62) |
+| FLIP              | [0x826180541412D574cf1336d22c0C0a287822678A](https://etherscan.io/address/0x826180541412D574cf1336d22c0C0a287822678A) | N/A                                        |
+| StateChainGateway | [0x6995ab7c4d7f4b03f467cf4c8e920427d9621dbd](https://etherscan.io/address/0x6995ab7c4d7f4b03f467cf4c8e920427d9621dbd) | N/A                                        |
+| FraxGovernorOmega | [0xBCB25d7582D0738a77508096B05488d49181b255](https://etherscan.io/address/0xBCB25d7582D0738a77508096B05488d49181b255) | N/A                                        |
+| ProxyAdmin        | [0x620CbdF6ec660CC559F9bBC28DB385bbeB8D0D77](https://etherscan.io/address/0x620CbdF6ec660CC559F9bBC28DB385bbeB8D0D77) | N/A                                        |
+| Alphasig          | [0xfBAa992a9E04e6a4Fd1Ba52d49c9c12baa0dA3C6](https://etherscan.io/address/0xfBAa992a9E04e6a4Fd1Ba52d49c9c12baa0dA3C6) | N/A                                        |
+| Contractsig       | [0x7a8A1e6966Ac5b67Aca3C9308Fa798Bb56ECAC38](https://etherscan.io/address/0x7a8A1e6966Ac5b67Aca3C9308Fa798Bb56ECAC38) | N/A                                        |
+| Pausersig         | [0x91B8441D1F57748629FBE5d814A9d2F471AbBAaA](https://etherscan.io/address/0x91B8441D1F57748629FBE5d814A9d2F471AbBAaA) | N/A                                        |
 #### ABI
 
 The ABIs are in `abi/`

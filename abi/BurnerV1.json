@@ -5,16 +5,38 @@
     "type": "constructor"
   },
   {
+    "inputs": [],
+    "name": "BelowMinimumBurnAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotRedeemable",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "burner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
         "name": "burnId",
         "type": "uint256"
@@ -202,7 +224,7 @@
   },
   {
     "inputs": [],
-    "name": "GOVERNER_ROLE",
+    "name": "GOVERNOR_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -241,6 +263,19 @@
   },
   {
     "inputs": [],
+    "name": "PAUSER_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "REBASER_ROLE",
     "outputs": [
       {
@@ -257,19 +292,6 @@
     "name": "acceptDefaultAdminTransfer",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "balance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -320,14 +342,14 @@
     "name": "burns",
     "outputs": [
       {
+        "internalType": "uint88",
+        "name": "amount",
+        "type": "uint88"
+      },
+      {
         "internalType": "address",
         "name": "user",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
       },
       {
         "internalType": "bool",
@@ -417,14 +439,14 @@
       {
         "components": [
           {
+            "internalType": "uint88",
+            "name": "amount",
+            "type": "uint88"
+          },
+          {
             "internalType": "address",
             "name": "user",
             "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amount",
-            "type": "uint256"
           },
           {
             "internalType": "bool",
@@ -472,14 +494,14 @@
       {
         "components": [
           {
+            "internalType": "uint88",
+            "name": "amount",
+            "type": "uint88"
+          },
+          {
             "internalType": "address",
             "name": "user",
             "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amount",
-            "type": "uint256"
           },
           {
             "internalType": "bool",
@@ -519,19 +541,6 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "gov",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -664,19 +673,6 @@
         "internalType": "uint48",
         "name": "schedule",
         "type": "uint48"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "pendingGov",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

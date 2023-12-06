@@ -61,6 +61,17 @@ contract OutputV1 is Initializable, Ownership {
         _disableInitializers();
     }
 
+    event ValidatorsAdded(uint256 indexed count, uint256 indexed operatorId);
+    event ValidatorsWhitelistUpdated(uint256 indexed count, bool indexed status);
+    event ValidatorsTrackBalanceUpdated(uint256 indexed count, bool indexed status);
+    event ValidatorsStatusUpdated(uint256 indexed count, bool indexed whitelist, bool indexed trackBalance);
+    event OperatorAdded(string indexed name, uint256 indexed serviceFeeBps, uint256 indexed validatorFeeBps, uint256 validatorAllowance, address manager);
+    event ValidatorAllowanceUpdated(uint256 indexed newAllowance, uint256 indexed operatorId);
+    event ValidatorsFunded(uint256 indexed count, uint256 indexed amount);
+    event ValidatorsRedeemed(uint256 indexed count, uint256 indexed amount);
+    event OperatorFeeUpdated(uint256 indexed serviceFeeBps, uint256 indexed validatorFeeBps, uint256 indexed operatorId);
+    event OperatorWhitelistUpdated(uint256 indexed operatorId, bool indexed whitelist);
+
     error InsufficientOutputBalance();
     error NotManagerOfOperator();
     error OperatorNotWhitelisted();
@@ -121,6 +132,8 @@ contract OutputV1 is Initializable, Ownership {
         }
 
         validatorAddressHash = keccak256(abi.encodePacked(validatorAddresses));
+
+        emit ValidatorsAdded(addressesLength, operatorId);
     }
 
     /**
@@ -143,6 +156,8 @@ contract OutputV1 is Initializable, Ownership {
             validators[addresses[i]].whitelisted = whitelist;
             validators[addresses[i]].trackBalance = trackBalance;
         }
+
+        emit ValidatorsStatusUpdated(addressesLength, whitelist, trackBalance);
     }
 
     /**
@@ -155,6 +170,9 @@ contract OutputV1 is Initializable, Ownership {
         for (uint256 i; i < addressesLength; ++i) {
             validators[addresses[i]].whitelisted = whitelist;
         }
+
+        emit ValidatorsWhitelistUpdated(addressesLength, whitelist);
+
     }
 
     /**
@@ -168,6 +186,8 @@ contract OutputV1 is Initializable, Ownership {
         for (uint256 i; i < addressesLength; ++i) {
             validators[addresses[i]].trackBalance = trackBalance;
         }
+
+        emit ValidatorsTrackBalanceUpdated(addressesLength, trackBalance);
     }
 
     /**
@@ -187,6 +207,8 @@ contract OutputV1 is Initializable, Ownership {
 
         Operator memory operator = Operator(0, 0, SafeCast.toUint16(serviceFeeBps), SafeCast.toUint16(validatorFeeBps),true, SafeCast.toUint8(validatorAllowance), manager, manager,name);
         operators.push(operator);
+
+        emit OperatorAdded(name, serviceFeeBps, validatorFeeBps, validatorAllowance, manager);
     }
 
     /**
@@ -196,6 +218,8 @@ contract OutputV1 is Initializable, Ownership {
      */
     function setOperatorValidatorAllowance(uint256 allowance, uint256 operatorId) external onlyRole(DEFAULT_ADMIN_ROLE) {
         operators[operatorId].validatorAllowance = SafeCast.toUint8(allowance);
+
+        emit ValidatorAllowanceUpdated(allowance, operatorId);
     }
 
     /** Funds state chain accounts 
@@ -213,6 +237,7 @@ contract OutputV1 is Initializable, Ownership {
 
         Validator memory validator;
         uint8 operatorId_;
+        uint256 total;
         for (uint i; i < addressesLength; ++i) {
             validator = validators[addresses[i]];
             operatorId_ = validator.operatorId;
@@ -222,11 +247,15 @@ contract OutputV1 is Initializable, Ownership {
 
             operators[operatorId_].staked += SafeCast.toUint96(amounts[i]);
             stateChainGateway.fundStateChainAccount(addresses[i], amounts[i]);
+            total += amounts[i];
         }
+
+        emit ValidatorsFunded(addressesLength, total);
 
         if (flip.balanceOf(address(this)) < wrappedBurnerProxy.totalPendingBurns() + wrappedRebaserProxy.totalOperatorPendingFee() + wrappedRebaserProxy.servicePendingFee()) {
             revert InsufficientOutputBalance();
         }
+
     }
 
     /** Redeems funds from state chain accounts
@@ -240,10 +269,14 @@ contract OutputV1 is Initializable, Ownership {
     function redeemValidators(bytes32[] calldata addresses) external onlyRole(MANAGER_ROLE) {
         uint256 amount;
         uint256 addressesLength = addresses.length;
+        uint256 total;
         for (uint i; i < addressesLength; ++i) {
             (,amount) = stateChainGateway.executeRedemption(addresses[i]);
             operators[validators[addresses[i]].operatorId].unstaked += SafeCast.toUint96(amount);
+            total += amount;
         }
+
+        emit ValidatorsRedeemed(addressesLength, total);
     }
 
     /**
@@ -256,6 +289,8 @@ contract OutputV1 is Initializable, Ownership {
         
         operators[operatorId].serviceFeeBps = SafeCast.toUint16(serviceFeeBps);
         operators[operatorId].validatorFeeBps = SafeCast.toUint16(validatorFeeBps);
+
+        emit OperatorFeeUpdated(serviceFeeBps, validatorFeeBps, operatorId);
     }
 
     /**
@@ -265,6 +300,8 @@ contract OutputV1 is Initializable, Ownership {
      */
     function setOperatorWhitelist(uint256 operatorId, bool whitelist) external onlyRole(DEFAULT_ADMIN_ROLE) {
         operators[operatorId].whitelisted = whitelist;
+
+        emit OperatorWhitelistUpdated(operatorId, whitelist);
     }
 
     /**

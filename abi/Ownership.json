@@ -178,7 +178,7 @@
   },
   {
     "inputs": [],
-    "name": "GOVERNER_ROLE",
+    "name": "GOVERNOR_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -205,6 +205,19 @@
   {
     "inputs": [],
     "name": "MINTER_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PAUSER_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",

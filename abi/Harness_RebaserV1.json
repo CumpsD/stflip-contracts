@@ -1,5 +1,52 @@
 [
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "apr",
+        "type": "uint256"
+      }
+    ],
+    "name": "AprTooHigh",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ExcessiveFeeClaim",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InputLengthsMustMatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotFeeRecipientOrManager",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RebaseTooSoon",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "decrease",
+        "type": "uint256"
+      }
+    ],
+    "name": "SupplyDecreaseTooHigh",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ValidatorAddressesDoNotMatch",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [],
     "name": "DefaultAdminDelayChangeCanceled",
@@ -59,56 +106,25 @@
         "type": "address"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "bool",
         "name": "receivedFlip",
         "type": "bool"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
         "name": "operatorId",
         "type": "uint256"
       }
     ],
     "name": "FeeClaim",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "apr",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "feeIncrement",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "previousSupply",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newSupply",
-        "type": "uint256"
-      }
-    ],
-    "name": "GovRebase",
     "type": "event"
   },
   {
@@ -128,15 +144,54 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "newAprThreshold",
+        "type": "uint256"
+      }
+    ],
+    "name": "NewAprThreshold",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "newRebaseInterval",
+        "type": "uint256"
+      }
+    ],
+    "name": "NewRebaseInterval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "newSlashThreshold",
+        "type": "uint256"
+      }
+    ],
+    "name": "NewSlashThreshold",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "apr",
         "type": "uint256"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
-        "name": "feeIncrement",
+        "name": "stateChainBalance",
         "type": "uint256"
       },
       {
@@ -146,7 +201,7 @@
         "type": "uint256"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
         "name": "newSupply",
         "type": "uint256"
@@ -271,7 +326,7 @@
   },
   {
     "inputs": [],
-    "name": "GOVERNER_ROLE",
+    "name": "GOVERNOR_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -306,6 +361,32 @@
       }
     ],
     "name": "Harness_setOperator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "servicePendingFee_",
+        "type": "uint256"
+      }
+    ],
+    "name": "Harness_setPendingFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "fee",
+        "type": "uint256"
+      }
+    ],
+    "name": "Harness_setTotalOperatorPendingFee",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -359,6 +440,11 @@
     ],
     "name": "Harness_updateOperators",
     "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
       {
         "internalType": "uint256",
         "name": "",
@@ -425,6 +511,19 @@
   },
   {
     "inputs": [],
+    "name": "PAUSER_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "REBASER_ROLE",
     "outputs": [
       {
@@ -448,9 +547,9 @@
     "name": "aprThresholdBps",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint16",
         "name": "",
-        "type": "uint256"
+        "type": "uint16"
       }
     ],
     "stateMutability": "view",
@@ -581,12 +680,12 @@
   },
   {
     "inputs": [],
-    "name": "feeBps",
+    "name": "flip",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "contract IERC20",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -594,12 +693,29 @@
   },
   {
     "inputs": [],
-    "name": "flip",
+    "name": "getOperators",
     "outputs": [
       {
-        "internalType": "contract IERC20",
+        "components": [
+          {
+            "internalType": "uint88",
+            "name": "rewards",
+            "type": "uint88"
+          },
+          {
+            "internalType": "uint80",
+            "name": "pendingFee",
+            "type": "uint80"
+          },
+          {
+            "internalType": "uint88",
+            "name": "slashCounter",
+            "type": "uint88"
+          }
+        ],
+        "internalType": "struct RebaserV1.Operator[]",
         "name": "",
-        "type": "address"
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -675,11 +791,6 @@
       },
       {
         "internalType": "uint256",
-        "name": "feeBps_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "aprThresholdBps_",
         "type": "uint256"
       },
@@ -704,9 +815,9 @@
     "name": "lastRebaseTime",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint32",
         "name": "",
-        "type": "uint256"
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -723,19 +834,19 @@
     "name": "operators",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint88",
         "name": "rewards",
-        "type": "uint256"
+        "type": "uint88"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint80",
         "name": "pendingFee",
-        "type": "uint256"
+        "type": "uint80"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint88",
         "name": "slashCounter",
-        "type": "uint256"
+        "type": "uint88"
       }
     ],
     "stateMutability": "view",
@@ -823,9 +934,9 @@
     "name": "rebaseInterval",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint32",
         "name": "",
-        "type": "uint256"
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -879,9 +990,9 @@
     "name": "servicePendingFee",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint80",
         "name": "",
-        "type": "uint256"
+        "type": "uint80"
       }
     ],
     "stateMutability": "view",
@@ -896,19 +1007,6 @@
       }
     ],
     "name": "setAprThresholdBps",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "feeBps_",
-        "type": "uint256"
-      }
-    ],
-    "name": "setFeeBps",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -944,9 +1042,9 @@
     "name": "slashThresholdBps",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint16",
         "name": "",
-        "type": "uint256"
+        "type": "uint16"
       }
     ],
     "stateMutability": "view",
@@ -989,9 +1087,9 @@
     "name": "totalOperatorPendingFee",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint80",
         "name": "",
-        "type": "uint256"
+        "type": "uint80"
       }
     ],
     "stateMutability": "view",
